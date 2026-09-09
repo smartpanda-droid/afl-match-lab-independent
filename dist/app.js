@@ -5,7 +5,7 @@ if(CFG?.PARALLEL_TEST){
 }else{
   const b=document.getElementById('parallelTestBanner'); if(b)b.hidden=true;
 }
-const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], playerThresholds:{}, view:'match' };
+const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, view:'match' };
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':'&quot;',"'":"&#39;"}[c]));
@@ -129,7 +129,7 @@ async function loadMatches(){
 async function loadSelected(){
   if(!state.selected)return;
   const id=encodeURIComponent(state.selected);
-  const [legs,multis,lineup,recent,availability,contextRows,stabilityRows,finalRows,shadowRows]=await Promise.all([
+  const [legs,multis,lineup,recent,availability,contextRows,stabilityRows,finalRows,shadowRows,matchQuoteRows]=await Promise.all([
     apiPaged(`/rest/v1/afl_api_prediction_legs?select=*&match_id=eq.${id}&order=player_name.asc,market.asc,threshold.asc`),
     api(`/rest/v1/afl_api_multis?select=*&match_id=eq.${id}&order=strategy.asc,leg_count.asc,rank_in_group.asc`),
     api(`/rest/v1/afl_api_lineup?select=*&match_id=eq.${id}&order=team_name.asc,emergency.asc,bench.asc,player_name.asc`),
@@ -138,9 +138,10 @@ async function loadSelected(){
     api(`/rest/v1/afl_api_match_context?select=*&match_id=eq.${id}`),
     api(`/rest/v1/afl_api_multi_stability?select=*&match_id=eq.${id}`),
     api(`/rest/v1/afl_api_final_recommendations?select=*&match_id=eq.${id}`),
-    api(`/rest/v1/afl_api_shadow_observations?select=*&match_id=eq.${id}&order=sequence_no.asc`)
+    api(`/rest/v1/afl_api_shadow_observations?select=*&match_id=eq.${id}&order=sequence_no.asc`),
+    api('/rest/v1/rpc/afl_match_market_quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_match_id:state.selected,p_line:null,p_total:null})})
   ]);
-  state.legs=legs;state.multis=multis;state.lineup=lineup;state.recent5=new Map(recent.map(r=>[r.player_id,r.recent5||[]]));state.availability=new Map(availability.map(r=>[r.player_id,r]));state.context=contextRows[0]||null;state.multiStability=new Map((stabilityRows||[]).map(x=>[`${x.strategy}:${x.leg_count}:${x.slot}`,x]));state.finalLock=(finalRows||[])[0]||null;state.shadowObs=shadowRows||[];
+  state.legs=legs;state.multis=multis;state.lineup=lineup;state.recent5=new Map(recent.map(r=>[r.player_id,r.recent5||[]]));state.availability=new Map(availability.map(r=>[r.player_id,r]));state.context=contextRows[0]||null;state.multiStability=new Map((stabilityRows||[]).map(x=>[`${x.strategy}:${x.leg_count}:${x.slot}`,x]));state.finalLock=(finalRows||[])[0]||null;state.shadowObs=shadowRows||[];state.matchQuote=Array.isArray(matchQuoteRows)?matchQuoteRows[0]:matchQuoteRows;
   loadBuilder();renderAll();evaluateBuilder().catch(showError);
 }
 
@@ -149,6 +150,28 @@ function metric(label,value){return `<div class="metric"><b>${value}</b>${label}
 function probClass(p){p=Number(p);return p>=.65?'high':p>=.5?'mid':'low'}
 
 function renderAll(){renderMatch();renderPlayerControls();renderPlayers();renderMultis();renderBuilder();renderField();renderTactics();renderValidation();renderShadowLive();$('#healthBadge').className='badge good';$('#healthBadge').textContent='Supabase Connected'}
+
+async function refreshMatchQuote(){
+  if(!state.selected)return;
+  const seq=++state.matchQuoteSeq;
+  const line=Number($('#matchLineInput')?.value); const total=Number($('#matchTotalInput')?.value);
+  try{
+    const r=await api('/rest/v1/rpc/afl_match_market_quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_match_id:state.selected,p_line:Number.isFinite(line)?line:null,p_total:Number.isFinite(total)?total:null})});
+    if(seq!==state.matchQuoteSeq)return; state.matchQuote=Array.isArray(r)?r[0]:r; renderMatchPrediction();
+  }catch(e){showError(e)}
+}
+function n1(v){return v==null?'—':Number(v).toFixed(1)}
+function renderMatchPrediction(){
+  const q=state.matchQuote, host=$('#matchPrediction'); if(!host)return;
+  if(!q){host.innerHTML='<div class="empty">暂无比赛市场预测</div>';return}
+  host.innerHTML=`<div class="match-pred-grid">
+    <article class="prediction-card score-card"><div class="eyebrow">PREDICTED SCORE</div><div class="score-pair"><div><strong>${esc(q.home_team_name)}</strong><b>${n1(q.predicted_home_score)}</b><small>${n1(q.home_score_low)}–${n1(q.home_score_high)}</small></div><span>–</span><div><strong>${esc(q.away_team_name)}</strong><b>${n1(q.predicted_away_score)}</b><small>${n1(q.away_score_low)}–${n1(q.away_score_high)}</small></div></div><div class="win-probs"><span>${esc(q.home_team_name)} ${pct(q.home_win_probability)}</span><span>${esc(q.away_team_name)} ${pct(q.away_win_probability)}</span></div></article>
+    <article class="prediction-card"><div class="eyebrow">LINE / 让球</div><div class="fair-market"><span>Model fair home line</span><b>${Number(q.fair_home_line)>=0?'+':''}${n1(q.fair_home_line)}</b></div><div class="market-stepper"><button type="button" data-match-step="line" data-delta="-0.5">−</button><input id="matchLineInput" type="number" step="0.5" value="${n1(q.quoted_line)}"><button type="button" data-match-step="line" data-delta="0.5">+</button></div><div class="market-probs"><span>Home cover <b>${pct(q.home_cover_probability)}</b></span><span>Away cover <b>${pct(q.away_cover_probability)}</b></span></div></article>
+    <article class="prediction-card"><div class="eyebrow">TOTAL POINTS / 总比分</div><div class="fair-market"><span>Model fair total</span><b>${n1(q.fair_total)}</b></div><div class="market-stepper"><button type="button" data-match-step="total" data-delta="-0.5">−</button><input id="matchTotalInput" type="number" step="0.5" value="${n1(q.quoted_total)}"><button type="button" data-match-step="total" data-delta="0.5">+</button></div><div class="market-probs"><span>Over <b>${pct(q.over_probability)}</b></span><span>Under <b>${pct(q.under_probability)}</b></span></div></article>
+  </div><div class="prediction-foot">Model ${esc(q.model_method)} · samples ${q.sample_home}/${q.sample_away} · Fair values are model estimates, not bookmaker prices.</div>`;
+  $$('#matchPrediction [data-match-step]').forEach(b=>b.addEventListener('click',()=>{const id=b.dataset.matchStep==='line'?'matchLineInput':'matchTotalInput';const el=$('#'+id);el.value=(Number(el.value||0)+Number(b.dataset.delta)).toFixed(1);refreshMatchQuote()}));
+  $('#matchLineInput')?.addEventListener('change',refreshMatchQuote); $('#matchTotalInput')?.addEventListener('change',refreshMatchQuote);
+}
 
 function renderMatch(){
   const m=state.matches.find(x=>x.match_id===state.selected);if(!m)return;
@@ -163,6 +186,7 @@ function renderMatch(){
   $('#modelSummary').innerHTML=stat('Model',esc(m.model_version||'—'))+stat('Legs',state.legs.length)+stat('Multi',state.multis.filter(x=>x.recommended).length);
   $('#topLegs').innerHTML=state.legs.slice(0,10).map(l=>`<div class="top-leg"><div class="p">${pct(l.model_probability)}</div><div class="sel">${esc(l.selection)}</div><div class="meta">Fair ${odds(l.fair_odds)} · n=${l.sample_size??'—'}</div><button class="add-leg" data-leg-id="${l.prediction_leg_id}">+ Multi Lab</button></div>`).join('')||'<div class="empty">暂无预测</div>';
   $$('#topLegs .add-leg').forEach(b=>b.addEventListener('click',()=>addLegById(b.dataset.legId)));
+  renderMatchPrediction();
 }
 
 function scenarioLabel(k){return ({home_control:'主队控制',away_control:'客队控制',close_contest:'全场焦灼',momentum_comeback:'追分/反扑',blowout_garbage_time:'大比分/垃圾时间',low_scoring_defensive:'低比分防守战'})[k]||k.replaceAll('_',' ')}
@@ -186,7 +210,19 @@ function selectedPlayerLeg(options){
   const sorted=[...options].sort((a,b)=>Number(a.threshold)-Number(b.threshold));
   const key=playerThresholdKey(sorted[0]?.player_id,sorted[0]?.market);
   const wanted=Number(state.playerThresholds[key]);
-  return sorted.find(x=>Number(x.threshold)===wanted)||sorted[0];
+  const exact=sorted.find(x=>Number(x.threshold)===wanted);
+  if(exact)return exact;
+  const quote=state.playerManualQuotes.get(key);
+  if(quote&&Number(quote.threshold)===wanted)return {...sorted[0],...quote,prediction_leg_id:null,manual_quote:true};
+  return sorted[0];
+}
+async function quotePlayerThreshold(playerId,market,threshold){
+  const key=playerThresholdKey(playerId,market), seq=(state.playerQuoteSeq.get(key)||0)+1; state.playerQuoteSeq.set(key,seq);
+  state.playerThresholds[key]=threshold;
+  try{
+    const r=await api('/rest/v1/rpc/afl_player_market_quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_match_id:state.selected,p_player_id:playerId,p_market:market,p_threshold:threshold})});
+    if(state.playerQuoteSeq.get(key)!==seq)return; const q=Array.isArray(r)?r[0]:r; if(q)state.playerManualQuotes.set(key,q); renderPlayers();
+  }catch(e){showError(e)}
 }
 function renderPlayerControls(){
   const markets=[...new Set(state.legs.map(x=>x.market))].sort(), el=$('#marketFilter'), cur=el.value;
@@ -219,14 +255,15 @@ function renderPlayers(){
       const cf=Number(l.context_factor||1),of=Number(l.opponent_factor||1),vf=Number(l.venue_factor||1),ff=Number(l.finals_factor||1);
       const ctxClass=cf>1.015?'ctx-up':cf<0.985?'ctx-down':'ctx-flat';
       const key=playerThresholdKey(pid,m);
-      const optionHtml=[...opts].sort((a,b)=>Number(a.threshold)-Number(b.threshold)).map(o=>`<option value="${o.threshold}" ${Number(o.threshold)===Number(l.threshold)?'selected':''}>${esc(marketLabel(m))} ${esc(o.threshold)}+</option>`).join('');
-      return `<div class="player-market-row player-market-option" data-player="${pid}" data-market="${esc(m)}"><div class="market-select-wrap"><select class="threshold-select" data-key="${esc(key)}">${optionHtml}</select></div><span class="prob ${probClass(l.model_probability)}">${pct(l.model_probability)}</span><span class="fair-odds">Fair ${odds(l.fair_odds)}</span><div class="context-line ${ctxClass}"><span>${esc((l.opponent_tier||'mid').toUpperCase())} OPP · ${esc((l.venue_role||'—').toUpperCase())}${l.is_final?' · FINALS':''}</span><span>CTX ×${cf.toFixed(3)} · O ${of.toFixed(3)} / V ${vf.toFixed(3)} / F ${ff.toFixed(3)}</span><span>n ${l.opponent_samples??0}/${l.venue_samples??0}/${l.finals_samples??0} · 2025 Finals ${l.prior_finals_samples??0} (w ${Number(l.prior_finals_weight||0).toFixed(3)})</span><span class="role-line ${Number(l.role_factor||1)>1.01?'ctx-up':Number(l.role_factor||1)<0.99?'ctx-down':'ctx-flat'}">ROLE ${esc((l.role_label||'stable').replaceAll('_',' ').toUpperCase())} · ×${Number(l.role_factor||1).toFixed(3)} · conf ${Math.round(Number(l.role_confidence||0)*100)}% · n ${l.role_samples??0}</span></div>${renderRecent(l)}<button class="add-leg" data-leg-id="${l.prediction_leg_id}">+ Multi Lab</button></div>`;
+      const chosen=Number(state.playerThresholds[key]??l.threshold);
+      return `<div class="player-market-row player-market-option" data-player="${pid}" data-market="${esc(m)}"><div class="market-select-wrap threshold-stepper"><span>${esc(marketLabel(m))}</span><button type="button" class="threshold-step" data-player="${pid}" data-market="${esc(m)}" data-delta="-1">−</button><input class="threshold-input" data-player="${pid}" data-market="${esc(m)}" data-key="${esc(key)}" type="number" min="1" step="1" value="${chosen}"><button type="button" class="threshold-step" data-player="${pid}" data-market="${esc(m)}" data-delta="1">+</button><em>+</em></div><span class="prob ${probClass(l.model_probability)}">${pct(l.model_probability)}</span><span class="fair-odds">Fair ${odds(l.fair_odds)}</span><div class="context-line ${ctxClass}"><span>${esc((l.opponent_tier||'mid').toUpperCase())} OPP · ${esc((l.venue_role||'—').toUpperCase())}${l.is_final?' · FINALS':''}</span><span>CTX ×${cf.toFixed(3)} · O ${of.toFixed(3)} / V ${vf.toFixed(3)} / F ${ff.toFixed(3)}</span><span>n ${l.opponent_samples??0}/${l.venue_samples??0}/${l.finals_samples??0} · 2025 Finals ${l.prior_finals_samples??0} (w ${Number(l.prior_finals_weight||0).toFixed(3)})</span><span class="role-line ${Number(l.role_factor||1)>1.01?'ctx-up':Number(l.role_factor||1)<0.99?'ctx-down':'ctx-flat'}">ROLE ${esc((l.role_label||'stable').replaceAll('_',' ').toUpperCase())} · ×${Number(l.role_factor||1).toFixed(3)} · conf ${Math.round(Number(l.role_confidence||0)*100)}% · n ${l.role_samples??0}</span></div>${renderRecent(l)}<button class="add-leg" ${l.prediction_leg_id?`data-leg-id="${l.prediction_leg_id}"`:'disabled title="Custom threshold will be enabled in Multi Lab parity step"'}>${l.prediction_leg_id?'+ Multi Lab':'Custom quote'}</button></div>`;
     }).join('');
     return `<article class="player-card"><div class="player-card-head"><div><h3>${esc(first.player_name)}</h3><div class="match-meta">${esc(first.team_name||'')} ${first.bench?'· Bench':''}</div>${riskLine}</div><span class="badge ${badgeClass}">${esc(badge)}</span></div>${rows}</article>`;
   });
   $('#playerCards').innerHTML=cards.join('')||'<div class="empty">没有符合条件的球员</div>';
-  $$('#playerCards .threshold-select').forEach(sel=>sel.addEventListener('change',()=>{state.playerThresholds[sel.dataset.key]=Number(sel.value);renderPlayers()}));
-  $$('#playerCards .add-leg').forEach(b=>b.addEventListener('click',()=>addLegById(b.dataset.legId)));
+  $$('#playerCards .threshold-input').forEach(inp=>inp.addEventListener('change',()=>{const v=Math.max(1,Math.round(Number(inp.value)||1));quotePlayerThreshold(inp.dataset.player,inp.dataset.market,v)}));
+  $$('#playerCards .threshold-step').forEach(btn=>btn.addEventListener('click',()=>{const key=playerThresholdKey(btn.dataset.player,btn.dataset.market);const current=Number(state.playerThresholds[key]||btn.closest('.threshold-stepper').querySelector('.threshold-input').value||1);quotePlayerThreshold(btn.dataset.player,btn.dataset.market,Math.max(1,current+Number(btn.dataset.delta)))}));
+  $$('#playerCards .add-leg[data-leg-id]').forEach(b=>b.addEventListener('click',()=>addLegById(b.dataset.legId)));
 }
 
 async function valueResult(prob,actual,resultEl){
