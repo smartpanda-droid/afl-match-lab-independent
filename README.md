@@ -40,3 +40,12 @@ The Supabase publishable key in `public/config.js` is intentionally browser-visi
 - `SITE_ROLE = independent-shadow`
 
 The UI displays a persistent **PARALLEL TEST** banner so it cannot be mistaken for the existing production Site.
+
+
+## v17 Player Markets parity
+- Multi-threshold player markets backed by Supabase prediction legs.
+- Player search and market filter retained.
+- Threshold selector updates probability, fair odds, recent-5 hit/miss colours, context and role details.
+- Recent five remains oldest to newest.
+- Prediction leg retrieval is paginated to support >1000 rows.
+- Injury penalty source is availability_factor only; legacy injury factor suppressed.

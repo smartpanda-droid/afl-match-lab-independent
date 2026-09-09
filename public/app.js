@@ -5,7 +5,7 @@ if(CFG?.PARALLEL_TEST){
 }else{
   const b=document.getElementById('parallelTestBanner'); if(b)b.hidden=true;
 }
-const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], view:'match' };
+const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], playerThresholds:{}, view:'match' };
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':'&quot;',"'":"&#39;"}[c]));
@@ -18,6 +18,17 @@ async function api(path, options={}){
   const r=await fetch(`${CFG.SUPABASE_URL}${path}`,{...options,headers});
   if(!r.ok) throw new Error(`${r.status} ${await r.text()}`);
   return r.status===204?null:r.json();
+}
+
+async function apiPaged(path, pageSize=1000){
+  const out=[];
+  for(let from=0;;from+=pageSize){
+    const to=from+pageSize-1;
+    const rows=await api(path,{headers:{Range:`${from}-${to}`,Prefer:'count=exact'}});
+    out.push(...(rows||[]));
+    if(!rows || rows.length<pageSize) break;
+  }
+  return out;
 }
 
 
@@ -119,7 +130,7 @@ async function loadSelected(){
   if(!state.selected)return;
   const id=encodeURIComponent(state.selected);
   const [legs,multis,lineup,recent,availability,contextRows,stabilityRows,finalRows,shadowRows]=await Promise.all([
-    api(`/rest/v1/afl_api_prediction_legs?select=*&match_id=eq.${id}&order=model_probability.desc`),
+    apiPaged(`/rest/v1/afl_api_prediction_legs?select=*&match_id=eq.${id}&order=player_name.asc,market.asc,threshold.asc`),
     api(`/rest/v1/afl_api_multis?select=*&match_id=eq.${id}&order=strategy.asc,leg_count.asc,rank_in_group.asc`),
     api(`/rest/v1/afl_api_lineup?select=*&match_id=eq.${id}&order=team_name.asc,emergency.asc,bench.asc,player_name.asc`),
     api(`/rest/v1/afl_api_player_recent5?select=player_id,player_name,team_name,recent5&match_id=eq.${id}`),
@@ -168,23 +179,53 @@ function renderTactics(){
   $('#fieldTacticalSummary').innerHTML=`<div class="mini-context"><strong>Context v0.1</strong><span>Clearance: ${esc(t.clearance_edge||'even')} · Pressure: ${esc(t.pressure_edge||'even')}</span><span>Top scenario: ${esc(scenarioLabel(Object.entries(c.scenario_weights||{}).sort((a,b)=>Number(b[1])-Number(a[1]))[0]?.[0]||'—'))}</span></div>`;
 }
 
+const MARKET_LABELS={disposals:'Disposals',kicks:'Kicks',marks:'Marks',tackles:'Tackles',fantasy_points:'Fantasy',handballs:'Handballs',hitouts:'Hitouts',clearances:'Clearances',goals:'Goals'};
+function marketLabel(m){return MARKET_LABELS[m]||String(m||'').replaceAll('_',' ')}
+function playerThresholdKey(playerId,market){return `${playerId}:${market}`}
+function selectedPlayerLeg(options){
+  const sorted=[...options].sort((a,b)=>Number(a.threshold)-Number(b.threshold));
+  const key=playerThresholdKey(sorted[0]?.player_id,sorted[0]?.market);
+  const wanted=Number(state.playerThresholds[key]);
+  return sorted.find(x=>Number(x.threshold)===wanted)||sorted[0];
+}
 function renderPlayerControls(){
   const markets=[...new Set(state.legs.map(x=>x.market))].sort(), el=$('#marketFilter'), cur=el.value;
-  el.innerHTML='<option value="">全部玩法</option>'+markets.map(x=>`<option value="${esc(x)}">${esc(x.replaceAll('_',' '))}</option>`).join('');
+  el.innerHTML='<option value="">全部玩法</option>'+markets.map(x=>`<option value="${esc(x)}">${esc(marketLabel(x))}</option>`).join('');
   if(markets.includes(cur))el.value=cur;
 }
 function marketValue(game,market){return market==='fantasy_points'?game.fantasy_points:game[market]}
 function renderRecent(leg){
   const games=state.recent5.get(leg.player_id)||[];
-  return `<div class="recent-strip">${games.map(g=>{const v=marketValue(g,leg.market);const ok=v!=null&&Number(v)>=Number(leg.threshold);return `<span class="recent-cell ${v==null?'na':ok?'hit':'miss'}" title="${esc(g.round_name)} vs ${esc(g.opponent)}">${v??'—'}</span>`}).join('')||'<span class="recent-cell na">—</span>'}</div>`;
+  return `<div class="recent-block"><div class="recent-caption">最近 5 场 · ${esc(marketLabel(leg.market))} ${esc(leg.threshold)}+</div><div class="recent-strip">${games.map(g=>{const v=marketValue(g,leg.market);const ok=v!=null&&Number(v)>=Number(leg.threshold);return `<span class="recent-cell ${v==null?'na':ok?'hit':'miss'}" title="${esc(g.round_name)} vs ${esc(g.opponent)}">${v??'—'}</span>`}).join('')||'<span class="recent-cell na">—</span>'}</div></div>`;
 }
 function renderPlayers(){
   const s=$('#playerSearch').value.trim().toLowerCase(), market=$('#marketFilter').value;
   const filtered=state.legs.filter(l=>(!s||l.player_name?.toLowerCase().includes(s))&&(!market||l.market===market));
-  const by=new Map();filtered.forEach(l=>{if(!by.has(l.player_id))by.set(l.player_id,[]);by.get(l.player_id).push(l)});
-  $('#playerCards').innerHTML=[...by.entries()].slice(0,80).map(([pid,legs])=>{
-    const first=legs[0];const av=state.availability.get(pid);const risk=av&&av.status!=='normal';const badge=risk?(av.explicit_injury?'INJURY RECOVERY':av.status.toUpperCase()):(first.bench?'BENCH':'ACTIVE');const badgeClass=risk?(av.risk_level==='severe'||av.risk_level==='high'?'bad':'warn'):(first.bench?'warn':'neutral');const riskLine=av&&risk?`<div class="risk-line"><strong>${esc(badge)}</strong> · TOG ${av.latest_tog??'—'}% vs baseline ${av.baseline_tog??'—'}% · factor ${Number(av.probability_factor||1).toFixed(2)}${av.injury_type?` · ${esc(av.injury_type)}`:''}${av.expected_return?` · ${esc(av.expected_return)}`:''}</div>`:'';return `<article class="player-card"><div class="player-card-head"><div><h3>${esc(first.player_name)}</h3><div class="match-meta">${esc(first.team_name||'')} ${first.bench?'· Bench':''}</div>${riskLine}</div><span class="badge ${badgeClass}">${esc(badge)}</span></div>${legs.map(l=>{const cf=Number(l.context_factor||1),of=Number(l.opponent_factor||1),vf=Number(l.venue_factor||1),ff=Number(l.finals_factor||1);const ctxClass=cf>1.015?'ctx-up':cf<0.985?'ctx-down':'ctx-flat';return `<div class="player-market-row"><strong>${esc(l.selection)}</strong><span class="prob ${probClass(l.model_probability)}">${pct(l.model_probability)}</span><span>${odds(l.fair_odds)}</span><div class="context-line ${ctxClass}"><span>${esc((l.opponent_tier||'mid').toUpperCase())} OPP · ${esc((l.venue_role||'—').toUpperCase())}${l.is_final?' · FINALS':''}</span><span>CTX ×${cf.toFixed(3)} · O ${of.toFixed(3)} / V ${vf.toFixed(3)} / F ${ff.toFixed(3)}</span><span>n ${l.opponent_samples??0}/${l.venue_samples??0}/${l.finals_samples??0} · 2025 Finals ${l.prior_finals_samples??0} (w ${Number(l.prior_finals_weight||0).toFixed(3)})</span><span class="role-line ${Number(l.role_factor||1)>1.01?'ctx-up':Number(l.role_factor||1)<0.99?'ctx-down':'ctx-flat'}">ROLE ${esc((l.role_label||'stable').replaceAll('_',' ').toUpperCase())} · ×${Number(l.role_factor||1).toFixed(3)} · conf ${Math.round(Number(l.role_confidence||0)*100)}% · n ${l.role_samples??0}</span></div>${renderRecent(l)}<button class="add-leg" data-leg-id="${l.prediction_leg_id}">+ Multi Lab</button></div>`}).join('')}</article>`
-  }).join('')||'<div class="empty">没有符合条件的球员</div>';
+  const byPlayer=new Map();
+  filtered.forEach(l=>{
+    if(!byPlayer.has(l.player_id))byPlayer.set(l.player_id,[]);
+    byPlayer.get(l.player_id).push(l);
+  });
+  const cards=[...byPlayer.entries()].slice(0,80).map(([pid,allLegs])=>{
+    const first=allLegs[0];
+    const av=state.availability.get(pid);const risk=av&&av.status!=='normal';
+    const badge=risk?(av.explicit_injury?'INJURY RECOVERY':av.status.toUpperCase()):(first.bench?'BENCH':'ACTIVE');
+    const badgeClass=risk?(av.risk_level==='severe'||av.risk_level==='high'?'bad':'warn'):(first.bench?'warn':'neutral');
+    const riskLine=av&&risk?`<div class="risk-line"><strong>${esc(badge)}</strong> · TOG ${av.latest_tog??'—'}% vs baseline ${av.baseline_tog??'—'}% · factor ${Number(av.probability_factor||1).toFixed(2)}${av.injury_type?` · ${esc(av.injury_type)}`:''}${av.expected_return?` · ${esc(av.expected_return)}`:''}</div>`:'';
+    const byMarket=new Map();
+    allLegs.forEach(l=>{if(!byMarket.has(l.market))byMarket.set(l.market,[]);byMarket.get(l.market).push(l)});
+    const rows=[...byMarket.entries()].sort((a,b)=>marketLabel(a[0]).localeCompare(marketLabel(b[0]))).map(([m,opts])=>{
+      const l=selectedPlayerLeg(opts); if(!l)return '';
+      const cf=Number(l.context_factor||1),of=Number(l.opponent_factor||1),vf=Number(l.venue_factor||1),ff=Number(l.finals_factor||1);
+      const ctxClass=cf>1.015?'ctx-up':cf<0.985?'ctx-down':'ctx-flat';
+      const key=playerThresholdKey(pid,m);
+      const optionHtml=[...opts].sort((a,b)=>Number(a.threshold)-Number(b.threshold)).map(o=>`<option value="${o.threshold}" ${Number(o.threshold)===Number(l.threshold)?'selected':''}>${esc(marketLabel(m))} ${esc(o.threshold)}+</option>`).join('');
+      return `<div class="player-market-row player-market-option" data-player="${pid}" data-market="${esc(m)}"><div class="market-select-wrap"><select class="threshold-select" data-key="${esc(key)}">${optionHtml}</select></div><span class="prob ${probClass(l.model_probability)}">${pct(l.model_probability)}</span><span class="fair-odds">Fair ${odds(l.fair_odds)}</span><div class="context-line ${ctxClass}"><span>${esc((l.opponent_tier||'mid').toUpperCase())} OPP · ${esc((l.venue_role||'—').toUpperCase())}${l.is_final?' · FINALS':''}</span><span>CTX ×${cf.toFixed(3)} · O ${of.toFixed(3)} / V ${vf.toFixed(3)} / F ${ff.toFixed(3)}</span><span>n ${l.opponent_samples??0}/${l.venue_samples??0}/${l.finals_samples??0} · 2025 Finals ${l.prior_finals_samples??0} (w ${Number(l.prior_finals_weight||0).toFixed(3)})</span><span class="role-line ${Number(l.role_factor||1)>1.01?'ctx-up':Number(l.role_factor||1)<0.99?'ctx-down':'ctx-flat'}">ROLE ${esc((l.role_label||'stable').replaceAll('_',' ').toUpperCase())} · ×${Number(l.role_factor||1).toFixed(3)} · conf ${Math.round(Number(l.role_confidence||0)*100)}% · n ${l.role_samples??0}</span></div>${renderRecent(l)}<button class="add-leg" data-leg-id="${l.prediction_leg_id}">+ Multi Lab</button></div>`;
+    }).join('');
+    return `<article class="player-card"><div class="player-card-head"><div><h3>${esc(first.player_name)}</h3><div class="match-meta">${esc(first.team_name||'')} ${first.bench?'· Bench':''}</div>${riskLine}</div><span class="badge ${badgeClass}">${esc(badge)}</span></div>${rows}</article>`;
+  });
+  $('#playerCards').innerHTML=cards.join('')||'<div class="empty">没有符合条件的球员</div>';
+  $$('#playerCards .threshold-select').forEach(sel=>sel.addEventListener('change',()=>{state.playerThresholds[sel.dataset.key]=Number(sel.value);renderPlayers()}));
   $$('#playerCards .add-leg').forEach(b=>b.addEventListener('click',()=>addLegById(b.dataset.legId)));
 }
 
