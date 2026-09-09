@@ -1,0 +1,18 @@
+{
+  "mode": "parallel-test",
+  "independent_role": "shadow",
+  "production_reference": "existing-chatgpt-site",
+  "cutover_allowed": false,
+  "first_real_match_external_id": "9023",
+  "required_gates": ["T-4h", "T-30-final-lock", "T+8h-settlement"],
+  "compare": [
+    "fixture",
+    "lineup",
+    "injury",
+    "player-probability",
+    "system-multi",
+    "stability",
+    "final-lock",
+    "settlement"
+  ]
+}

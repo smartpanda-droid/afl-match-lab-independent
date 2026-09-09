@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>AFL Match Lab</title>
+  <meta name="description" content="Independent AFL Match Lab" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="parallelTestBanner" class="parallel-test-banner" role="status"><strong>PARALLEL TEST</strong><span>Independent Web · Shadow / validation only · Existing Site remains production reference</span></div>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">AFL</span><div><div class="eyebrow">MATCH LAB · INDEPENDENT</div><h1>AFL Match Lab</h1></div></div>
+    <div class="top-actions"><div id="healthBadge" class="badge neutral">Connecting…</div><button id="refreshBtn" class="ghost">刷新</button></div>
+  </header>
+
+  <nav class="tabs" aria-label="Primary navigation">
+    <button class="tab active" data-view="match">MATCH</button>
+    <button class="tab" data-view="players">PLAYER MARKETS</button>
+    <button class="tab" data-view="system-multi">SYSTEM MULTI</button>
+    <button class="tab" data-view="multi-lab">MULTI LAB <span id="builderCount" class="count-pill">0</span></button>
+    <button class="tab" data-view="field">球场阵容</button>
+    <button class="tab" data-view="tactics">战术 / SCENARIO</button>
+    <button class="tab" data-view="validation">VALIDATION</button>
+    <button class="tab" data-view="shadow-live">SHADOW LIVE</button>
+  </nav>
+
+  <main>
+    <section class="panel match-picker">
+      <div><div class="eyebrow">LIVE DATA · SAFE PUBLIC API</div><strong>选择比赛</strong></div>
+      <select id="matchSelect"></select>
+    </section>
+
+    <section id="view-match" class="view active-view">
+      <section id="matchSummary" class="panel match-summary"></section>
+      <section class="grid two">
+        <article class="panel">
+          <div class="section-head"><div><div class="eyebrow">LINEUP</div><h2>阵容状态</h2></div><div id="lineupBadge" class="badge neutral">—</div></div>
+          <div id="lineupSummary" class="stat-grid"></div>
+          <div id="lineupLists" class="lineup-columns"></div>
+        </article>
+        <article class="panel">
+          <div class="section-head"><div><div class="eyebrow">MODEL</div><h2>模型状态</h2></div><div id="modelBadge" class="badge neutral">—</div></div>
+          <div id="modelSummary" class="stat-grid"></div>
+          <div class="model-note"><strong>规则</strong><span>质量优先于赔率区间；不会为了凑赔率加入低质量腿。</span></div>
+        </article>
+      </section>
+
+      <section class="grid two">
+        <article class="panel">
+          <div class="section-head"><div><div class="eyebrow">MATCH PREVIEW</div><h2>比赛走势</h2></div><span class="badge neutral">CONTEXT v0.1</span></div>
+          <div id="scenarioPreview" class="scenario-grid"></div>
+          <p class="note">Scenario 权重来自两队赛季比赛分布与主客场表现，是解释层，不等同于胜率；当前不会直接改写单腿概率。</p>
+        </article>
+        <article class="panel">
+          <div class="section-head"><div><div class="eyebrow">TACTICAL EDGE</div><h2>战术倾向</h2></div><button class="ghost small" data-go="tactics">展开</button></div>
+          <div id="tacticalPreview" class="tactical-preview"></div>
+        </article>
+      </section>
+      <section class="panel">
+        <div class="section-head"><div><div class="eyebrow">TOP EDGES</div><h2>当前高概率单腿</h2></div><button class="ghost small" data-go="players">查看全部</button></div>
+        <div id="topLegs" class="top-leg-grid"></div>
+      </section>
+    </section>
+
+    <section id="view-players" class="view">
+      <section class="panel">
+        <div class="section-head controls-head">
+          <div><div class="eyebrow">PLAYER MARKETS</div><h2>球员市场</h2></div>
+          <div class="controls"><input id="playerSearch" type="search" placeholder="搜索球员"/><select id="marketFilter"><option value="">全部玩法</option></select></div>
+        </div>
+        <div id="playerCards" class="player-card-list"></div>
+      </section>
+    </section>
+
+    <section id="view-system-multi" class="view">
+      <section class="panel">
+        <div class="section-head controls-head">
+          <div><div class="eyebrow">SYSTEM MULTI</div><h2>系统推荐组合</h2></div>
+          <div class="controls">
+            <select id="strategyFilter"><option value="conservative">保守</option><option value="balanced" selected>平衡</option><option value="aggressive">激进</option></select>
+            <select id="legCountFilter"><option value="2">2串1</option><option value="3">3串1</option><option value="4">4串1</option><option value="5">5串1</option></select>
+            <label class="check"><input id="recommendedOnly" type="checkbox" checked/> 只看推荐</label>
+          </div>
+        </div>
+        <div id="multiCards" class="multi-grid"></div>
+      </section>
+    </section>
+
+    <section id="view-multi-lab" class="view">
+      <section class="grid builder-grid">
+        <article class="panel">
+          <div class="section-head"><div><div class="eyebrow">MANUAL BUILDER</div><h2>Multi Lab</h2></div><button id="clearBuilder" class="ghost small">清空</button></div>
+          <div id="builderLegs" class="builder-legs"></div>
+          <div id="builderSummary" class="builder-summary"></div>
+          <div id="builderDependencyDetails" class="dependency-box"></div>
+          <div class="value-box builder-value">
+            <label><span>博彩网站实际赔率</span><input id="builderActualOdds" inputmode="decimal" placeholder="例如 3.20"/></label>
+            <button id="builderValueBtn">计算 Value</button>
+            <div id="builderValueResult" class="value-result"></div>
+          </div>
+          <p class="note">允许同一球员加入多个玩法。手动组合现在调用与系统推荐一致的 empirical dependency profiles，实时显示相关性调整后的联合概率、Fair Odds 与 Value；同球员多玩法继续允许。</p>
+        </article>
+        <article class="panel">
+          <div class="section-head"><div><div class="eyebrow">ADD LEGS</div><h2>添加单腿</h2></div></div>
+          <input id="builderSearch" type="search" placeholder="搜索球员或玩法" class="wide-search"/>
+          <div id="builderCandidates" class="candidate-list"></div>
+        </article>
+      </section>
+    </section>
+
+    <section id="view-field" class="view">
+      <section class="field-layout">
+        <aside class="panel tactics-panel">
+          <div class="eyebrow">TACTICS</div><h2>玩法与战术设置</h2>
+          <div id="fieldTacticalSummary" class="field-tactical-summary"></div>
+          <label class="field-control"><span>点击球员时自动加入</span><select id="fieldMarket"><option value="best">最高概率玩法</option><option value="disposals">Disposals</option><option value="kicks">Kicks</option><option value="marks">Marks</option><option value="tackles">Tackles</option><option value="fantasy_points">Fantasy</option><option value="goals">Goals</option></select></label>
+          <div class="legend"><span><i class="dot field-dot"></i>场上</span><span><i class="dot bench-dot"></i>Interchange</span><span><i class="dot emerg-dot"></i>Emergency</span></div>
+        </aside>
+        <article class="panel oval-panel"><div id="fieldTeams" class="oval"></div></article>
+      </section>
+    </section>
+
+    <section id="view-tactics" class="view">
+      <section class="grid two">
+        <article class="panel">
+          <div class="section-head"><div><div class="eyebrow">TEAM STYLE</div><h2>主客场与球队风格</h2></div></div>
+          <div id="teamStyleCards" class="team-style-grid"></div>
+        </article>
+        <article class="panel">
+          <div class="section-head"><div><div class="eyebrow">SCENARIO ENGINE</div><h2>比赛走势权重</h2></div><span class="badge warn">EXPLANATORY</span></div>
+          <div id="scenarioDetail" class="scenario-detail"></div>
+          <p class="note">这些场景用于赛前解释与未来校准。只有经过正式 settlement + release gate 验证后，才会允许它们直接影响 live probability。</p>
+        </article>
+      </section>
+      <section class="panel">
+        <div class="section-head"><div><div class="eyebrow">PLAYER SYNERGY</div><h2>球员协同 / 连线</h2></div></div>
+        <div id="synergyCards" class="synergy-grid"></div>
+      </section>
+    </section>
+
+    <section id="view-validation" class="view">
+      <section class="grid two">
+        <article class="panel">
+          <div class="section-head"><div><div class="eyebrow">FORMAL LIVE VALIDATION</div><h2>真实赛前验证</h2></div><div id="formalValidationBadge" class="badge neutral">—</div></div>
+          <div id="formalValidationSummary" class="validation-hero"></div>
+          <p class="note">只计算真实 T-30 frozen prediction → T+8 settlement。历史回测不会计入正式 calibration / release gate。</p>
+        </article>
+        <article class="panel">
+          <div class="section-head"><div><div class="eyebrow">RETROSPECTIVE SHADOW</div><h2>Baseline vs Shadow</h2></div><div id="shadowValidationBadge" class="badge neutral">—</div></div>
+          <div id="shadowValidationSummary" class="validation-hero"></div>
+          <p class="note">Shadow 使用历史实际参赛名单，但所有预测特征只取开赛前数据。官方历史 injury/bench 不完整，因此这两个模块不在 retrospective score 中。</p>
+        </article>
+      </section>
+      <section class="panel">
+        <div class="section-head"><div><div class="eyebrow">MODULE CHECK</div><h2>模块验证</h2></div></div>
+        <div id="validationModules" class="validation-grid"></div>
+      </section>
+      <section class="panel">
+        <div class="section-head"><div><div class="eyebrow">MARKET PERFORMANCE</div><h2>各玩法 Brier / Log Loss</h2></div></div>
+        <div id="validationMarkets" class="validation-table-wrap"></div>
+      </section>
+      <section class="panel">
+        <div class="section-head"><div><div class="eyebrow">MARKET RELEASE GATE</div><h2>按玩法独立放权</h2></div></div>
+        <div id="validationMarketGate" class="validation-table-wrap"></div>
+        <p class="note">只有独立 holdout 至少 300 条，且 Brier gain ≥ 0.0005、LogLoss gain ≥ 0.0010 的玩法才启用 Context / Role 权重；其余继续 SHADOW。</p>
+      </section>
+      <section class="panel">
+        <div class="section-head"><div><div class="eyebrow">FINAL RECOMMENDATION AUDIT</div><h2>T-30 最终推荐赛后审计</h2></div></div>
+        <div id="finalAuditSummary" class="validation-hero"></div>
+        <p class="note">只统计真实 T-30 FINAL LOCK。Fair-odds ROI proxy 使用模型 fair odds 做单位投注收益代理，不代表真实博彩公司 ROI。</p>
+        <div id="finalAuditBreakdown" class="validation-table-wrap"></div>
+        <div class="section-head compact"><div><div class="eyebrow">RECENT SETTLEMENTS</div><h3>最近最终组合</h3></div></div>
+        <div id="finalAuditRecent" class="validation-table-wrap"></div>
+      </section>
+      <section class="grid two">
+        <article class="panel"><div class="section-head"><div><div class="eyebrow">FINALS</div><h2>Finals 分层</h2></div></div><div id="validationFinals" class="validation-grid"></div></article>
+        <article class="panel"><div class="section-head"><div><div class="eyebrow">ROLE CHANGE</div><h2>Role 分层</h2></div></div><div id="validationRoles" class="validation-grid"></div></article>
+      </section>
+    </section>
+
+    <section id="view-shadow-live" class="view">
+      <section class="panel">
+        <div class="section-head"><div><div class="eyebrow">LIVE SHADOW OBSERVATION</div><h2>赛前真实链路时间线</h2></div><div id="shadowLiveBadge" class="badge neutral">WAITING</div></div>
+        <div id="shadowLiveSummary" class="stat-grid"></div>
+        <p class="note">每个真实 pregame_sync 完成后记录一次；T-30 Final Lock 再记录最终节点。日志只观察，不改变模型、推荐或冻结逻辑。</p>
+        <div id="shadowLiveTimeline" class="shadow-timeline"></div>
+      </section>
+    </section>
+
+  </main>
+
+  <template id="multiTemplate">
+    <article class="multi-card">
+      <div class="multi-top"><div><span class="multi-strategy"></span><strong class="multi-title"></strong></div><span class="multi-rec badge"></span></div>
+      <div class="multi-legs"></div>
+      <div class="multi-metrics"></div>
+      <div class="multi-actions"><button class="send-builder">发送到 Multi Lab</button></div>
+      <div class="value-box"><label><span>博彩公司实际赔率</span><input class="actual-odds" inputmode="decimal" placeholder="例如 2.30"/></label><button class="value-btn">更新 Value 排序</button><div class="value-result"></div><div class="match-meta">输入同组 ≥2 个实际赔率后自动按 Quality 80% + Value 20% 重排；赔率不保存。</div></div>
+    </article>
+  </template>
+
+  <script src="./config.js"></script><script src="./app.js"></script>
+</body>
+</html>
