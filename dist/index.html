@@ -35,17 +35,24 @@
     <section id="view-match" class="view active-view">
       <section id="matchSummary" class="panel match-summary"></section>
       <section id="matchPrediction" class="panel"></section>
-      <section class="grid two">
-        <article class="panel">
-          <div class="section-head"><div><div class="eyebrow">LINEUP</div><h2>阵容状态</h2></div><div id="lineupBadge" class="badge neutral">—</div></div>
-          <div id="lineupSummary" class="stat-grid"></div>
-          <div id="lineupLists" class="lineup-columns"></div>
-        </article>
-        <article class="panel">
-          <div class="section-head"><div><div class="eyebrow">MODEL</div><h2>模型状态</h2></div><div id="modelBadge" class="badge neutral">—</div></div>
-          <div id="modelSummary" class="stat-grid"></div>
-          <div class="model-note"><strong>规则</strong><span>质量优先于赔率区间；不会为了凑赔率加入低质量腿。</span></div>
-        </article>
+      <section class="panel match-lineup-panel">
+        <div class="section-head">
+          <div><div class="eyebrow">LINEUP / FIELD</div><h2>阵容 · 球场阵容</h2></div>
+          <div id="lineupBadge" class="badge neutral">—</div>
+        </div>
+        <div id="lineupSummary" class="stat-grid lineup-summary-inline"></div>
+        <div class="match-field-toolbar lineup-toolbar">
+          <div id="matchLineupSource" class="lineup-source-note"></div>
+          <label class="field-control inline"><span>点击球员时自动加入</span><select id="matchFieldMarket"><option value="best">最高概率玩法</option><option value="disposals">Disposals</option><option value="kicks">Kicks</option><option value="marks">Marks</option><option value="tackles">Tackles</option><option value="fantasy_points">Fantasy</option><option value="goals">Goals</option></select></label>
+        </div>
+        <div id="matchFieldTacticalSummary" class="field-tactical-summary"></div>
+        <div id="matchFieldTeams" class="afl-lineup-board"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head"><div><div class="eyebrow">MODEL</div><h2>模型状态</h2></div><div id="modelBadge" class="badge neutral">—</div></div>
+        <div id="modelSummary" class="stat-grid"></div>
+        <div class="model-note"><strong>规则</strong><span>质量优先于赔率区间；不会为了凑赔率加入低质量腿。</span></div>
       </section>
 
       <section class="grid two">
@@ -60,7 +67,7 @@
         </article>
       </section>
       <section class="panel">
-        <div class="section-head"><div><div class="eyebrow">TOP EDGES</div><h2>当前高概率单腿</h2></div><button class="ghost small" data-go="players">查看全部</button></div>
+        <div class="section-head"><div><div class="eyebrow">TOP EDGES</div><h2>概率 / 赔率平衡单腿</h2></div><button class="ghost small" data-go="players">查看全部</button></div>
         <div id="topLegs" class="top-leg-grid"></div>
       </section>
     </section>

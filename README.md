@@ -1,3 +1,11 @@
+# AFL Match Lab Independent Web — v20 Parallel Test
+
+v20 parity update:
+- Match page merges LINEUP + 球场阵容 as the primary lineup view.
+- Predicted scores display as whole points.
+- Line and Total inputs/display snap to 0.5 increments.
+- Top Edges now ranks probability/odds balance and de-duplicates same player+market thresholds.
+
 # AFL Match Lab — Independent Web (Parallel Test)
 
 Static Cloudflare Pages frontend for the independent Supabase AFL Match Lab backend.
@@ -49,3 +57,10 @@ The UI displays a persistent **PARALLEL TEST** banner so it cannot be mistaken f
 - Recent five remains oldest to newest.
 - Prediction leg retrieval is paginated to support >1000 rows.
 - Injury penalty source is availability_factor only; legacy injury factor suppressed.
+
+
+## v20 lineup parity
+- Match lineup board rebuilt to mirror the supplied AFL field layout: Followers left, positional rows over the oval, Interchanges right, All/team filters above.
+- Uses `named_position` slots (BPL/FB/BPR, HBFL/CHB/HBFR, WL/C/WR, HFFL/CHF/HFFR, FPL/FF/FPR, RK/R/RR, INT).
+- When `used_fallback_lineup=true`, the Match page explicitly marks the board as previous-match fallback; the existing sync pipeline replaces it automatically once the latest lineup arrives.
+- No jumper numbers are fabricated because the current public lineup API does not expose guernsey numbers.
