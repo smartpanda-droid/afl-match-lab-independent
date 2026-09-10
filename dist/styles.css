@@ -67,3 +67,122 @@
 @media(max-width:1180px){.lineup-main-grid{grid-template-columns:165px minmax(0,680px) 165px;gap:14px}.lineup-side{width:165px}.afl-oval{max-width:680px;min-height:630px}.position-stack{height:590px;padding:18px 22px}.position-stack.single-team{padding-top:38px;padding-bottom:38px}.lineup-player-card{font-size:11px;padding:0 6px}.position-three{gap:7px}}
 @media(max-width:930px){.lineup-main-grid{grid-template-columns:1fr;gap:12px}.lineup-side{width:auto;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 24px}.lineup-side h3{grid-column:1/-1}.afl-oval{order:-1;max-width:720px;min-height:620px}.position-stack{height:580px;padding:18px 22px}.position-row{margin:0}.lineup-main-grid .followers,.lineup-main-grid .interchanges{padding:0 24px}}
 @media(max-width:700px){.afl-oval{max-width:100%;min-height:540px;border-width:14px}.position-stack{height:512px;padding:12px 10px}.position-stack.single-team{padding-top:28px;padding-bottom:28px}.position-row{grid-template-columns:26px minmax(0,1fr);gap:4px}.position-three{gap:4px}.position-label{width:26px}.lineup-player-card{font-size:9px;height:29px;padding:0 4px}.jumper-token{display:none}.lineup-team-legend{gap:8px}.legend-team{min-width:0;font-size:11px}.team-logo-small{width:22px;height:22px}}
+
+/* v23 paired positional spacing: same field zone grouped tightly */
+.position-stack.all-teams{
+  grid-template-rows:repeat(5,minmax(0,1fr));
+  row-gap:20px;
+  padding-top:26px;
+  padding-bottom:26px;
+}
+.position-pair{
+  min-height:0;
+  display:grid;
+  grid-template-rows:auto auto;
+  align-content:center;
+  gap:4px;
+  position:relative;
+}
+.position-pair + .position-pair::before{
+  content:"";
+  position:absolute;
+  top:-12px;
+  left:42px;
+  right:8px;
+  height:1px;
+  background:rgba(255,255,255,.20);
+}
+.position-pair .position-row{min-height:34px}
+.position-pair .team-0 .position-label{background:#737373;color:#fff}
+.position-pair .team-1 .position-label{background:#edf0ed;color:#66706a;border:1px solid rgba(0,0,0,.05)}
+.position-stack.single-team{row-gap:18px}
+@media(max-width:1180px){
+  .position-stack.all-teams{row-gap:16px;padding-top:22px;padding-bottom:22px}
+  .position-pair{gap:3px}
+  .position-pair + .position-pair::before{top:-9px}
+}
+@media(max-width:700px){
+  .position-stack.all-teams{row-gap:10px;padding-top:14px;padding-bottom:14px}
+  .position-pair{gap:2px}
+  .position-pair + .position-pair::before{display:none}
+}
+
+
+/* v24 realistic AFL field geometry */
+.lineup-main-grid{grid-template-columns:190px minmax(0,720px) 190px;gap:24px;align-items:start}
+.afl-oval{
+  position:relative;
+  width:min(100%,720px);
+  max-width:720px;
+  aspect-ratio:0.80;
+  min-height:0;
+  margin:0 auto;
+  overflow:hidden;
+  border:14px solid #266b31;
+  border-radius:50%;
+  background:
+    radial-gradient(ellipse at center,rgba(255,255,255,.05) 0 54%,rgba(0,0,0,.035) 100%),
+    repeating-linear-gradient(to bottom,#469d43 0 54px,#41953e 54px 108px);
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.14),0 5px 18px rgba(22,62,31,.15);
+}
+.afl-oval:before{content:none}
+.oval-markings{position:absolute;inset:20px 18px;pointer-events:none;z-index:1}
+.boundary-inner{position:absolute;inset:0;border:2px solid rgba(255,255,255,.78);border-radius:50%}
+.centre-square{position:absolute;left:31%;right:31%;top:40.5%;bottom:40.5%;border:2px solid rgba(255,255,255,.78)}
+.centre-circle{position:absolute;width:54px;height:54px;border:2px solid rgba(255,255,255,.82);border-radius:50%;left:50%;top:50%;transform:translate(-50%,-50%)}
+.centre-dot{position:absolute;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.88);left:50%;top:50%;transform:translate(-50%,-50%)}
+.arc{position:absolute;left:17%;right:17%;height:28%;border:2px solid rgba(255,255,255,.78);border-radius:50%}
+.arc-top{top:8%;border-bottom-color:transparent}
+.arc-bottom{bottom:8%;border-top-color:transparent}
+.goal-square{position:absolute;left:40%;right:40%;height:9.5%;border:2px solid rgba(255,255,255,.82)}
+.goal-square-top{top:0;border-top:0}
+.goal-square-bottom{bottom:0;border-bottom:0}
+.goal-posts{position:absolute;left:38%;right:38%;height:18px;display:flex;justify-content:space-between;align-items:flex-start}
+.goal-posts-top{top:-6px}
+.goal-posts-bottom{bottom:-6px;align-items:flex-end}
+.goal-posts i{display:block;width:3px;height:18px;background:rgba(245,245,245,.96);border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
+.goal-posts i:nth-child(1),.goal-posts i:nth-child(4){height:14px;opacity:.9}
+.position-stack{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  min-height:0!important;
+  height:auto!important;
+  padding:78px 42px!important;
+  align-items:center;
+}
+.position-stack.all-teams{grid-template-rows:repeat(5,minmax(0,1fr));row-gap:22px}
+.position-stack.single-team{grid-template-rows:repeat(5,minmax(0,1fr));row-gap:24px;padding:88px 42px!important}
+.position-pair{gap:3px}
+.position-pair + .position-pair::before{left:38px;right:0;top:-13px;background:rgba(255,255,255,.16)}
+/* narrow the card rows near each end of the oval, like a real ground */
+.position-stack .position-pair:nth-child(1),.position-stack.single-team>.position-row:nth-child(1){margin-left:54px;margin-right:54px}
+.position-stack .position-pair:nth-child(2),.position-stack.single-team>.position-row:nth-child(2){margin-left:22px;margin-right:22px}
+.position-stack .position-pair:nth-child(3),.position-stack.single-team>.position-row:nth-child(3){margin-left:0;margin-right:0}
+.position-stack .position-pair:nth-child(4),.position-stack.single-team>.position-row:nth-child(4){margin-left:22px;margin-right:22px}
+.position-stack .position-pair:nth-child(5),.position-stack.single-team>.position-row:nth-child(5){margin-left:54px;margin-right:54px}
+.position-row{grid-template-columns:34px minmax(0,1fr);gap:8px}
+.position-three{gap:9px}
+.lineup-player-card{height:32px;font-size:12px}
+@media(max-width:1180px){
+  .lineup-main-grid{grid-template-columns:160px minmax(0,650px) 160px;gap:14px}
+  .afl-oval{max-width:650px;aspect-ratio:.80}
+  .position-stack{padding:70px 34px!important}
+  .position-stack.single-team{padding:80px 34px!important}
+  .position-stack .position-pair:nth-child(1),.position-stack.single-team>.position-row:nth-child(1),.position-stack .position-pair:nth-child(5),.position-stack.single-team>.position-row:nth-child(5){margin-left:42px;margin-right:42px}
+}
+@media(max-width:930px){
+  .afl-oval{max-width:650px;aspect-ratio:.80;min-height:0;margin:0 auto}
+  .position-stack{padding:66px 30px!important}
+  .position-stack.single-team{padding:76px 30px!important}
+}
+@media(max-width:700px){
+  .afl-oval{width:100%;aspect-ratio:.78;border-width:10px}
+  .oval-markings{inset:12px 10px}
+  .position-stack{padding:52px 14px!important;row-gap:10px!important}
+  .position-stack.single-team{padding:60px 14px!important;row-gap:14px!important}
+  .position-stack .position-pair:nth-child(1),.position-stack.single-team>.position-row:nth-child(1),.position-stack .position-pair:nth-child(5),.position-stack.single-team>.position-row:nth-child(5){margin-left:18px;margin-right:18px}
+  .position-stack .position-pair:nth-child(2),.position-stack.single-team>.position-row:nth-child(2),.position-stack .position-pair:nth-child(4),.position-stack.single-team>.position-row:nth-child(4){margin-left:8px;margin-right:8px}
+  .centre-square{left:29%;right:29%}
+  .goal-square{left:38%;right:38%}
+}

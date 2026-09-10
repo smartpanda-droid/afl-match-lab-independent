@@ -418,7 +418,14 @@ function renderMatchFieldBoard(){
   if(visible(1)){const r=[lineRow(teams[1],1,'FF',['FPL','FF','FPR']),lineRow(teams[1],1,'HF',['HFFL','CHF','HFFR']),lineRow(teams[1],1,'C',['WL','C','WR']),lineRow(teams[1],1,'HB',['HBFL','CHB','HBFR']),lineRow(teams[1],1,'FB',['BPL','FB','BPR'])];if(state.fieldTeamFilter==='all'){rows.splice(1,0,r[0]);rows.splice(3,0,r[1]);rows.splice(5,0,r[2]);rows.splice(7,0,r[3]);rows.push(r[4]);}else rows.push(...r);}
   let centerRows;
   if(state.fieldTeamFilter==='all'){
-    centerRows=[lineRow(teams[0],0,'FB',['BPL','FB','BPR']),lineRow(teams[1],1,'FF',['FPL','FF','FPR']),lineRow(teams[0],0,'HB',['HBFL','CHB','HBFR']),lineRow(teams[1],1,'HF',['HFFL','CHF','HFFR']),lineRow(teams[0],0,'C',['WL','C','WR']),lineRow(teams[1],1,'C',['WL','C','WR']),lineRow(teams[0],0,'HF',['HFFL','CHF','HFFR']),lineRow(teams[1],1,'HB',['HBFL','CHB','HBFR']),lineRow(teams[0],0,'FF',['FPL','FF','FPR']),lineRow(teams[1],1,'FB',['BPL','FB','BPR'])].join('');
+    const pairs=[
+      [ ['FB',['BPL','FB','BPR']], ['FF',['FPL','FF','FPR']] ],
+      [ ['HB',['HBFL','CHB','HBFR']], ['HF',['HFFL','CHF','HFFR']] ],
+      [ ['C',['WL','C','WR']], ['C',['WL','C','WR']] ],
+      [ ['HF',['HFFL','CHF','HFFR']], ['HB',['HBFL','CHB','HBFR']] ],
+      [ ['FF',['FPL','FF','FPR']], ['FB',['BPL','FB','BPR']] ]
+    ];
+    centerRows=pairs.map(([homeDef,awayDef],idx)=>`<div class="position-pair pair-${idx+1}">${lineRow(teams[0],0,homeDef[0],homeDef[1])}${lineRow(teams[1],1,awayDef[0],awayDef[1])}</div>`).join('');
   }else{
     const i=state.fieldTeamFilter===teams[0]?0:1,t=teams[i];
     const defs=i===0?[['FB',['BPL','FB','BPR']],['HB',['HBFL','CHB','HBFR']],['C',['WL','C','WR']],['HF',['HFFL','CHF','HFFR']],['FF',['FPL','FF','FPR']]]:[['FF',['FPL','FF','FPR']],['HF',['HFFL','CHF','HFFR']],['C',['WL','C','WR']],['HB',['HBFL','CHB','HBFR']],['FB',['BPL','FB','BPR']]];
@@ -427,7 +434,7 @@ function renderMatchFieldBoard(){
   const left=`<aside class="lineup-side followers"><h3>Followers</h3>${teams.map((t,i)=>visible(i)?`<div class="side-team-block team-${i}">${followerCards(t,i)}</div>`:'').join('')}</aside>`;
   const right=`<aside class="lineup-side interchanges"><h3>Interchanges</h3>${teams.map((t,i)=>visible(i)?`<div class="side-team-block team-${i}">${benchCards(t,i)}</div>`:'').join('')}</aside>`;
   const emergencies=teams.map((t,i)=>visible(i)?emergencyCards(t,i):'').join('');
-  host.innerHTML=`${filters}${legend}<div class="lineup-main-grid">${left}<div class="afl-oval ${state.fieldTeamFilter==='all'?'all-teams':'single-team'}"><div class="oval-markings"><div class="centre-square"></div><div class="centre-circle"></div><div class="arc arc-top"></div><div class="arc arc-bottom"></div></div><div class="position-stack ${state.fieldTeamFilter==='all'?'all-teams':'single-team'}">${centerRows}</div></div>${right}</div>${emergencies?`<div class="emergency-strip"><span>Emergencies</span>${emergencies}</div>`:''}`;
+  host.innerHTML=`${filters}${legend}<div class="lineup-main-grid">${left}<div class="afl-oval ${state.fieldTeamFilter==='all'?'all-teams':'single-team'}"><div class="oval-markings"><div class="boundary-inner"></div><div class="centre-square"></div><div class="centre-circle"></div><div class="centre-dot"></div><div class="arc arc-top"></div><div class="arc arc-bottom"></div><div class="goal-square goal-square-top"></div><div class="goal-square goal-square-bottom"></div><div class="goal-posts goal-posts-top"><i></i><i></i><i></i><i></i></div><div class="goal-posts goal-posts-bottom"><i></i><i></i><i></i><i></i></div></div><div class="position-stack ${state.fieldTeamFilter==='all'?'all-teams':'single-team'}">${centerRows}</div></div>${right}</div>${emergencies?`<div class="emergency-strip"><span>Emergencies</span>${emergencies}</div>`:''}`;
   $$('#matchFieldTeams .lineup-team-filters button').forEach(b=>b.addEventListener('click',()=>{state.fieldTeamFilter=b.dataset.team;renderMatchFieldBoard()}));
   $$('#matchFieldTeams .lineup-player-card[data-player-id]').forEach(b=>b.addEventListener('click',()=>fieldAdd(b.dataset.playerId,$('#matchFieldMarket')?.value||'best')));
 }
