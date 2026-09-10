@@ -1,4 +1,4 @@
-## v27 overlay safe-area update
+## v28 overlay safe-area update
 
 - Safer end-zone insets to prevent oval-edge clipping.
 - Player option selection stays on Match page.
@@ -77,3 +77,8 @@ The UI displays a persistent **PARALLEL TEST** banner so it cannot be mistaken f
 - Removed negative-margin lineup geometry that clipped player cards.
 - All mode uses 10 positional rows; single-team mode uses 5 evenly distributed rows.
 - Followers, Interchanges and Emergencies stay outside the oval.
+
+
+## v29
+- Lineup Multi Lab floating panel now allows removing individual legs in-place.
+- Leg count, probability and fair odds update immediately after removal.

@@ -457,20 +457,25 @@ function renderField(){
 const MARKET_MODAL_ORDER=['goals','kicks','disposals','marks','tackles','handballs','hitouts','clearances','fantasy_points'];
 function modalLegsForPlayer(playerId){return state.legs.filter(l=>l.player_id===playerId).sort((a,b)=>MARKET_MODAL_ORDER.indexOf(a.market)-MARKET_MODAL_ORDER.indexOf(b.market)||Number(a.threshold)-Number(b.threshold))}
 function builderNaiveSummary(){
-  const probs=state.builder.map(x=>Number(x.model_probability||x.calibrated_probability||x.raw_probability||0)).filter(x=>x>0&&x<=1);
+  const probs=state.builder.map(x=>Number(x.probability??x.model_probability??x.calibrated_probability??x.raw_probability??0)).filter(x=>Number.isFinite(x)&&x>0&&x<=1);
   if(!probs.length)return {p:null,fair:null};
   const p=probs.reduce((a,b)=>a*b,1);return {p,fair:p>0?1/p:null};
 }
 function builderFloatHtml(){
   if(state.lineupBuilderFloatClosed||!state.builder.length)return '';
   const sum=builderNaiveSummary();
-  const legs=state.builder.slice(-6).map((l,i)=>`<div class="lineup-float-leg"><span>${esc(l.selection||`${l.player_name||''} ${marketLabel(l.market)} ${l.threshold}+`)}</span><b>${pct(l.model_probability||l.calibrated_probability||l.raw_probability)}</b></div>`).join('');
+  const start=Math.max(0,state.builder.length-6);
+  const legs=state.builder.slice(-6).map((l,i)=>`<div class="lineup-float-leg"><span>${esc(l.selection||`${l.player_name||''} ${marketLabel(l.market)} ${l.threshold}+`)}</span><b>${pct(l.probability??l.model_probability??l.calibrated_probability??l.raw_probability)}</b><button type="button" class="lineup-float-remove" data-builder-index="${start+i}" aria-label="Remove leg">−</button></div>`).join('');
   const extra=state.builder.length>6?`<div class="lineup-float-more">+${state.builder.length-6} more</div>`:'';
   return `<div class="lineup-builder-float" id="lineupBuilderFloat"><div class="lineup-float-head"><div><span class="eyebrow">MULTI LAB</span><strong>已加入 ${state.builder.length} 腿</strong></div><button type="button" class="lineup-float-close" aria-label="Close">×</button></div><div class="lineup-float-legs">${legs}${extra}</div><div class="lineup-float-summary"><span>粗略联合概率 <b>${sum.p==null?'—':pct(sum.p)}</b></span><span>Fair <b>${sum.fair==null?'—':odds(sum.fair)}</b></span></div><button type="button" class="lineup-float-open">打开 Multi Lab</button></div>`;
 }
 function bindLineupBuilderFloat(){
   document.querySelector('#lineupBuilderFloat .lineup-float-close')?.addEventListener('click',()=>{state.lineupBuilderFloatClosed=true;document.querySelector('#lineupBuilderFloat')?.remove()});
   document.querySelector('#lineupBuilderFloat .lineup-float-open')?.addEventListener('click',()=>switchView('multi-lab'));
+  document.querySelectorAll('#lineupBuilderFloat .lineup-float-remove').forEach(b=>b.addEventListener('click',()=>{
+    const i=Number(b.dataset.builderIndex);if(!Number.isInteger(i)||i<0||i>=state.builder.length)return;
+    state.builder.splice(i,1);localStorage.setItem(storageKey(),JSON.stringify(state.builder));state.builderEval=null;updateBuilderCount();renderBuilder();evaluateBuilder().catch(showError);refreshLineupBuilderFloat();
+  }));
 }
 function refreshLineupBuilderFloat(){
   const host=document.querySelector('#matchFieldTeams .interchanges');if(!host)return;
