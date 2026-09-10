@@ -1,150 +1,83 @@
-# AFL Match Lab v50 — Comprehensive Checked Build
+# AFL Match Lab — Multi Lab Match Market Picker
 
-Run `npm run verify` before deployment. See `QA_REPORT_V50.md` for the complete audit.
+这个补丁把 Multi Lab 的比赛市场入口拆成三块：
 
-# AFL Match Lab v49 — Bootstrap Order Fix
+1. 胜负
+   - 显示当场主客队名称
+   - 点击球队直接加入当前 Multi Lab 组合
 
-- Matches load before Validation.
-- Validation is non-blocking background work.
-- Every API request has a 6s hard timeout.
-- Match selector can no longer be blocked forever by Validation.
-- Adds Authorization header alongside apikey.
+2. 大小球
+   - 默认中线 = 模型 predicted total
+   - 滑杆范围 = 后端根据 total_sd 自适应
+   - step = 0.5
+   - 拖动后可选 Over / Under 加入组合
 
-# AFL Match Lab v48 — Clean Recovery
+3. 让球
+   - 分主队与客队
+   - 默认中线 = 模型 fair home line
+   - 客队盘口自动取相反数
+   - 滑杆范围 = 后端根据 margin_sd 自适应
+   - step = 0.5
 
-This build intentionally restores the last stable v40 loading path while preserving the existing UI and backend Anchor/Value model. Client-side System Multi hybrid injection for match winner / line / total is temporarily disabled for isolation testing. Match-page score, line and total predictions remain available.
+## 文件
 
-Validation target: Match, lineup, context, Top Edges, Player Markets and System Multi should load using the simple v40 request path.
+- `src/components/MultiLabMarketPicker.jsx`
+- `src/lib/multiLabMarkets.js`
+- `src/multilab-market-picker.css`
 
-# AFL Match Lab v40 — Mainstream Multi Rebalance + Value Button Fix
+## 接入方式
 
-- System Multi primary-market preference: Goals, Disposals, Fantasy, Match Winner and Total.
-- Secondary markets remain eligible as supporting legs.
-- New lower anchor/value bands: Conservative 80–89 / 68+, Balanced 78–88 / 65+, Aggressive 76–86 / 62+.
-- Any single bookmaker odds input now calculates EV immediately; 2+ quoted multis enable Value ranking.
-- Hybrid match-market multis are included in Value calculation instead of being excluded.
+在 Multi Lab 页面引入：
 
-# AFL Match Lab v39 — Match Markets in System Multi
+```jsx
+import MultiLabMarketPicker from "./components/MultiLabMarketPicker";
+import "./multilab-market-picker.css";
 
-- Adds match winner, line and total markets to System Multi filtering and candidate mixing.
-- Match lines/totals are generated in 0.5 increments around the model fair line/total to fit the current anchor/value probability bands.
-- At most one match-level leg is used per recommended multi to limit same-match correlation concentration.
-- Hybrid match-market multis can be sent to Multi Lab; when present, Multi Lab uses a conservative 0.95 dependency proxy until empirical match↔player dependency calibration is available.
-
-# v38 — Tradable Anchor / Higher-Quality Value Balance
-
-- System Multi no longer prioritizes 95%+ legs that often have no practical bookmaker threshold.
-- Conservative anchors: 86–93% (target ~89%); Value floor ~72%, target ~78%.
-- Balanced anchors: 84–92% (target ~87%); Value floor ~69%, target ~75%.
-- Aggressive anchors: 82–91% (target ~85%); Value floor ~66%, target ~72%.
-- 95%+ legs remain visible in Player Markets; they are excluded only from automatic System Multi construction.
-- Still uses 1–2 anchors plus at least one Value leg, with 12 canonical 2/3/4/5-leg × strategy recommendations.
-
-# AFL Match Lab v37 — 12 System Multi recommendations + sharp club marks
-
-- Default System Multi view now shows one canonical recommendation for every 2/3/4/5-leg × conservative/balanced/aggressive group (12 total when all groups are available).
-- Canonical pick prefers 1–2 anchor legs plus at least one Value leg, then fair-odds band fit and recommendation rank.
-- Strategy and leg-count filters include an All option; specific filters show one canonical recommendation per selected group.
-- Replaces pale AFL watermark marks with sharp current-club-design image samples; team abbreviation remains fallback only.
-
-# v36 — System Multi parity + Anchor/Value balance
-
-- Restores Site-style System Multi filter panel: markets, strategy, 2–5 leg count, editable Fair Odds ranges, Confirm/Reset.
-- Filters reset to defaults when match data is reloaded.
-- System cards label each leg as 稳胆 or Value.
-- Backend engine v0.3.2 requires 1–2 anchors and at least 1 value leg, with value scoring less dominated by raw probability.
-
-# AFL Match Lab v35 — AFL Official Team Marks
-
-This version keeps the existing website and replaces custom club badge artwork with the official team-mark resources used by AFL.com.au team pages for all 18 clubs. Fallback initials remain visible until an official asset has loaded successfully.
-
-# AFL Match Lab v34 — CSP-safe Local Logos
-
-- Fixes team logos not rendering under Cloudflare CSP.
-- Replaces inline CSS background-image logo loading with normal local <img> assets.
-- All 18 local SVG club badges remain bundled under public/assets/logos/.
-
-## v28 overlay safe-area update
-
-- Safer end-zone insets to prevent oval-edge clipping.
-- Player option selection stays on Match page.
-- Closable in-line Multi Lab floating summary beside Interchanges.
-
-# AFL Match Lab Independent Web — v20 Parallel Test
-
-v20 parity update:
-- Match page merges LINEUP + 球场阵容 as the primary lineup view.
-- Predicted scores display as whole points.
-- Line and Total inputs/display snap to 0.5 increments.
-- Top Edges now ranks probability/odds balance and de-duplicates same player+market thresholds.
-
-# AFL Match Lab — Independent Web (Parallel Test)
-
-Static Cloudflare Pages frontend for the independent Supabase AFL Match Lab backend.
-
-## Status
-
-**PARALLEL TEST ONLY.** The existing ChatGPT Site remains the production reference. Do not cut over the old scheduler or production URL until the independent chain passes the real-match T-4h → T-30 → T+8h test.
-
-## Repository layout
-
-- `public/` — deployable static source files
-- `scripts/build.mjs` — zero-dependency build step
-- `dist/` — generated Cloudflare Pages output (not committed)
-- `parallel-test/` — test manifest and comparison checklist
-
-## Local checks
-
-```bash
-npm run check
-npm run build
+<MultiLabMarketPicker
+  matchId={selectedMatchId}
+  onAddLeg={(leg) => addLegToCurrentMulti(leg)}
+/>
 ```
 
-## Cloudflare Pages
+`onAddLeg` 返回一个标准对象，包含：
 
-- Framework preset: **None**
-- Production branch: **main**
-- Build command: **npm run build**
-- Build output directory: **dist**
-- Root directory: repository root
-- Node dependencies: none
+- `market`
+- `selection`
+- `threshold`
+- `team_name`
+- `model_probability`
+- `fair_odds`
+- `match_id`
+- `source: "manual_match_market"`
 
-The Supabase publishable key in `public/config.js` is intentionally browser-visible. No service-role or secret key belongs in this repository.
+请把它送入你现在 Multi Lab 的手动组合数组即可。
 
-## Parallel-test identity
+## 重要
 
-`public/config.js` sets:
+这个补丁不会触发 System Multi 自动生成，也不会刷新 System Multi cache。
 
-- `ENVIRONMENT = parallel-test`
-- `PARALLEL_TEST = true`
-- `SITE_ROLE = independent-shadow`
+Multi Lab 应保持：
 
-The UI displays a persistent **PARALLEL TEST** banner so it cannot be mistaken for the existing production Site.
+打开页面 -> 读取可用腿 -> 用户手动选择 -> 只计算当前选择组合概率 / fair odds / value。
 
+## Supabase client
 
-## v17 Player Markets parity
-- Multi-threshold player markets backed by Supabase prediction legs.
-- Player search and market filter retained.
-- Threshold selector updates probability, fair odds, recent-5 hit/miss colours, context and role details.
-- Recent five remains oldest to newest.
-- Prediction leg retrieval is paginated to support >1000 rows.
-- Injury penalty source is availability_factor only; legacy injury factor suppressed.
+`src/lib/multiLabMarkets.js` 假设你项目中已经有：
 
+```js
+import { createClient } from "@supabase/supabase-js";
+export const supabase = createClient(...);
+```
 
-## v20 lineup parity
-- Match lineup board rebuilt to mirror the supplied AFL field layout: Followers left, positional rows over the oval, Interchanges right, All/team filters above.
-- Uses `named_position` slots (BPL/FB/BPR, HBFL/CHB/HBFR, WL/C/WR, HFFL/CHF/HFFR, FPL/FF/FPR, RK/R/RR, INT).
-- When `used_fallback_lineup=true`, the Match page explicitly marks the board as previous-match fallback; the existing sync pipeline replaces it automatically once the latest lineup arrives.
-- No jumper numbers are fabricated because the current public lineup API does not expose guernsey numbers.
+并导出为 `src/lib/supabaseClient.js`。
 
+如果你的路径不同，修改 import 即可。
 
-## v22 lineup rendering fixes
-- Replaced pale AFL watermark image URLs with stable full-contrast club symbol URLs.
-- Removed negative-margin lineup geometry that clipped player cards.
-- All mode uses 10 positional rows; single-team mode uses 5 evenly distributed rows.
-- Followers, Interchanges and Emergencies stay outside the oval.
+## RPC 名称
 
+当前补丁默认调用：
 
-## v29
-- Lineup Multi Lab floating panel now allows removing individual legs in-place.
-- Leg count, probability and fair odds update immediately after removal.
+- `afl_multi_lab_match_market_picker`
+- `afl_multi_lab_match_market_quote`
+
+如果你数据库里实际部署的函数名不同，只需要修改 `src/lib/multiLabMarkets.js` 里的 RPC 字符串。
