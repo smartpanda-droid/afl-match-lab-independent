@@ -1,10 +1,12 @@
 {
   "name": "afl-match-lab-independent-web",
   "private": true,
-  "version": "0.48.0",
+  "version": "0.50.0",
   "type": "module",
   "scripts": {
     "check": "node --check public/app.js",
-    "build": "npm run check && node scripts/build.mjs"
+    "build": "npm run check && node scripts/build.mjs",
+    "smoke": "node scripts/smoke-check.mjs",
+    "verify": "npm run check && npm run smoke && npm run build"
   }
 }

@@ -1,3 +1,15 @@
+# AFL Match Lab v50 — Comprehensive Checked Build
+
+Run `npm run verify` before deployment. See `QA_REPORT_V50.md` for the complete audit.
+
+# AFL Match Lab v49 — Bootstrap Order Fix
+
+- Matches load before Validation.
+- Validation is non-blocking background work.
+- Every API request has a 6s hard timeout.
+- Match selector can no longer be blocked forever by Validation.
+- Adds Authorization header alongside apikey.
+
 # AFL Match Lab v48 — Clean Recovery
 
 This build intentionally restores the last stable v40 loading path while preserving the existing UI and backend Anchor/Value model. Client-side System Multi hybrid injection for match winner / line / total is temporarily disabled for isolation testing. Match-page score, line and total predictions remain available.
