@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Geelong Cats">
+<path d="M60 5 105 22v38c0 28-18 45-45 55C33 105 15 88 15 60V22Z" fill="#0b2341" stroke="#fff" stroke-width="5"/>
+<path d="M34 42 48 31l12 10 12-10 14 11-5 34-21 15-21-15Z" fill="#fff"/><path d="M43 50 52 45l-3 9m28-4-9-5 3 9" stroke="#0b2341" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M52 67h16l-8 8Z" fill="#0b2341"/><text x="60" y="105" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" font-weight="900" fill="#fff">CATS</text>
+</svg>

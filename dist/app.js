@@ -10,10 +10,10 @@ const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent
 
 // 2026 finals branding + jumper numbers. Numbers verified against AFL official team squad pages.
 const TEAM_BRAND = {
-  'Fremantle': {abbr:'FRE', logo:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fremantlesymbol.png', homeBg:'linear-gradient(145deg,#2b0a3d 0 42%,#fff 43% 49%,#2b0a3d 50% 59%,#fff 60% 66%,#2b0a3d 67%)', homeFg:'#fff', awayBg:'linear-gradient(145deg,#fff 0 42%,#5b2c83 43% 49%,#fff 50% 59%,#5b2c83 60% 66%,#fff 67%)', awayFg:'#4b1f69', border:'#5b2c83'},
-  'Geelong Cats': {abbr:'GEEL', logo:'https://upload.wikimedia.org/wikipedia/commons/1/1a/Geelong_icon.svg', homeBg:'repeating-linear-gradient(to bottom,#0b2341 0 5px,#fff 5px 10px)', homeFg:'#0b2341', awayBg:'repeating-linear-gradient(to bottom,#fff 0 6px,#0b2341 6px 9px)', awayFg:'#0b2341', border:'#0b2341'},
-  'Brisbane Lions': {abbr:'BL', logo:'https://upload.wikimedia.org/wikipedia/commons/0/0c/Brisbanelions_icon_lion.png', homeBg:'linear-gradient(135deg,#7b1635 0 60%,#f5c542 61% 72%,#1d4d8f 73%)', homeFg:'#fff', awayBg:'linear-gradient(135deg,#1d4d8f 0 58%,#f5c542 59% 71%,#7b1635 72%)', awayFg:'#fff', border:'#7b1635'},
-  'Adelaide Crows': {abbr:'ADEL', logo:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Adelaidesymbol.png', homeBg:'repeating-linear-gradient(to bottom,#071a3d 0 7px,#d71920 7px 12px,#f6c400 12px 17px)', homeFg:'#fff', awayBg:'repeating-linear-gradient(to bottom,#fff 0 8px,#d71920 8px 11px,#f6c400 11px 14px,#071a3d 14px 17px)', awayFg:'#071a3d', border:'#071a3d'}
+  'Fremantle': {abbr:'FRE', logo:'./assets/logos/fremantle.svg', homeBg:'linear-gradient(145deg,#2b0a3d 0 42%,#fff 43% 49%,#2b0a3d 50% 59%,#fff 60% 66%,#2b0a3d 67%)', homeFg:'#fff', awayBg:'linear-gradient(145deg,#fff 0 42%,#5b2c83 43% 49%,#fff 50% 59%,#5b2c83 60% 66%,#fff 67%)', awayFg:'#4b1f69', border:'#5b2c83'},
+  'Geelong Cats': {abbr:'GEEL', logo:'./assets/logos/geelong-cats.svg', homeBg:'repeating-linear-gradient(to bottom,#0b2341 0 5px,#fff 5px 10px)', homeFg:'#0b2341', awayBg:'repeating-linear-gradient(to bottom,#fff 0 6px,#0b2341 6px 9px)', awayFg:'#0b2341', border:'#0b2341'},
+  'Brisbane Lions': {abbr:'BL', logo:'./assets/logos/brisbane-lions.svg', homeBg:'linear-gradient(135deg,#7b1635 0 60%,#f5c542 61% 72%,#1d4d8f 73%)', homeFg:'#fff', awayBg:'linear-gradient(135deg,#1d4d8f 0 58%,#f5c542 59% 71%,#7b1635 72%)', awayFg:'#fff', border:'#7b1635'},
+  'Adelaide Crows': {abbr:'ADEL', logo:'./assets/logos/adelaide-crows.svg', homeBg:'repeating-linear-gradient(to bottom,#071a3d 0 7px,#d71920 7px 12px,#f6c400 12px 17px)', homeFg:'#fff', awayBg:'repeating-linear-gradient(to bottom,#fff 0 8px,#d71920 8px 11px,#f6c400 11px 14px,#071a3d 14px 17px)', awayFg:'#071a3d', border:'#071a3d'}
 };
 
 const JUMPER_2026 = {
@@ -208,7 +208,7 @@ function balancedTopLegs(legs,limit=10){
   }).sort((a,b)=>b._balance-a._balance);
   const out=[];
   for(const l of ranked){const key=`${l.player_id}:${l.market}`;if(seen.has(key))continue;seen.add(key);out.push(l);if(out.length>=limit)break;}
-  if(out.length<limit){for(const l of [...(legs||[])].sort((a,b)=>Number(b.model_probability)-Number(a.model_probability))){const key=`${l.player_id}:${l.market}`;if(seen.has(key)||Number(l.model_probability)<0.50)continue;seen.add(key);out.push(l);if(out.length>=limit)break;}}
+  if(out.length<limit){for(const l of [...(legs||[])].sort((a,b)=>Number(b.model_probability)-Number(a.model_probability))){const key=`${l.player_id}:${l.market}`;if(seen.has(key)||Number(l.model_probability)<0.40)continue;seen.add(key);out.push(l);if(out.length>=limit)break;}}
   return out;
 }
 

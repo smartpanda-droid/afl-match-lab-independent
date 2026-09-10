@@ -454,3 +454,14 @@
 .team-logo-shell .team-logo-image{position:absolute;inset:3px;background-repeat:no-repeat;background-position:center;background-size:contain;z-index:1}
 .team-logo-shell.team-logo-small .team-logo-image{inset:2px}
 .team-logo-shell.team-logo-large .team-logo-fallback{font-size:13px}
+
+
+/* v32: full player names + local team logos */
+.team-logo-shell .team-logo-image{background-size:contain!important;background-repeat:no-repeat!important;background-position:center!important;opacity:1!important;filter:none!important}
+.team-logo-shell.team-logo-large{width:72px!important;height:72px!important;background:#fff!important}
+.team-logo-shell.team-logo-small{width:30px!important;height:30px!important;background:#fff!important}
+.overlay-position-roster .lineup-player-card{height:38px!important;overflow:visible!important;white-space:normal!important;align-items:center!important}
+.overlay-position-roster .lineup-player-card strong{display:block!important;overflow:visible!important;text-overflow:clip!important;white-space:normal!important;line-height:1.05!important;font-size:10px!important;max-width:none!important;word-break:normal!important}
+.position-three .lineup-player-card{overflow:visible!important}
+@media(max-width:1180px){.overlay-position-roster .lineup-player-card strong{font-size:9px!important}}
+@media(max-width:760px){.overlay-position-roster .lineup-player-card{height:40px!important}.overlay-position-roster .lineup-player-card strong{font-size:8.5px!important}}
