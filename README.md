@@ -1,3 +1,14 @@
+# v36 — System Multi parity + Anchor/Value balance
+
+- Restores Site-style System Multi filter panel: markets, strategy, 2–5 leg count, editable Fair Odds ranges, Confirm/Reset.
+- Filters reset to defaults when match data is reloaded.
+- System cards label each leg as 稳胆 or Value.
+- Backend engine v0.3.2 requires 1–2 anchors and at least 1 value leg, with value scoring less dominated by raw probability.
+
+# AFL Match Lab v35 — AFL Official Team Marks
+
+This version keeps the existing website and replaces custom club badge artwork with the official team-mark resources used by AFL.com.au team pages for all 18 clubs. Fallback initials remain visible until an official asset has loaded successfully.
+
 # AFL Match Lab v34 — CSP-safe Local Logos
 
 - Fixes team logos not rendering under Cloudflare CSP.

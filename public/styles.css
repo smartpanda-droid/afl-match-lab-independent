@@ -470,4 +470,16 @@
 .team-logo-shell{--team-border:#d7e0db}
 .team-logo-shell .team-logo-image{position:absolute;inset:3px;width:calc(100% - 6px);height:calc(100% - 6px);object-fit:contain;display:block;z-index:2;background:none!important}
 .team-logo-shell.team-logo-small .team-logo-image{inset:2px;width:calc(100% - 4px);height:calc(100% - 4px)}
-.team-logo-shell:has(.team-logo-image) .team-logo-fallback{opacity:0}
+.team-logo-shell:has(.team-logo-image) .team-logo-fallback{opacity:1}
+
+/* v35 — AFL official team-page marks; fallback remains until image successfully loads */
+.team-logo-shell .team-logo-fallback{opacity:1!important;transition:opacity .15s ease}
+.team-logo-shell .team-logo-image{opacity:0!important;transition:opacity .15s ease;background:none!important}
+.team-logo-shell.logo-loaded .team-logo-image{opacity:1!important}
+.team-logo-shell.logo-loaded .team-logo-fallback{opacity:0!important}
+.team-logo-shell{background:#fff!important;border-color:#d8e1dc!important}
+
+/* v36 System Multi Site-parity controls */
+.system-multi-layout{display:grid;grid-template-columns:310px minmax(0,1fr);gap:16px;align-items:start}.system-filter-panel{position:sticky;top:12px}.system-rule-note{padding:10px 11px;background:var(--soft);border-radius:10px;margin-bottom:14px}.system-filter-block{display:grid;gap:9px;padding:13px 0;border-top:1px solid var(--line)}.system-filter-block>label:not(.check){display:grid;grid-template-columns:64px 1fr;gap:8px;align-items:center;font-size:11px;color:var(--muted)}.system-rec-check{display:flex;align-items:center;gap:7px}.system-market-filters{display:grid;grid-template-columns:1fr 1fr;gap:6px}.system-market-check{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:9px;background:var(--soft);font-size:10px}.system-market-check input{margin:0}.filter-subhead{display:flex;justify-content:space-between;align-items:center}.filter-subhead small{color:var(--muted)}.system-odds-matrix{display:grid;gap:11px}.odds-strategy-group{display:grid;gap:5px}.odds-strategy-name{font-size:10px;font-weight:900;color:var(--accent);text-transform:uppercase}.odds-range-row{display:grid;grid-template-columns:46px 1fr 12px 1fr;gap:5px;align-items:center;font-size:9px;color:var(--muted)}.odds-range-row input{width:100%;padding:6px;font-size:10px}.odds-range-row em{font-style:normal;text-align:center}.system-filter-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.system-results-panel{min-width:0}.system-filter-summary{display:flex;gap:7px;align-items:center;flex-wrap:wrap;font-size:10px;color:var(--muted)}.system-filter-summary b{padding:6px 8px;border-radius:8px;background:var(--soft);color:var(--ink)}.system-filter-summary small{font-size:9px}.multi-leg-main{display:flex;align-items:center;gap:7px;min-width:0}.leg-role{font-style:normal;font-size:8px;font-weight:950;padding:3px 5px;border-radius:6px;white-space:nowrap}.leg-role.anchor{background:#e5f4e9;color:var(--good)}.leg-role.value{background:#fff1d8;color:var(--warn)}.system-empty{grid-column:1/-1;display:grid;gap:5px}.system-empty strong{color:var(--ink)}.multi-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:1050px){.system-multi-layout{grid-template-columns:270px minmax(0,1fr)}.multi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.system-multi-layout{grid-template-columns:1fr}.system-filter-panel{position:static}.system-market-filters{grid-template-columns:repeat(3,1fr)}.multi-grid{grid-template-columns:1fr}}

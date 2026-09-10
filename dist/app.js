@@ -5,31 +5,31 @@ if(CFG?.PARALLEL_TEST){
 }else{
   const b=document.getElementById('parallelTestBanner'); if(b)b.hidden=true;
 }
-const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, lineupBuilderFloatClosed:false, view:'match' };
+const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, lineupBuilderFloatClosed:false, systemFilterActive:null, view:'match' };
 
 
 // 2026 finals branding + jumper numbers. Numbers verified against AFL official team squad pages.
 const TEAM_BRAND = {
-  'Adelaide Crows': {abbr:'ADEL', logo:'./assets/logos/adelaide-crows.svg', homeBg:'repeating-linear-gradient(to bottom,#071a3d 0 7px,#d71920 7px 12px,#f6c400 12px 17px)', homeFg:'#fff', awayBg:'repeating-linear-gradient(to bottom,#fff 0 8px,#d71920 8px 11px,#f6c400 11px 14px,#071a3d 14px 17px)', awayFg:'#071a3d', border:'#071a3d'},
-  'Brisbane Lions': {abbr:'BL', logo:'./assets/logos/brisbane-lions.svg', homeBg:'linear-gradient(135deg,#7b1635 0 60%,#f5c542 61% 72%,#1d4d8f 73%)', homeFg:'#fff', awayBg:'linear-gradient(135deg,#1d4d8f 0 58%,#f5c542 59% 71%,#7b1635 72%)', awayFg:'#fff', border:'#7b1635'},
-  'Carlton': {abbr:'CARL', logo:'./assets/logos/carlton.svg', homeBg:'#081f3d', homeFg:'#fff', awayBg:'#fff', awayFg:'#081f3d', border:'#081f3d'},
-  'Collingwood': {abbr:'COLL', logo:'./assets/logos/collingwood.svg', homeBg:'repeating-linear-gradient(90deg,#111 0 6px,#fff 6px 12px)', homeFg:'#111', awayBg:'repeating-linear-gradient(90deg,#fff 0 6px,#111 6px 12px)', awayFg:'#111', border:'#111'},
-  'Essendon': {abbr:'ESS', logo:'./assets/logos/essendon.svg', homeBg:'linear-gradient(135deg,#111 0 42%,#e31b23 43% 57%,#111 58%)', homeFg:'#fff', awayBg:'linear-gradient(135deg,#fff 0 42%,#e31b23 43% 57%,#fff 58%)', awayFg:'#111', border:'#e31b23'},
-  'Fremantle': {abbr:'FRE', logo:'./assets/logos/fremantle.svg', homeBg:'linear-gradient(145deg,#2b0a3d 0 42%,#fff 43% 49%,#2b0a3d 50% 59%,#fff 60% 66%,#2b0a3d 67%)', homeFg:'#fff', awayBg:'linear-gradient(145deg,#fff 0 42%,#5b2c83 43% 49%,#fff 50% 59%,#5b2c83 60% 66%,#fff 67%)', awayFg:'#4b1f69', border:'#5b2c83'},
-  'Geelong Cats': {abbr:'GEEL', logo:'./assets/logos/geelong-cats.svg', homeBg:'repeating-linear-gradient(to bottom,#0b2341 0 5px,#fff 5px 10px)', homeFg:'#0b2341', awayBg:'repeating-linear-gradient(to bottom,#fff 0 6px,#0b2341 6px 9px)', awayFg:'#0b2341', border:'#0b2341'},
-  'Gold Coast SUNS': {abbr:'GCS', logo:'./assets/logos/gold-coast-suns.svg', homeBg:'#e31b23', homeFg:'#f6c400', awayBg:'#f6c400', awayFg:'#e31b23', border:'#e31b23'},
-  'Gold Coast Suns': {abbr:'GCS', logo:'./assets/logos/gold-coast-suns.svg', homeBg:'#e31b23', homeFg:'#f6c400', awayBg:'#f6c400', awayFg:'#e31b23', border:'#e31b23'},
-  'GWS GIANTS': {abbr:'GWS', logo:'./assets/logos/gws-giants.svg', homeBg:'#f47920', homeFg:'#111', awayBg:'#fff', awayFg:'#f47920', border:'#f47920'},
-  'Greater Western Sydney Giants': {abbr:'GWS', logo:'./assets/logos/gws-giants.svg', homeBg:'#f47920', homeFg:'#111', awayBg:'#fff', awayFg:'#f47920', border:'#f47920'},
-  'Hawthorn': {abbr:'HAW', logo:'./assets/logos/hawthorn.svg', homeBg:'repeating-linear-gradient(90deg,#4b2b20 0 7px,#f6c400 7px 14px)', homeFg:'#111', awayBg:'repeating-linear-gradient(90deg,#fff 0 7px,#4b2b20 7px 10px,#f6c400 10px 14px)', awayFg:'#4b2b20', border:'#4b2b20'},
-  'Melbourne': {abbr:'MEL', logo:'./assets/logos/melbourne.svg', homeBg:'linear-gradient(#d71920 0 28%,#061a3a 29%)', homeFg:'#fff', awayBg:'#fff', awayFg:'#061a3a', border:'#061a3a'},
-  'North Melbourne': {abbr:'NM', logo:'./assets/logos/north-melbourne.svg', homeBg:'repeating-linear-gradient(90deg,#1769aa 0 7px,#fff 7px 14px)', homeFg:'#1769aa', awayBg:'#fff', awayFg:'#1769aa', border:'#1769aa'},
-  'Port Adelaide': {abbr:'PORT', logo:'./assets/logos/port-adelaide.svg', homeBg:'linear-gradient(135deg,#111 0 62%,#00a0b0 63%)', homeFg:'#fff', awayBg:'#fff', awayFg:'#111', border:'#00a0b0'},
-  'Richmond': {abbr:'RICH', logo:'./assets/logos/richmond.svg', homeBg:'linear-gradient(135deg,#111 0 42%,#f6c400 43% 57%,#111 58%)', homeFg:'#fff', awayBg:'#f6c400', awayFg:'#111', border:'#111'},
-  'St Kilda': {abbr:'STK', logo:'./assets/logos/st-kilda.svg', homeBg:'linear-gradient(90deg,#111 0 33%,#fff 33% 66%,#d71920 66%)', homeFg:'#111', awayBg:'#fff', awayFg:'#111', border:'#d71920'},
-  'Sydney Swans': {abbr:'SYD', logo:'./assets/logos/sydney-swans.svg', homeBg:'linear-gradient(#fff 0 45%,#d71920 46%)', homeFg:'#d71920', awayBg:'#fff', awayFg:'#d71920', border:'#d71920'},
-  'West Coast Eagles': {abbr:'WCE', logo:'./assets/logos/west-coast-eagles.svg', homeBg:'#003087', homeFg:'#f6c400', awayBg:'#f6c400', awayFg:'#003087', border:'#003087'},
-  'Western Bulldogs': {abbr:'WB', logo:'./assets/logos/western-bulldogs.svg', homeBg:'repeating-linear-gradient(to bottom,#0057b8 0 7px,#fff 7px 11px,#d71920 11px 15px)', homeFg:'#fff', awayBg:'#fff', awayFg:'#0057b8', border:'#0057b8'}
+  'Adelaide Crows': {abbr:'ADEL', logo:'https://www.afl.com.au/resources/club-watermarks/25715/adel-right-colour.png', homeBg:'repeating-linear-gradient(to bottom,#071a3d 0 7px,#d71920 7px 12px,#f6c400 12px 17px)', homeFg:'#fff', awayBg:'repeating-linear-gradient(to bottom,#fff 0 8px,#d71920 8px 11px,#f6c400 11px 14px,#071a3d 14px 17px)', awayFg:'#071a3d', border:'#071a3d'},
+  'Brisbane Lions': {abbr:'BL', logo:'https://www.afl.com.au/resources/club-watermarks/25715/bl-right-colour.png', homeBg:'linear-gradient(135deg,#7b1635 0 60%,#f5c542 61% 72%,#1d4d8f 73%)', homeFg:'#fff', awayBg:'linear-gradient(135deg,#1d4d8f 0 58%,#f5c542 59% 71%,#7b1635 72%)', awayFg:'#fff', border:'#7b1635'},
+  'Carlton': {abbr:'CARL', logo:'https://www.afl.com.au/resources/club-watermarks/25715/carl-right-colour.png', homeBg:'#081f3d', homeFg:'#fff', awayBg:'#fff', awayFg:'#081f3d', border:'#081f3d'},
+  'Collingwood': {abbr:'COLL', logo:'https://www.afl.com.au/resources/club-watermarks/25715/coll-right-colour.png', homeBg:'repeating-linear-gradient(90deg,#111 0 6px,#fff 6px 12px)', homeFg:'#111', awayBg:'repeating-linear-gradient(90deg,#fff 0 6px,#111 6px 12px)', awayFg:'#111', border:'#111'},
+  'Essendon': {abbr:'ESS', logo:'https://www.afl.com.au/resources/club-watermarks/25715/ess-right-colour.png', homeBg:'linear-gradient(135deg,#111 0 42%,#e31b23 43% 57%,#111 58%)', homeFg:'#fff', awayBg:'linear-gradient(135deg,#fff 0 42%,#e31b23 43% 57%,#fff 58%)', awayFg:'#111', border:'#e31b23'},
+  'Fremantle': {abbr:'FRE', logo:'https://www.afl.com.au/resources/club-watermarks/25715/fre-right-colour.png', homeBg:'linear-gradient(145deg,#2b0a3d 0 42%,#fff 43% 49%,#2b0a3d 50% 59%,#fff 60% 66%,#2b0a3d 67%)', homeFg:'#fff', awayBg:'linear-gradient(145deg,#fff 0 42%,#5b2c83 43% 49%,#fff 50% 59%,#5b2c83 60% 66%,#fff 67%)', awayFg:'#4b1f69', border:'#5b2c83'},
+  'Geelong Cats': {abbr:'GEEL', logo:'https://www.afl.com.au/resources/club-watermarks/25715/geel-right-colour.png', homeBg:'repeating-linear-gradient(to bottom,#0b2341 0 5px,#fff 5px 10px)', homeFg:'#0b2341', awayBg:'repeating-linear-gradient(to bottom,#fff 0 6px,#0b2341 6px 9px)', awayFg:'#0b2341', border:'#0b2341'},
+  'Gold Coast SUNS': {abbr:'GCS', logo:'https://www.afl.com.au/resources/club-watermarks/25715/gcfc-right-colour.png', homeBg:'#e31b23', homeFg:'#f6c400', awayBg:'#f6c400', awayFg:'#e31b23', border:'#e31b23'},
+  'Gold Coast Suns': {abbr:'GCS', logo:'https://www.afl.com.au/resources/club-watermarks/25715/gcfc-right-colour.png', homeBg:'#e31b23', homeFg:'#f6c400', awayBg:'#f6c400', awayFg:'#e31b23', border:'#e31b23'},
+  'GWS GIANTS': {abbr:'GWS', logo:'https://www.afl.com.au/resources/club-watermarks/25715/gws-right-colour.png', homeBg:'#f47920', homeFg:'#111', awayBg:'#fff', awayFg:'#f47920', border:'#f47920'},
+  'Greater Western Sydney Giants': {abbr:'GWS', logo:'https://www.afl.com.au/resources/club-watermarks/25715/gws-right-colour.png', homeBg:'#f47920', homeFg:'#111', awayBg:'#fff', awayFg:'#f47920', border:'#f47920'},
+  'Hawthorn': {abbr:'HAW', logo:'https://www.afl.com.au/resources/club-watermarks/25715/haw-right-colour.png', homeBg:'repeating-linear-gradient(90deg,#4b2b20 0 7px,#f6c400 7px 14px)', homeFg:'#111', awayBg:'repeating-linear-gradient(90deg,#fff 0 7px,#4b2b20 7px 10px,#f6c400 10px 14px)', awayFg:'#4b2b20', border:'#4b2b20'},
+  'Melbourne': {abbr:'MEL', logo:'https://www.afl.com.au/resources/club-watermarks/25715/melb-right-colour.png', homeBg:'linear-gradient(#d71920 0 28%,#061a3a 29%)', homeFg:'#fff', awayBg:'#fff', awayFg:'#061a3a', border:'#061a3a'},
+  'North Melbourne': {abbr:'NM', logo:'https://www.afl.com.au/resources/club-watermarks/25715/nmfc-right-colour.png', homeBg:'repeating-linear-gradient(90deg,#1769aa 0 7px,#fff 7px 14px)', homeFg:'#1769aa', awayBg:'#fff', awayFg:'#1769aa', border:'#1769aa'},
+  'Port Adelaide': {abbr:'PORT', logo:'https://www.afl.com.au/resources/club-watermarks/25715/port-right-colour.png', homeBg:'linear-gradient(135deg,#111 0 62%,#00a0b0 63%)', homeFg:'#fff', awayBg:'#fff', awayFg:'#111', border:'#00a0b0'},
+  'Richmond': {abbr:'RICH', logo:'https://www.afl.com.au/resources/club-watermarks/25715/rich-right-colour.png', homeBg:'linear-gradient(135deg,#111 0 42%,#f6c400 43% 57%,#111 58%)', homeFg:'#fff', awayBg:'#f6c400', awayFg:'#111', border:'#111'},
+  'St Kilda': {abbr:'STK', logo:'https://www.afl.com.au/resources/club-watermarks/25715/stk-right-colour.png', homeBg:'linear-gradient(90deg,#111 0 33%,#fff 33% 66%,#d71920 66%)', homeFg:'#111', awayBg:'#fff', awayFg:'#111', border:'#d71920'},
+  'Sydney Swans': {abbr:'SYD', logo:'https://www.afl.com.au/resources/club-watermarks/25715/syd-right-colour.png', homeBg:'linear-gradient(#fff 0 45%,#d71920 46%)', homeFg:'#d71920', awayBg:'#fff', awayFg:'#d71920', border:'#d71920'},
+  'West Coast Eagles': {abbr:'WCE', logo:'https://www.afl.com.au/resources/club-watermarks/25715/wce-right-colour.png', homeBg:'#003087', homeFg:'#f6c400', awayBg:'#f6c400', awayFg:'#003087', border:'#003087'},
+  'Western Bulldogs': {abbr:'WB', logo:'https://www.afl.com.au/resources/club-watermarks/25715/wb-right-colour.png', homeBg:'repeating-linear-gradient(to bottom,#0057b8 0 7px,#fff 7px 11px,#d71920 11px 15px)', homeFg:'#fff', awayBg:'#fff', awayFg:'#0057b8', border:'#0057b8'}
 };
 
 const JUMPER_2026 = {
@@ -40,7 +40,8 @@ const JUMPER_2026 = {
 };
 
 function brandFor(name){return TEAM_BRAND[name]||{abbr:teamAbbr(name),logo:'',homeBg:'#123',homeFg:'#fff',awayBg:'#fff',awayFg:'#123',border:'#123'}}
-function teamLogoHtml(name,cls='team-logo'){const b=brandFor(name);const src=b.logo?b.logo.replace(/^\.\//,'/'):'';return `<span class="team-logo-shell ${cls}"><span class="team-logo-fallback">${esc(b.abbr)}</span>${src?`<img class="team-logo-image" src="${esc(src)}" alt="${esc(name)} logo">`:''}</span>`}
+function teamLogoHtml(name,cls='team-logo'){const b=brandFor(name);const src=b.logo||'';return `<span class="team-logo-shell ${cls}"><span class="team-logo-fallback">${esc(b.abbr)}</span>${src?`<img class="team-logo-image" src="${esc(src)}" alt="${esc(name)} official AFL team mark">`:''}</span>`}
+function bindTeamLogoImages(root=document){root.querySelectorAll('.team-logo-shell .team-logo-image').forEach(img=>{const shell=img.closest('.team-logo-shell');const ok=()=>shell?.classList.add('logo-loaded');const bad=()=>{shell?.classList.remove('logo-loaded');img.style.display='none'};if(img.complete){img.naturalWidth?ok():bad()}else{img.addEventListener('load',ok,{once:true});img.addEventListener('error',bad,{once:true})}})}
 function jumperNumber(team,player){return JUMPER_2026[team]?.[player] ?? ''}
 function jumperCss(team,isHome){const b=brandFor(team);return `background:${isHome?b.homeBg:b.awayBg};color:${isHome?b.homeFg:b.awayFg};border-color:${b.border}`}
 const $ = s => document.querySelector(s);
@@ -178,7 +179,7 @@ async function loadSelected(){
     api(`/rest/v1/afl_api_shadow_observations?select=*&match_id=eq.${id}&order=sequence_no.asc`),
     api('/rest/v1/rpc/afl_match_market_quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_match_id:state.selected,p_line:null,p_total:null})})
   ]);
-  state.legs=legs;state.multis=multis;state.lineup=lineup;state.recent5=new Map(recent.map(r=>[r.player_id,r.recent5||[]]));state.availability=new Map(availability.map(r=>[r.player_id,r]));state.context=contextRows[0]||null;state.multiStability=new Map((stabilityRows||[]).map(x=>[`${x.strategy}:${x.leg_count}:${x.slot}`,x]));state.finalLock=(finalRows||[])[0]||null;state.shadowObs=shadowRows||[];state.matchQuote=Array.isArray(matchQuoteRows)?matchQuoteRows[0]:matchQuoteRows;
+  state.legs=legs;state.multis=multis;state.lineup=lineup;state.recent5=new Map(recent.map(r=>[r.player_id,r.recent5||[]]));state.availability=new Map(availability.map(r=>[r.player_id,r]));state.context=contextRows[0]||null;state.multiStability=new Map((stabilityRows||[]).map(x=>[`${x.strategy}:${x.leg_count}:${x.slot}`,x]));state.finalLock=(finalRows||[])[0]||null;state.shadowObs=shadowRows||[];state.matchQuote=Array.isArray(matchQuoteRows)?matchQuoteRows[0]:matchQuoteRows;state.systemFilterActive=defaultSystemFilterState();
   loadBuilder();renderAll();evaluateBuilder().catch(showError);
 }
 
@@ -231,6 +232,7 @@ function balancedTopLegs(legs,limit=10){
 function renderMatch(){
   const m=state.matches.find(x=>x.match_id===state.selected);if(!m)return;
   $('#matchSummary').innerHTML=`<div class="match-team home"><div class="team-name">${esc(m.home_team_name)}</div><div class="match-meta">HOME</div><div class="match-team-logo">${teamLogoHtml(m.home_team_name,'team-logo-large')}</div></div><div class="match-mid"><div class="eyebrow">${esc(m.round_name)} · ${esc(m.venue||'TBC')}</div><strong>${dt(m.start_time)}</strong><div class="match-meta">${esc(m.status)}</div></div><div class="match-team away"><div class="team-name">${esc(m.away_team_name)}</div><div class="match-meta">AWAY</div><div class="match-team-logo">${teamLogoHtml(m.away_team_name,'team-logo-large')}</div></div>`;
+  bindTeamLogoImages($('#matchSummary'));
   const confirmed=!!m.lineup_confirmed,fallback=!!m.used_fallback_lineup;
   $('#lineupBadge').className=`badge ${confirmed?'good':fallback?'warn':'neutral'}`;$('#lineupBadge').textContent=confirmed?'LATEST TEAM':fallback?'PREVIOUS MATCH':'PENDING';
   const bench=state.lineup.filter(x=>x.bench&&!x.emergency).length, emerg=state.lineup.filter(x=>x.emergency).length;
@@ -329,9 +331,34 @@ async function valueResult(prob,actual,resultEl){
   try{const r=await api('/rest/v1/rpc/afl_price_value',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_model_probability:Number(prob),p_actual_odds:Number(actual)})});const x=Array.isArray(r)?r[0]:r;resultEl.className=`value-result ${x.positive_ev?'good':'bad'}`;resultEl.textContent=`${x.value_label} · Value ${Number(x.value_pct).toFixed(2)}% · Fair ${Number(x.fair_odds).toFixed(2)}`}
   catch(e){resultEl.className='value-result bad';resultEl.textContent=`Value API error: ${e.message}`}
 }
+
+const SYSTEM_ODDS_DEFAULTS={
+  conservative:{2:[1.60,2.40],3:[2.00,3.20],4:[2.60,4.20],5:[3.20,5.50]},
+  balanced:{2:[1.90,3.00],3:[2.50,4.50],4:[3.20,6.00],5:[4.00,8.00]},
+  aggressive:{2:[2.40,4.00],3:[3.50,6.50],4:[5.00,9.00],5:[6.50,12.00]}
+};
+const SYSTEM_STRATEGY_LABEL={conservative:'保守',balanced:'平衡',aggressive:'激进'};
+function systemAnchorCut(strategy){return strategy==='conservative'?.86:strategy==='balanced'?.83:.80}
+function defaultSystemFilterState(){return {strategy:'balanced',legCount:2,recommendedOnly:false,markets:new Set([...new Set(state.legs.map(x=>x.market))]),odds:JSON.parse(JSON.stringify(SYSTEM_ODDS_DEFAULTS))}}
+function renderSystemFilterUI(){
+  const f=state.systemFilterActive||defaultSystemFilterState();
+  $('#strategyFilter').value=f.strategy;$('#legCountFilter').value=String(f.legCount);$('#recommendedOnly').checked=!!f.recommendedOnly;
+  const markets=[...new Set(state.legs.map(x=>x.market))].sort();
+  $('#systemMarketFilters').innerHTML=markets.map(m=>`<label class="system-market-check"><input type="checkbox" value="${esc(m)}" ${f.markets.has(m)?'checked':''}><span>${esc(marketLabel(m))}</span></label>`).join('');
+  $('#systemOddsMatrix').innerHTML=['conservative','balanced','aggressive'].map(st=>`<div class="odds-strategy-group"><div class="odds-strategy-name">${SYSTEM_STRATEGY_LABEL[st]}</div>${[2,3,4,5].map(n=>{const r=f.odds[st][n];return `<div class="odds-range-row"><span>${n}串1</span><input class="system-odds-input" data-strategy="${st}" data-count="${n}" data-side="min" type="number" step="0.1" min="1.01" value="${Number(r[0]).toFixed(2)}"><em>–</em><input class="system-odds-input" data-strategy="${st}" data-count="${n}" data-side="max" type="number" step="0.1" min="1.01" value="${Number(r[1]).toFixed(2)}"></div>`}).join('')}</div>`).join('');
+}
+function readSystemFilters(){
+  const base=state.systemFilterActive?{...state.systemFilterActive,markets:new Set(state.systemFilterActive.markets),odds:JSON.parse(JSON.stringify(state.systemFilterActive.odds))}:defaultSystemFilterState();
+  base.strategy=$('#strategyFilter').value;base.legCount=Number($('#legCountFilter').value);base.recommendedOnly=$('#recommendedOnly').checked;
+  base.markets=new Set($$('#systemMarketFilters input:checked').map(x=>x.value));
+  $$('.system-odds-input').forEach(i=>{const st=i.dataset.strategy,n=Number(i.dataset.count),side=i.dataset.side==='min'?0:1;const v=Number(i.value);if(Number.isFinite(v)&&v>1)base.odds[st][n][side]=v});
+  return base;
+}
+function resetSystemFilters(render=true){state.systemFilterActive=defaultSystemFilterState();if($('#systemMarketFilters'))renderSystemFilterUI();if(render)renderMultis()}
+function systemLegRole(strategy,leg){return Number(leg.probability)>=systemAnchorCut(strategy)?'稳胆':'Value'}
 function visibleMultiRows(){
-  const strategy=$('#strategyFilter').value,count=Number($('#legCountFilter').value),only=$('#recommendedOnly').checked;
-  return state.multis.filter(x=>x.strategy===strategy&&Number(x.leg_count)===count&&(!only||x.recommended));
+  const f=state.systemFilterActive||defaultSystemFilterState();const range=f.odds[f.strategy][f.legCount];
+  return state.multis.filter(x=>x.strategy===f.strategy&&Number(x.leg_count)===f.legCount&&(!f.recommendedOnly||x.recommended)&&(x.legs||[]).every(l=>f.markets.has(l.market))&&Number(x.fair_odds)>=Number(range[0])&&Number(x.fair_odds)<=Number(range[1]));
 }
 async function rankVisibleMultis(){
   const seq=++state.systemRankSeq;
@@ -345,9 +372,12 @@ async function rankVisibleMultis(){
   renderMultis();
 }
 function renderMultis(){
+  if(!state.systemFilterActive)state.systemFilterActive=defaultSystemFilterState();
+  if($('#systemMarketFilters')&&!$('#systemMarketFilters').children.length)renderSystemFilterUI();
+  const f=state.systemFilterActive,range=f.odds[f.strategy][f.legCount];const summary=$('#systemFilterSummary');if(summary)summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · ${f.legCount}串1</span><b>Fair ${Number(range[0]).toFixed(2)}–${Number(range[1]).toFixed(2)}</b><small>${f.markets.size} markets</small>`;
   let rows=visibleMultiRows();const host=$('#multiCards');host.innerHTML='';
   if(state.finalLock){const lock=document.createElement('div');lock.className='final-lock-banner';lock.innerHTML=`<strong>🔒 T-30 FINAL RECOMMENDATION LOCK</strong><span>${dt(state.finalLock.frozen_at)} · ${state.finalLock.recommendation_count} recommendations · SHA ${esc(String(state.finalLock.snapshot_sha256||'').slice(0,12))}…</span>`;host.appendChild(lock)}
-  if(!rows.length){host.innerHTML='<div class="empty">当前质量门槛下没有正式推荐；系统不会为了凑赔率加入低质量腿。</div>';return}
+  if(!rows.length){host.innerHTML='<div class="empty system-empty"><strong>当前筛选下没有组合</strong><span>系统不会为了凑赔率加入低质量腿。可放宽 Fair Odds 范围或勾选更多玩法后再确认。</span></div>';return}
   const ranked=rows.filter(m=>state.systemMultiRanking.has(m.multi_id));
   if(ranked.length>=2)rows=[...rows].sort((a,b)=>{
     const ra=state.systemMultiRanking.get(a.multi_id)?.value_aware_rank??999;
@@ -362,7 +392,7 @@ function renderMultis(){
     const rb=node.querySelector('.multi-rec');rb.textContent=m.recommended?'RECOMMENDED':'OUT OF BAND';rb.className=`multi-rec badge ${m.recommended?'good':'warn'}`;
     const st=state.multiStability.get(`${m.strategy}:${m.leg_count}:${m.rank_in_group}`);
     if(st){const sb=document.createElement('span');const reason=String(st.last_reason||'');sb.className=`badge ${reason.includes('replaced')||reason.includes('risk')||reason.includes('improvement')?'warn':'good'}`;sb.textContent=reason.includes('replaced')||reason.includes('risk')||reason.includes('improvement')?'REPLACED':'STABLE';sb.title=`${reason} · kept ${st.kept_count||0} · replaced ${st.replace_count||0}`;node.querySelector('.multi-top').appendChild(sb)}
-    node.querySelector('.multi-legs').innerHTML=(m.legs||[]).map(l=>`<div class="multi-leg"><span>${esc(l.selection)}</span><strong>${pct(l.probability)}</strong></div>`).join('');
+    node.querySelector('.multi-legs').innerHTML=(m.legs||[]).map(l=>{const role=systemLegRole(m.strategy,l);return `<div class="multi-leg"><span class="multi-leg-main"><i class="leg-role ${role==='稳胆'?'anchor':'value'}">${role}</i><span>${esc(l.selection)}</span></span><strong>${pct(l.probability)}</strong></div>`}).join('');
     node.querySelector('.multi-metrics').innerHTML=metric('Model P',pct(m.combined_probability))+metric('Fair Odds',odds(m.fair_odds))+metric('Corr.',Number(m.correlation_penalty||1).toFixed(3))+(vrank?metric('Quality Rank',`#${vrank.quality_rank}`)+metric('Value Rank',`#${vrank.value_aware_rank}`):'');
     node.querySelector('.send-builder').addEventListener('click',()=>sendMultiToBuilder(m));
     const input=node.querySelector('.actual-odds'),result=node.querySelector('.value-result');
@@ -457,6 +487,7 @@ function renderMatchFieldBoard(){
   const right=`<aside class="lineup-side interchanges"><h3>Interchanges</h3>${teams.map((t,i)=>visible(i)?`<div class="side-team-block team-${i}">${benchCards(t,i)}</div>`:'').join('')}${builderFloatHtml()}</aside>`;
   const emergencies=teams.map((t,i)=>visible(i)?emergencyCards(t,i):'').join('');
   host.innerHTML=`${filters}${legend}<div class="lineup-main-grid overlay-field-mode">${left}<div class="lineup-center overlay-lineup-center"><div class="afl-oval overlay-afl-field"><div class="field-surface" aria-hidden="true"></div><div class="oval-markings"><div class="boundary-inner"></div><div class="centre-square"></div><div class="centre-circle"></div><div class="centre-dot"></div><div class="arc arc-top"></div><div class="arc arc-bottom"></div><div class="goal-square goal-square-top"></div><div class="goal-square goal-square-bottom"></div><div class="goal-posts goal-posts-top"><i></i><i></i><i></i><i></i></div><div class="goal-posts goal-posts-bottom"><i></i><i></i><i></i><i></i></div></div><div class="position-roster overlay-position-roster ${state.fieldTeamFilter==='all'?'all-teams':'single-team'}">${centerRows}</div></div></div>${right}</div>${emergencies?`<div class="emergency-strip"><span>Emergencies</span>${emergencies}</div>`:''}`;
+  bindTeamLogoImages(host);
   $$('#matchFieldTeams .lineup-team-filters button').forEach(b=>b.addEventListener('click',()=>{state.fieldTeamFilter=b.dataset.team;renderMatchFieldBoard()}));
   $$('#matchFieldTeams .lineup-player-card[data-player-id], #matchFieldTeams .mini-player-dot[data-player-id]').forEach(b=>b.addEventListener('click',()=>openPlayerOptionModal(b.dataset.playerId)));
   bindLineupBuilderFloat();
@@ -535,7 +566,7 @@ async function bootstrap(){try{await loadValidation();await loadMatches();await 
 $$('.tab').forEach(t=>t.addEventListener('click',()=>switchView(t.dataset.view)));$$('[data-go]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.go)));
 $('#matchSelect').addEventListener('change',e=>{state.selected=e.target.value;state.systemMultiOdds={};state.systemMultiRanking=new Map();loadSelected().catch(showError)});
 $('#playerSearch').addEventListener('input',renderPlayers);$('#marketFilter').addEventListener('change',renderPlayers);
-['#strategyFilter','#legCountFilter','#recommendedOnly'].forEach(s=>$(s).addEventListener('change',renderMultis));
+$('#systemFilterConfirm').addEventListener('click',()=>{state.systemFilterActive=readSystemFilters();renderMultis()});$('#systemFilterReset').addEventListener('click',()=>resetSystemFilters(true));
 $('#builderSearch').addEventListener('input',renderBuilder);$('#clearBuilder').addEventListener('click',()=>{state.builder=[];saveBuilder()});
 let builderOddsTimer;$('#builderActualOdds').addEventListener('input',()=>{clearTimeout(builderOddsTimer);builderOddsTimer=setTimeout(()=>evaluateBuilder().catch(showError),250)});
 $('#builderValueBtn').addEventListener('click',()=>evaluateBuilder().catch(showError));

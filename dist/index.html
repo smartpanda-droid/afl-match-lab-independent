@@ -83,16 +83,27 @@
     </section>
 
     <section id="view-system-multi" class="view">
-      <section class="panel">
-        <div class="section-head controls-head">
-          <div><div class="eyebrow">SYSTEM MULTI</div><h2>系统推荐组合</h2></div>
-          <div class="controls">
-            <select id="strategyFilter"><option value="conservative">保守</option><option value="balanced" selected>平衡</option><option value="aggressive">激进</option></select>
-            <select id="legCountFilter"><option value="2">2串1</option><option value="3">3串1</option><option value="4">4串1</option><option value="5">5串1</option></select>
-            <label class="check"><input id="recommendedOnly" type="checkbox" checked/> 只看推荐</label>
+      <section class="system-multi-layout">
+        <aside class="panel system-filter-panel">
+          <div class="eyebrow">FILTER SETTINGS</div><h2>系统推荐筛选</h2>
+          <p class="note system-rule-note">组合结构：1–2 个稳胆 + 至少 1 个 Value leg。质量优先，不为凑赔率强塞低质量腿。</p>
+          <div class="system-filter-block">
+            <label><span>策略</span><select id="strategyFilter"><option value="conservative">保守</option><option value="balanced" selected>平衡</option><option value="aggressive">激进</option></select></label>
+            <label><span>串数</span><select id="legCountFilter"><option value="2">2串1</option><option value="3">3串1</option><option value="4">4串1</option><option value="5">5串1</option></select></label>
+            <label class="check system-rec-check"><input id="recommendedOnly" type="checkbox"/> 只看默认推荐</label>
           </div>
-        </div>
-        <div id="multiCards" class="multi-grid"></div>
+          <div class="system-filter-block"><strong>玩法</strong><div id="systemMarketFilters" class="system-market-filters"></div></div>
+          <div class="system-filter-block">
+            <div class="filter-subhead"><strong>模拟赔率范围</strong><small>Min / Max</small></div>
+            <div id="systemOddsMatrix" class="system-odds-matrix"></div>
+          </div>
+          <div class="system-filter-actions"><button id="systemFilterConfirm">确认</button><button id="systemFilterReset" class="ghost">重置</button></div>
+          <p class="note">每次比赛数据重新同步后恢复默认筛选。这里的赔率范围用于筛选模型 Fair Odds，不代表博彩公司实时价格。</p>
+        </aside>
+        <section class="panel system-results-panel">
+          <div class="section-head"><div><div class="eyebrow">SYSTEM MULTI</div><h2>系统推荐组合</h2></div><div id="systemFilterSummary" class="system-filter-summary"></div></div>
+          <div id="multiCards" class="multi-grid"></div>
+        </section>
       </section>
     </section>
 
