@@ -5,7 +5,7 @@ if(CFG?.PARALLEL_TEST){
 }else{
   const b=document.getElementById('parallelTestBanner'); if(b)b.hidden=true;
 }
-const state = { matches:[], selected:null, legs:[], matchPreviewLegs:[], playerLegCache:new Map(), multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, lineupBuilderFloatClosed:false, systemFilterActive:null, legsLoaded:false, recentLoaded:false, coreErrors:{}, loadSeq:0, legsSeq:0, recentSeq:0, view:'match' };
+const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, lineupBuilderFloatClosed:false, systemFilterActive:null, view:'match' };
 
 
 // 2026 finals branding + jumper numbers. Numbers verified against AFL official team squad pages.
@@ -52,26 +52,10 @@ const odds = v => v == null ? '—' : Number(v).toFixed(2);
 const dt = iso => new Intl.DateTimeFormat('en-AU',{dateStyle:'medium',timeStyle:'short',timeZone:'Australia/Melbourne'}).format(new Date(iso));
 
 async function api(path, options={}){
-  const timeoutMs=Number(options.timeoutMs||5000);
-  const retries=Number(options.retries??0);
-  let lastErr;
-  for(let attempt=0;attempt<=retries;attempt++){
-    const ctl=new AbortController();
-    const timer=setTimeout(()=>ctl.abort(),timeoutMs);
-    try{
-      const {timeoutMs:_t,retries:_r,...fetchOptions}=options;
-      const key=CFG.SUPABASE_ANON_KEY||CFG.SUPABASE_PUBLISHABLE_KEY;
-      const headers={apikey:key,...(CFG.SUPABASE_ANON_KEY?{Authorization:`Bearer ${CFG.SUPABASE_ANON_KEY}`}:{}) ,...(options.headers||{})};
-      const r=await fetch(`${CFG.SUPABASE_URL}${path}`,{...fetchOptions,headers,signal:ctl.signal,cache:'no-store'});
-      clearTimeout(timer);
-      if(!r.ok){const body=await r.text();throw new Error(`${r.status} ${body||r.statusText}`)}
-      return r.status===204?null:r.json();
-    }catch(e){
-      clearTimeout(timer);lastErr=e;
-      if(attempt<retries)await new Promise(r=>setTimeout(r,250));
-    }
-  }
-  throw lastErr;
+  const headers={apikey:CFG.SUPABASE_PUBLISHABLE_KEY,...(options.headers||{})};
+  const r=await fetch(`${CFG.SUPABASE_URL}${path}`,{...options,headers});
+  if(!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+  return r.status===204?null:r.json();
 }
 
 async function apiPaged(path, pageSize=1000){
@@ -171,168 +155,39 @@ function loadBuilder(){try{state.builder=JSON.parse(localStorage.getItem(storage
 function saveBuilder(){localStorage.setItem(storageKey(),JSON.stringify(state.builder));state.builderEval=null;updateBuilderCount();renderBuilder();evaluateBuilder().catch(showError)}
 function updateBuilderCount(){$('#builderCount').textContent=state.builder.length}
 
-
-const BOOTSTRAP_LINEUPS_2026 = {
-  '59712394-5931-4487-8d5c-b1e080206a53': [
-    ['Fremantle','Jordan Clark','BPL'],['Fremantle','Alex Pearce','FB'],['Fremantle','Oscar McDonald','BPR'],
-    ['Fremantle','Karl Worner','HBFL'],['Fremantle','Brandon Walker','CHB'],['Fremantle','Heath Chapman','HBFR'],
-    ['Fremantle','Matthew Johnson','WL'],['Fremantle','Andrew Brayshaw','C'],['Fremantle','Michael Frederick','WR'],
-    ['Fremantle','Isaiah Dudley','HFFL'],['Fremantle','Murphy Reid','CHF'],['Fremantle','Sam Switkowski','HFFR'],
-    ['Fremantle','Jye Amiss','FPL'],['Fremantle','Josh Treacy','FF'],['Fremantle','Patrick Voss','FPR'],
-    ['Fremantle','Luke Jackson','RK'],['Fremantle','Shai Bolton','R'],['Fremantle','Caleb Serong','RR'],
-    ['Fremantle','Hayden Young','INT',true],['Fremantle','Luke Ryan','INT',true],['Fremantle','Mason Cox','INT',true],['Fremantle',"Nathan O'Driscoll",'INT',true],['Fremantle','Neil Erasmus','INT',true],
-    ['Fremantle','Christopher Scerri','EMERG',false,true],['Fremantle','Corey Wagner','EMERG',false,true],['Fremantle','Hugh Davies','EMERG',false,true],
-    ['Geelong Cats','Zach Guthrie','BPL'],['Geelong Cats',"Connor O'Sullivan",'FB'],['Geelong Cats','Jack Henry','BPR'],
-    ['Geelong Cats','Tom Stewart','HBFL'],['Geelong Cats','Tanner Bruhn','CHB'],['Geelong Cats','Lawson Humphries','HBFR'],
-    ['Geelong Cats','Oliver Dempsey','WL'],['Geelong Cats','Bailey Smith','C'],['Geelong Cats','Mark Blicavs','WR'],
-    ['Geelong Cats','Gryan Miers','HFFL'],['Geelong Cats','Jeremy Cameron','CHF'],['Geelong Cats','Brad Close','HFFR'],
-    ['Geelong Cats','Patrick Dangerfield','FPL'],['Geelong Cats','Shannon Neale','FF'],['Geelong Cats','Jay Polkinghorne','FPR'],
-    ['Geelong Cats','Mitchell Edwards','RK'],['Geelong Cats','Oisin Mullin','R'],['Geelong Cats','Tom Atkins','RR'],
-    ['Geelong Cats',"Mark O'Connor",'INT',true],['Geelong Cats','Max Holmes','INT',true],['Geelong Cats','Oliver Henry','INT',true],['Geelong Cats','Oliver Wiltshire','INT',true],['Geelong Cats','Shaun Mannagh','INT',true],
-    ['Geelong Cats','Jack Martin','EMERG',false,true],['Geelong Cats','Jhye Clark','EMERG',false,true],['Geelong Cats','Sam De Koning','EMERG',false,true]
-  ],
-  '5f4b20e2-dad6-4ba8-b940-946577653eb2': [
-    ['Brisbane Lions','Noah Answerth','BPL'],['Brisbane Lions','Harris Andrews','FB'],['Brisbane Lions','Ryan Lester','BPR'],
-    ['Brisbane Lions','Darcy Wilmot','HBFL'],['Brisbane Lions','Darcy Gardiner','CHB'],['Brisbane Lions','Dayne Zorko','HBFR'],
-    ['Brisbane Lions','Jarrod Berry','WL'],['Brisbane Lions','Zac Bailey','C'],['Brisbane Lions','Hugh McCluggage','WR'],
-    ['Brisbane Lions','Charlie Cameron','HFFL'],['Brisbane Lions','Logan Morris','CHF'],['Brisbane Lions','Oscar Allen','HFFR'],
-    ['Brisbane Lions','Eric Hipwood','FPL'],['Brisbane Lions','Cam Rayner','FF'],['Brisbane Lions','Conor McKenna','FPR'],
-    ['Brisbane Lions','Sam Draper','RK'],['Brisbane Lions','Lachie Neale','R'],['Brisbane Lions','Josh Dunkley','RR'],
-    ['Brisbane Lions','Darcy Fort','INT',true],['Brisbane Lions','Jaspa Fletcher','INT',true],['Brisbane Lions','Kai Lohmann','INT',true],['Brisbane Lions','Levi Ashcroft','INT',true],['Brisbane Lions','Will Ashcroft','INT',true],
-    ['Brisbane Lions','Bruce Reville','EMERG',false,true],['Brisbane Lions','Lincoln McCarthy','EMERG',false,true],['Brisbane Lions','Ty Gallop','EMERG',false,true],
-    ['Adelaide Crows','Josh Worrell','BPL'],['Adelaide Crows','James Borlase','FB'],['Adelaide Crows','Max Michalanney','BPR'],
-    ['Adelaide Crows','Wayne Milera','HBFL'],['Adelaide Crows','Mark Keane','CHB'],['Adelaide Crows','Rory Laird','HBFR'],
-    ['Adelaide Crows','Brayden Cook','WL'],['Adelaide Crows','Jordan Dawson','C'],['Adelaide Crows','Daniel Curtin','WR'],
-    ['Adelaide Crows','Ben Keays','HFFL'],['Adelaide Crows','Riley Thilthorpe','CHF'],['Adelaide Crows','Josh Rachele','HFFR'],
-    ['Adelaide Crows','Darcy Fogarty','FPL'],['Adelaide Crows','Taylor Walker','FF'],['Adelaide Crows','Callum Ah Chee','FPR'],
-    ['Adelaide Crows','Lachlan McAndrew','RK'],['Adelaide Crows','Isaac Cumming','R'],['Adelaide Crows','Izak Rankine','RR'],
-    ['Adelaide Crows','Alex Neal-Bullen','INT',true],['Adelaide Crows','Hugo Hall-Kahan','INT',true],['Adelaide Crows','Jake Soligo','INT',true],['Adelaide Crows','Luke Nankervis','INT',true],['Adelaide Crows','Sam Berry','INT',true],
-    ['Adelaide Crows','Billy Dowling','EMERG',false,true],['Adelaide Crows','Nick Murray','EMERG',false,true],['Adelaide Crows',"Reilly O'Brien",'EMERG',false,true]
-  ]
-};
-function fallbackLineup(matchId){
-  return (BOOTSTRAP_LINEUPS_2026[matchId]||[]).map(([team_name,player_name,named_position,bench=false,emergency=false])=>({
-    match_id:matchId,player_id:`fallback:${team_name}:${player_name}`,player_name,team_name,named_position,bench,emergency,confirmed:false,local_fallback:true
-  }));
-}
-
-const BOOTSTRAP_MATCHES_2026 = [
-  {match_id:'59712394-5931-4487-8d5c-b1e080206a53',external_id:'9023',season:2026,round_name:'Semi Finals',venue:'Optus Stadium',start_time:'2026-09-11T10:10:00Z',status:'scheduled',home_team_name:'Fremantle',away_team_name:'Geelong Cats',model_version:'baseline-v0.2',prediction_is_final:false,lineup_confirmed:false,used_fallback_lineup:true,final_recommendation_locked:false},
-  {match_id:'5f4b20e2-dad6-4ba8-b940-946577653eb2',external_id:'9030',season:2026,round_name:'Semi Finals',venue:'Gabba',start_time:'2026-09-12T09:35:00Z',status:'scheduled',home_team_name:'Brisbane Lions',away_team_name:'Adelaide Crows',model_version:'baseline-v0.2',prediction_is_final:false,lineup_confirmed:false,used_fallback_lineup:true,final_recommendation_locked:false},
-  {match_id:'a88e8b86-60ef-48dc-83c0-c0c60caa763c',external_id:'9027',season:2026,round_name:'Preliminary Finals',venue:'To Be Confirmed',start_time:'2026-09-14T02:00:00Z',status:'scheduled',home_team_name:'Hawthorn',away_team_name:'Winner of SF2',model_version:'baseline-v0.2',prediction_is_final:false,lineup_confirmed:false,used_fallback_lineup:true,final_recommendation_locked:false},
-  {match_id:'9657bd55-e29d-4076-8644-5cb9d3301bf4',external_id:'9026',season:2026,round_name:'Preliminary Finals',venue:'To Be Confirmed',start_time:'2026-09-14T02:00:00Z',status:'scheduled',home_team_name:'Sydney Swans',away_team_name:'Winner of SF1',model_version:'baseline-v0.2',prediction_is_final:false,lineup_confirmed:false,used_fallback_lineup:true,final_recommendation_locked:false},
-  {match_id:'2ebbe857-e694-4e3c-9fb1-ff91f93a19aa',external_id:'9028',season:2026,round_name:'Grand Final',venue:'MCG',start_time:'2026-09-26T04:30:00Z',status:'scheduled',home_team_name:'Winner of PF1',away_team_name:'Winner of PF2',model_version:null,prediction_is_final:null,lineup_confirmed:false,used_fallback_lineup:true,final_recommendation_locked:false}
-];
-
 async function loadMatches(){
-  let rows=null,liveError=null;
-  try{
-    rows=await api('/rest/v1/afl_api_matches?select=*&season=eq.2026&order=start_time.asc',{timeoutMs:4500,retries:0});
-    try{localStorage.setItem('afl:matches:2026',JSON.stringify({rows,savedAt:Date.now()}))}catch{}
-  }catch(e){
-    liveError=e;
-    let cached=null;try{cached=JSON.parse(localStorage.getItem('afl:matches:2026')||'null')}catch{}
-    rows=cached?.rows?.length?cached.rows:BOOTSTRAP_MATCHES_2026;
-  }
-  state.matches=rows||[];
-  const future=state.matches.filter(m=>['scheduled','live'].includes(m.status));
+  const rows=await api('/rest/v1/afl_api_matches?select=*&season=eq.2026&order=start_time.asc');
+  state.matches=rows;
+  const future=rows.filter(m=>['scheduled','live'].includes(m.status));
   $('#matchSelect').innerHTML=future.map(m=>`<option value="${m.match_id}">${esc(m.round_name)} · ${esc(m.home_team_name)} vs ${esc(m.away_team_name)} · ${dt(m.start_time)}</option>`).join('');
-  if(!state.selected || !future.some(m=>m.match_id===state.selected)) state.selected=future[0]?.match_id||state.matches.at(-1)?.match_id||null;
+  if(!state.selected || !future.some(m=>m.match_id===state.selected)) state.selected=future[0]?.match_id||rows.at(-1)?.match_id||null;
   $('#matchSelect').value=state.selected||'';
-  if(liveError){$('#healthBadge').className='badge warn';$('#healthBadge').textContent=rows===BOOTSTRAP_MATCHES_2026?'Fixture Fallback':'Cached Matches';$('#healthBadge').title=`MATCHES: ${shortErr(liveError)}`}
-  return !liveError;
 }
 
-async function loadLegsLazy(force=false){
-  if(!state.selected)return [];
-  if(state.legsLoaded&&!force)return state.legs;
-  const matchId=state.selected, seq=++state.legsSeq, id=encodeURIComponent(matchId);
-  try{
-    const legs=await apiPaged(`/rest/v1/afl_api_prediction_legs?select=*&match_id=eq.${id}&order=player_name.asc,market.asc,threshold.asc`,1000);
-    if(seq!==state.legsSeq||state.selected!==matchId)return [];
-    state.legs=legs||[];state.legsLoaded=true;delete state.coreErrors.legs;
-    state.systemFilterActive=defaultSystemFilterState();renderMatch();renderPlayerControls();renderPlayers();renderMultis();renderBuilder();
-    return state.legs;
-  }catch(e){if(seq===state.legsSeq&&state.selected===matchId){state.coreErrors.legs=e;console.warn('LEGS load failed',e)}return []}
-}
-async function loadRecentLazy(force=false){
-  if(!state.selected)return [];
-  if(state.recentLoaded&&!force)return [...state.recent5.values()];
-  const matchId=state.selected,seq=++state.recentSeq,id=encodeURIComponent(matchId);
-  try{
-    const rows=await api(`/rest/v1/afl_api_player_recent5?select=player_id,player_name,team_name,recent5&match_id=eq.${id}`,{timeoutMs:5000,retries:0});
-    if(seq!==state.recentSeq||state.selected!==matchId)return [];
-    state.recent5=new Map((rows||[]).map(r=>[r.player_id,r.recent5||[]]));state.recentLoaded=true;delete state.coreErrors.recent;
-    renderPlayers();renderField();return rows||[];
-  }catch(e){if(seq===state.recentSeq&&state.selected===matchId){state.coreErrors.recent=e;console.warn('RECENT5 load failed',e)}return []}
-}
-
-function shortErr(e){const m=String(e?.message||e||'error');return m.length>42?m.slice(0,39)+'…':m}
-function showModuleError(label,e){console.error(label,e);const b=$('#healthBadge');b.className='badge bad';b.textContent=`${label} Error`;b.title=shortErr(e)}
 async function loadSelected(){
   if(!state.selected)return;
-  const matchId=state.selected, token=++state.loadSeq, id=encodeURIComponent(matchId);
-  const cacheKey=`afl:selected-lite:${matchId}`;
-  state.legsSeq++;state.recentSeq++;
-  state.legs=[];state.matchPreviewLegs=[];state.playerLegCache=new Map();state.legsLoaded=false;state.recent5=new Map();state.recentLoaded=false;state.coreErrors={};state.context=null;state.matchQuote=null;state.multis=[];
-  const bundled=fallbackLineup(matchId);state.lineup=bundled||[];
-  state.systemFilterActive=defaultSystemFilterState();loadBuilder();renderMatchCore();
-  $('#healthBadge').className='badge warn';$('#healthBadge').textContent=bundled.length?'Loading Live…':'Loading…';
-
-  const lineupP=api(`/rest/v1/afl_api_lineup?select=*&match_id=eq.${id}&order=team_name.asc,emergency.asc,bench.asc,player_name.asc`,{timeoutMs:4500,retries:0});
-  const multisP=api(`/rest/v1/afl_api_multis?select=*&match_id=eq.${id}&order=strategy.asc,leg_count.asc,rank_in_group.asc`,{timeoutMs:4500,retries:0});
-  const [lineupR,multisR]=await Promise.allSettled([lineupP,multisP]);
-  if(token!==state.loadSeq||state.selected!==matchId)return;
-
-  if(lineupR.status==='fulfilled'&&lineupR.value?.length){state.lineup=lineupR.value;delete state.coreErrors.lineup}
-  else if(bundled.length){state.lineup=bundled;state.coreErrors.lineup=lineupR.reason||new Error('live lineup unavailable')}
-  else{state.coreErrors.lineup=lineupR.reason||new Error('lineup unavailable')}
-
-  if(multisR.status==='fulfilled'){state.multis=multisR.value||[];delete state.coreErrors.multis}
-  else{
-    state.coreErrors.multis=multisR.reason;
-    try{const c=JSON.parse(localStorage.getItem(cacheKey)||'null');if(c?.multis?.length)state.multis=c.multis}catch{}
-  }
-  renderMatchCore();
-  try{localStorage.setItem(cacheKey,JSON.stringify({lineup:state.lineup,multis:state.multis,savedAt:Date.now()}))}catch{}
-  if(!state.coreErrors.lineup&&!state.coreErrors.multis){$('#healthBadge').className='badge good';$('#healthBadge').textContent='Live'}
-  else if(state.lineup.length||state.multis.length){$('#healthBadge').className='badge warn';$('#healthBadge').textContent=state.coreErrors.lineup?'Lineup Fallback':'Multi Cached';$('#healthBadge').title=Object.entries(state.coreErrors).map(([k,v])=>`${k.toUpperCase()}: ${shortErr(v)}`).join(' | ')}
-  else{const first=Object.entries(state.coreErrors)[0];showModuleError(first?.[0]?.toUpperCase()||'CORE',first?.[1]||new Error('core unavailable'))}
-
-  // Non-critical Match modules load independently and are guarded by this match token.
-  setTimeout(()=>{
-    if(token!==state.loadSeq||state.selected!==matchId)return;
-    const previewCacheKey=`afl:preview-legs:${matchId}`;const contextCacheKey=`afl:context:${matchId}`;const quoteCacheKey=`afl:match-quote:${matchId}`;
-    try{const q=JSON.parse(localStorage.getItem(quoteCacheKey)||'null');if(q&&!state.matchQuote){state.matchQuote=q;renderMatchPrediction()}}catch{}
-    try{const c=JSON.parse(localStorage.getItem(contextCacheKey)||'null');if(c&&!state.context){state.context=c;renderTactics()}}catch{}
-    try{const l=JSON.parse(localStorage.getItem(previewCacheKey)||'null');if(Array.isArray(l)&&l.length&&!state.matchPreviewLegs.length){state.matchPreviewLegs=l;renderMatch()}}catch{}
-    api('/rest/v1/rpc/afl_match_market_quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_match_id:matchId,p_line:null,p_total:null}),timeoutMs:4000,retries:1})
-      .then(r=>{if(token!==state.loadSeq||state.selected!==matchId)return;state.matchQuote=Array.isArray(r)?r[0]:r;try{localStorage.setItem(quoteCacheKey,JSON.stringify(state.matchQuote))}catch{};renderMatchPrediction()}).catch(e=>console.warn('MATCH QUOTE load failed',e));
-    api(`/rest/v1/afl_api_match_context?select=*&match_id=eq.${id}`,{timeoutMs:4000,retries:1})
-      .then(rows=>{if(token!==state.loadSeq||state.selected!==matchId)return;state.context=(rows||[])[0]||state.context||null;if(state.context)try{localStorage.setItem(contextCacheKey,JSON.stringify(state.context))}catch{};renderTactics()}).catch(e=>console.warn('CONTEXT load failed',e));
-    api(`/rest/v1/afl_api_prediction_legs?select=prediction_leg_id,match_id,prediction_run_id,player_id,player_name,team_name,market,threshold,selection,model_probability,fair_odds,sample_size,recent_hit_rate&match_id=eq.${id}&order=model_probability.desc&limit=160`,{timeoutMs:4000,retries:1})
-      .then(rows=>{if(token!==state.loadSeq||state.selected!==matchId)return;state.matchPreviewLegs=rows||[];if(state.matchPreviewLegs.length)try{localStorage.setItem(previewCacheKey,JSON.stringify(state.matchPreviewLegs))}catch{};renderMatch()}).catch(e=>console.warn('TOP LEGS preview load failed',e));
-  },0);
+  const id=encodeURIComponent(state.selected);
+  const [legs,multis,lineup,recent,availability,contextRows,stabilityRows,finalRows,shadowRows,matchQuoteRows]=await Promise.all([
+    apiPaged(`/rest/v1/afl_api_prediction_legs?select=*&match_id=eq.${id}&order=player_name.asc,market.asc,threshold.asc`),
+    api(`/rest/v1/afl_api_multis?select=*&match_id=eq.${id}&order=strategy.asc,leg_count.asc,rank_in_group.asc`),
+    api(`/rest/v1/afl_api_lineup?select=*&match_id=eq.${id}&order=team_name.asc,emergency.asc,bench.asc,player_name.asc`),
+    api(`/rest/v1/afl_api_player_recent5?select=player_id,player_name,team_name,recent5&match_id=eq.${id}`),
+    api(`/rest/v1/afl_api_availability?select=*`),
+    api(`/rest/v1/afl_api_match_context?select=*&match_id=eq.${id}`),
+    api(`/rest/v1/afl_api_multi_stability?select=*&match_id=eq.${id}`),
+    api(`/rest/v1/afl_api_final_recommendations?select=*&match_id=eq.${id}`),
+    api(`/rest/v1/afl_api_shadow_observations?select=*&match_id=eq.${id}&order=sequence_no.asc`),
+    api('/rest/v1/rpc/afl_match_market_quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_match_id:state.selected,p_line:null,p_total:null})})
+  ]);
+  state.legs=legs;state.multis=multis;state.lineup=lineup;state.recent5=new Map(recent.map(r=>[r.player_id,r.recent5||[]]));state.availability=new Map(availability.map(r=>[r.player_id,r]));state.context=contextRows[0]||null;state.multiStability=new Map((stabilityRows||[]).map(x=>[`${x.strategy}:${x.leg_count}:${x.slot}`,x]));state.finalLock=(finalRows||[])[0]||null;state.shadowObs=shadowRows||[];state.matchQuote=Array.isArray(matchQuoteRows)?matchQuoteRows[0]:matchQuoteRows;state.systemFilterActive=defaultSystemFilterState();
+  loadBuilder();renderAll();evaluateBuilder().catch(showError);
 }
 
-function safeRender(name,fn){
-  try{fn()}catch(e){console.error(`RENDER ${name} failed`,e);state.coreErrors[`render_${name}`]=e}
-}
-function renderMatchCore(){
-  safeRender('match',renderMatch);
-  safeRender('field',renderField);
-  safeRender('tactics',renderTactics);
-}
-function renderAll(){
-  renderMatchCore();
-  safeRender('playerControls',renderPlayerControls);
-  safeRender('players',renderPlayers);
-  safeRender('multis',renderMultis);
-  safeRender('builder',renderBuilder);
-  safeRender('validation',renderValidation);
-  safeRender('shadow',renderShadowLive);
-}
+function stat(label,value){return `<div class="stat"><b>${value}</b><span>${label}</span></div>`}
+function metric(label,value){return `<div class="metric"><b>${value}</b>${label}</div>`}
+function probClass(p){p=Number(p);return p>=.65?'high':p>=.5?'mid':'low'}
 
+function renderAll(){renderMatch();renderPlayerControls();renderPlayers();renderMultis();renderBuilder();renderField();renderTactics();renderValidation();renderShadowLive();$('#healthBadge').className='badge good';$('#healthBadge').textContent='Supabase Connected'}
 
 async function refreshMatchQuote(){
   if(!state.selected)return;
@@ -378,15 +233,14 @@ function renderMatch(){
   const m=state.matches.find(x=>x.match_id===state.selected);if(!m)return;
   $('#matchSummary').innerHTML=`<div class="match-team home"><div class="team-name">${esc(m.home_team_name)}</div><div class="match-meta">HOME</div><div class="match-team-logo">${teamLogoHtml(m.home_team_name,'team-logo-large')}</div></div><div class="match-mid"><div class="eyebrow">${esc(m.round_name)} · ${esc(m.venue||'TBC')}</div><strong>${dt(m.start_time)}</strong><div class="match-meta">${esc(m.status)}</div></div><div class="match-team away"><div class="team-name">${esc(m.away_team_name)}</div><div class="match-meta">AWAY</div><div class="match-team-logo">${teamLogoHtml(m.away_team_name,'team-logo-large')}</div></div>`;
   bindTeamLogoImages($('#matchSummary'));
-  const confirmed=!!m.lineup_confirmed,fallback=!!m.used_fallback_lineup||state.lineup.some(x=>x.local_fallback);
+  const confirmed=!!m.lineup_confirmed,fallback=!!m.used_fallback_lineup;
   $('#lineupBadge').className=`badge ${confirmed?'good':fallback?'warn':'neutral'}`;$('#lineupBadge').textContent=confirmed?'LATEST TEAM':fallback?'PREVIOUS MATCH':'PENDING';
   const bench=state.lineup.filter(x=>x.bench&&!x.emergency).length, emerg=state.lineup.filter(x=>x.emergency).length;
   $('#lineupSummary').innerHTML=stat('Players',state.lineup.filter(x=>!x.emergency).length)+stat('Interchanges',bench)+stat('Emergencies',emerg);
   const src=$('#matchLineupSource');if(src){src.className=`lineup-source-note ${confirmed?'current':fallback?'fallback':'pending'}`;src.innerHTML=confirmed?'<strong>最新阵容</strong><span>已同步当前比赛阵容；后续数据更新将自动覆盖。</span>':fallback?'<strong>上一场阵容待入</strong><span>当前比赛最新阵容尚未发布，暂用两队上一场位置；最新阵容同步后会自动覆盖。</span>':'<strong>等待阵容</strong><span>尚未取得可用阵容。</span>';}
   const locked=!!state.finalLock||!!m.final_recommendation_locked;$('#modelBadge').className=`badge ${locked||m.prediction_is_final?'good':'warn'}`;$('#modelBadge').textContent=locked?'FINAL LOCKED':m.prediction_is_final?'T-30 FINAL':'PREVIEW';
-  const matchLegSource=state.legsLoaded?state.legs:state.matchPreviewLegs;
-  $('#modelSummary').innerHTML=stat('Model',esc(m.model_version||'—'))+stat('Legs',state.legsLoaded?state.legs.length:(state.matchPreviewLegs.length?`${state.matchPreviewLegs.length}+`:'—'))+stat('Multi',state.multis.filter(x=>x.recommended).length);
-  const topBalanced=balancedTopLegs(matchLegSource,10);
+  $('#modelSummary').innerHTML=stat('Model',esc(m.model_version||'—'))+stat('Legs',state.legs.length)+stat('Multi',state.multis.filter(x=>x.recommended).length);
+  const topBalanced=balancedTopLegs(state.legs,10);
   $('#topLegs').innerHTML=topBalanced.map(l=>`<div class="top-leg"><div class="p">${pct(l.model_probability)}</div><div class="sel">${esc(l.selection)}</div><div class="meta">Fair ${odds(l.fair_odds)} · Recent ${pct(l.recent_hit_rate)} · n=${l.sample_size??'—'}</div><button class="add-leg" data-leg-id="${l.prediction_leg_id}">+ Multi Lab</button></div>`).join('')||'<div class="empty">暂无符合概率/赔率平衡条件的单腿</div>';
   $$('#topLegs .add-leg').forEach(b=>b.addEventListener('click',()=>addLegById(b.dataset.legId)));
   renderMatchPrediction();
@@ -430,8 +284,7 @@ async function quotePlayerThreshold(playerId,market,threshold){
   }catch(e){showError(e)}
 }
 function renderPlayerControls(){
-  const el=$('#marketFilter');if(!el)return;
-  const markets=[...new Set(state.legs.map(x=>x.market))].sort(), cur=el.value;
+  const markets=[...new Set(state.legs.map(x=>x.market))].sort(), el=$('#marketFilter'), cur=el.value;
   el.innerHTML='<option value="">全部玩法</option>'+markets.map(x=>`<option value="${esc(x)}">${esc(marketLabel(x))}</option>`).join('');
   if(markets.includes(cur))el.value=cur;
 }
@@ -441,8 +294,7 @@ function renderRecent(leg){
   return `<div class="recent-block"><div class="recent-caption">最近 5 场 · ${esc(marketLabel(leg.market))} ${esc(leg.threshold)}+</div><div class="recent-strip">${games.map(g=>{const v=marketValue(g,leg.market);const ok=v!=null&&Number(v)>=Number(leg.threshold);return `<span class="recent-cell ${v==null?'na':ok?'hit':'miss'}" title="${esc(g.round_name)} vs ${esc(g.opponent)}">${v??'—'}</span>`}).join('')||'<span class="recent-cell na">—</span>'}</div></div>`;
 }
 function renderPlayers(){
-  const searchEl=$('#playerSearch'),marketEl=$('#marketFilter'),cardsHost=$('#playerCards');if(!searchEl||!marketEl||!cardsHost)return;
-  const s=searchEl.value.trim().toLowerCase(), market=marketEl.value;
+  const s=$('#playerSearch').value.trim().toLowerCase(), market=$('#marketFilter').value;
   const filtered=state.legs.filter(l=>(!s||l.player_name?.toLowerCase().includes(s))&&(!market||l.market===market));
   const byPlayer=new Map();
   filtered.forEach(l=>{
@@ -467,7 +319,7 @@ function renderPlayers(){
     }).join('');
     return `<article class="player-card"><div class="player-card-head"><div><h3>${esc(first.player_name)}</h3><div class="match-meta">${esc(first.team_name||'')} ${first.bench?'· Bench':''}</div>${riskLine}</div><span class="badge ${badgeClass}">${esc(badge)}</span></div>${rows}</article>`;
   });
-  cardsHost.innerHTML=cards.join('')||'<div class="empty">没有符合条件的球员</div>';
+  $('#playerCards').innerHTML=cards.join('')||'<div class="empty">没有符合条件的球员</div>';
   $$('#playerCards .threshold-input').forEach(inp=>inp.addEventListener('change',()=>{const v=Math.max(1,Math.round(Number(inp.value)||1));quotePlayerThreshold(inp.dataset.player,inp.dataset.market,v)}));
   $$('#playerCards .threshold-step').forEach(btn=>btn.addEventListener('click',()=>{const key=playerThresholdKey(btn.dataset.player,btn.dataset.market);const current=Number(state.playerThresholds[key]||btn.closest('.threshold-stepper').querySelector('.threshold-input').value||1);quotePlayerThreshold(btn.dataset.player,btn.dataset.market,Math.max(1,current+Number(btn.dataset.delta)))}));
   $$('#playerCards .add-leg[data-leg-id]').forEach(b=>b.addEventListener('click',()=>addLegById(b.dataset.legId)));
@@ -489,11 +341,11 @@ const SYSTEM_STRATEGY_LABEL={conservative:'保守',balanced:'平衡',aggressive:
 function systemAnchorBand(strategy){return strategy==='conservative'?[.80,.89,.84]:strategy==='balanced'?[.78,.88,.82]:[.76,.86,.80]}
 function systemValueFloor(strategy,legCount=2){const base=strategy==='conservative'?.68:strategy==='balanced'?.65:.62;return Math.max(.56,base-.005*Math.max(0,Number(legCount||2)-2))}
 function systemAnchorCut(strategy){return systemAnchorBand(strategy)[0]}
-function defaultSystemFilterState(){return {strategy:'all',legCount:0,recommendedOnly:false,markets:new Set([...new Set(state.legs.map(x=>x.market)),'match_winner','match_line','match_total']),odds:JSON.parse(JSON.stringify(SYSTEM_ODDS_DEFAULTS))}}
+function defaultSystemFilterState(){return {strategy:'all',legCount:0,recommendedOnly:false,markets:new Set([...new Set(state.legs.map(x=>x.market))]),odds:JSON.parse(JSON.stringify(SYSTEM_ODDS_DEFAULTS))}}
 function renderSystemFilterUI(){
   const f=state.systemFilterActive||defaultSystemFilterState();
   $('#strategyFilter').value=f.strategy;$('#legCountFilter').value=String(f.legCount);$('#recommendedOnly').checked=!!f.recommendedOnly;
-  const markets=[...new Set([...state.legs.map(x=>x.market),'match_winner','match_line','match_total'])].sort();
+  const markets=[...new Set(state.legs.map(x=>x.market))].sort();
   $('#systemMarketFilters').innerHTML=markets.map(m=>`<label class="system-market-check"><input type="checkbox" value="${esc(m)}" ${f.markets.has(m)?'checked':''}><span>${esc(marketLabel(m))}</span></label>`).join('');
   $('#systemOddsMatrix').innerHTML=['conservative','balanced','aggressive'].map(st=>`<div class="odds-strategy-group"><div class="odds-strategy-name">${SYSTEM_STRATEGY_LABEL[st]}</div>${[2,3,4,5].map(n=>{const r=f.odds[st][n];return `<div class="odds-range-row"><span>${n}串1</span><input class="system-odds-input" data-strategy="${st}" data-count="${n}" data-side="min" type="number" step="0.1" min="1.01" value="${Number(r[0]).toFixed(2)}"><em>–</em><input class="system-odds-input" data-strategy="${st}" data-count="${n}" data-side="max" type="number" step="0.1" min="1.01" value="${Number(r[1]).toFixed(2)}"></div>`}).join('')}</div>`).join('');
 }
@@ -522,7 +374,7 @@ function canonicalMultiScore(m,range){
   return roleScore*.34+primaryScore*.30+rangeFit*.14+Math.min(.10,p*.16)+rec+rank;
 }
 const MATCH_MARKETS=new Set(['match_winner','match_line','match_total']);
-const SYSTEM_PRIMARY_MARKETS=new Set(['goals','disposals','fantasy_points','match_winner','match_total']);
+const SYSTEM_PRIMARY_MARKETS=new Set(['goals','disposals','fantasy_points']);
 function multiMarketMixStats(m){const legs=m.legs||[];const primary=legs.filter(l=>SYSTEM_PRIMARY_MARKETS.has(l.market)).length;const secondary=legs.length-primary;return {primary,secondary,share:legs.length?primary/legs.length:0,majority:primary>=Math.ceil(legs.length/2)}}
 function roundHalf(x){return Math.round(Number(x)*2)/2}
 function signedHalf(x){const n=roundHalf(x);return `${n>0?'+':''}${n.toFixed(1)}`}
@@ -571,7 +423,7 @@ function pickCanonicalMulti(rows,strategy,count,f){
   const inBand=base.filter(x=>Number(x.fair_odds)>=Number(range[0])&&Number(x.fair_odds)<=Number(range[1]));
   const initial=inBand.length?inBand:base;const primaryHeavy=initial.filter(x=>multiMarketMixStats(x).majority);const pool=primaryHeavy.length?primaryHeavy:initial;
   const picked=[...pool].sort((a,b)=>canonicalMultiScore(b,range)-canonicalMultiScore(a,range)||Number(a.rank_in_group||99)-Number(b.rank_in_group||99)||Number(b.combined_probability)-Number(a.combined_probability))[0]||null;
-  return balanceWithMatchMarkets(picked,strategy,count,f,range);
+  return picked;
 }
 function visibleMultiRows(){
   const f=state.systemFilterActive||defaultSystemFilterState();
@@ -628,7 +480,7 @@ function renderMultis(){
 }
 
 function normalizeLeg(l){return {prediction_leg_id:l.prediction_leg_id,player_id:l.player_id||null,player_name:l.player_name||'比赛市场',team_name:l.team_name||null,market:l.market,threshold:Number(l.threshold),selection:l.selection,probability:Number(l.model_probability??l.probability),fair_odds:Number(l.fair_odds||0)}}
-function addLegById(id){const l=state.legs.find(x=>x.prediction_leg_id===id)||state.matchPreviewLegs.find(x=>x.prediction_leg_id===id)||[...state.playerLegCache.values()].flat().find(x=>x.prediction_leg_id===id);if(!l)return;if(state.builder.some(x=>x.prediction_leg_id===id))return;state.builder.push(normalizeLeg(l));saveBuilder();switchView('multi-lab')}
+function addLegById(id){const l=state.legs.find(x=>x.prediction_leg_id===id);if(!l)return;if(state.builder.some(x=>x.prediction_leg_id===id))return;state.builder.push(normalizeLeg(l));saveBuilder();switchView('multi-lab')}
 function sendMultiToBuilder(m){state.builder=[];(m.legs||[]).forEach(l=>{const full=state.legs.find(x=>x.prediction_leg_id===l.prediction_leg_id);state.builder.push(normalizeLeg(full||l))});saveBuilder();switchView('multi-lab')}
 function builderProbability(){return state.builder.reduce((a,l)=>a*Number(l.probability||0),1)}
 async function evaluateBuilder(){
@@ -716,7 +568,7 @@ function renderMatchFieldBoard(){
   host.innerHTML=`${filters}${legend}<div class="lineup-main-grid overlay-field-mode">${left}<div class="lineup-center overlay-lineup-center"><div class="afl-oval overlay-afl-field"><div class="field-surface" aria-hidden="true"></div><div class="oval-markings"><div class="boundary-inner"></div><div class="centre-square"></div><div class="centre-circle"></div><div class="centre-dot"></div><div class="arc arc-top"></div><div class="arc arc-bottom"></div><div class="goal-square goal-square-top"></div><div class="goal-square goal-square-bottom"></div><div class="goal-posts goal-posts-top"><i></i><i></i><i></i><i></i></div><div class="goal-posts goal-posts-bottom"><i></i><i></i><i></i><i></i></div></div><div class="position-roster overlay-position-roster ${state.fieldTeamFilter==='all'?'all-teams':'single-team'}">${centerRows}</div></div></div>${right}</div>${emergencies?`<div class="emergency-strip"><span>Emergencies</span>${emergencies}</div>`:''}`;
   bindTeamLogoImages(host);
   $$('#matchFieldTeams .lineup-team-filters button').forEach(b=>b.addEventListener('click',()=>{state.fieldTeamFilter=b.dataset.team;renderMatchFieldBoard()}));
-  $$('#matchFieldTeams .lineup-player-card[data-player-id], #matchFieldTeams .mini-player-dot[data-player-id]').forEach(b=>b.addEventListener('click',()=>{if(!String(b.dataset.playerId||'').startsWith('fallback:'))openPlayerOptionModalAsync(b.dataset.playerId)}));
+  $$('#matchFieldTeams .lineup-player-card[data-player-id], #matchFieldTeams .mini-player-dot[data-player-id]').forEach(b=>b.addEventListener('click',()=>openPlayerOptionModal(b.dataset.playerId)));
   bindLineupBuilderFloat();
 }
 
@@ -725,11 +577,11 @@ function renderField(){
   const teams=[...new Set(state.lineup.map(x=>x.team_name))];
   const markup=teams.map(team=>`<div class="field-team"><h3>${esc(team)}</h3>${state.lineup.filter(x=>x.team_name===team).map(p=>`<button class="field-player ${p.emergency?'emergency':p.bench?'bench':''}" data-player-id="${p.player_id}"><strong>${esc(p.player_name)}</strong><br><span>${esc(p.named_position||'')}</span></button>`).join('')}</div>`).join('')||'<div class="empty">暂无阵容</div>';
   const host=$('#fieldTeams');if(host)host.innerHTML=markup;
-  $$('#fieldTeams .field-player').forEach(b=>b.addEventListener('click',()=>openPlayerOptionModalAsync(b.dataset.playerId)));
+  $$('#fieldTeams .field-player').forEach(b=>b.addEventListener('click',()=>openPlayerOptionModal(b.dataset.playerId)));
 }
 
 const MARKET_MODAL_ORDER=['goals','kicks','disposals','marks','tackles','handballs','hitouts','clearances','fantasy_points'];
-function modalLegsForPlayer(playerId){const src=state.legsLoaded?state.legs:(state.playerLegCache.get(playerId)||state.matchPreviewLegs);return src.filter(l=>l.player_id===playerId).sort((a,b)=>MARKET_MODAL_ORDER.indexOf(a.market)-MARKET_MODAL_ORDER.indexOf(b.market)||Number(a.threshold)-Number(b.threshold))}
+function modalLegsForPlayer(playerId){return state.legs.filter(l=>l.player_id===playerId).sort((a,b)=>MARKET_MODAL_ORDER.indexOf(a.market)-MARKET_MODAL_ORDER.indexOf(b.market)||Number(a.threshold)-Number(b.threshold))}
 function builderNaiveSummary(){
   const probs=state.builder.map(x=>Number(x.probability??x.model_probability??x.calibrated_probability??x.raw_probability??0)).filter(x=>Number.isFinite(x)&&x>0&&x<=1);
   if(!probs.length)return {p:null,fair:null};
@@ -768,32 +620,6 @@ function probabilityBandLegs(playerId,min,max){
   return [...best.values()].sort((a,b)=>Number(b.model_probability)-Number(a.model_probability));
 }
 function closePlayerOptionModal(){document.querySelector('.player-option-modal')?.remove()}
-async function loadPlayerLegsForMatch(playerId){
-  if(!playerId||String(playerId).startsWith('fallback:'))return [];
-  if(state.legsLoaded)return state.legs.filter(l=>l.player_id===playerId);
-  if(state.playerLegCache.has(playerId))return state.playerLegCache.get(playerId)||[];
-  const matchId=state.selected, token=state.loadSeq;
-  const cached=state.matchPreviewLegs.filter(l=>l.player_id===playerId);
-  try{
-    const rows=await api(`/rest/v1/afl_api_prediction_legs?select=*&match_id=eq.${encodeURIComponent(matchId)}&player_id=eq.${encodeURIComponent(playerId)}&order=market.asc,threshold.asc`,{timeoutMs:4000,retries:1});
-    if(token!==state.loadSeq||state.selected!==matchId)return [];
-    const out=rows||[];state.playerLegCache.set(playerId,out);return out;
-  }catch(e){console.warn('PLAYER LEGS load failed',e);if(cached.length){state.playerLegCache.set(playerId,cached);return cached}throw e}
-}
-function showPlayerLegLoading(playerId){
-  closePlayerOptionModal();const p=state.lineup.find(x=>x.player_id===playerId);if(!p)return;
-  const overlay=document.createElement('div');overlay.className='player-option-modal player-option-loading';
-  overlay.innerHTML=`<div class="player-option-dialog"><div class="modal-head"><div><span class="eyebrow">PLAYER OPTIONS</span><h3>${esc(p.player_name)}</h3><small>${esc(p.team_name)} · ${esc(p.named_position||'')}</small></div><button class="modal-close" aria-label="Close">×</button></div><div class="player-options-loading">正在加载该球员的 System thresholds…</div></div>`;
-  document.body.appendChild(overlay);overlay.querySelector('.modal-close')?.addEventListener('click',closePlayerOptionModal);overlay.addEventListener('click',e=>{if(e.target===overlay)closePlayerOptionModal()});
-}
-async function openPlayerOptionModalAsync(playerId){
-  const p=state.lineup.find(x=>x.player_id===playerId);if(!p)return;
-  if(state.legsLoaded||state.playerLegCache.has(playerId)){openPlayerOptionModal(playerId);return}
-  showPlayerLegLoading(playerId);
-  try{const rows=await loadPlayerLegsForMatch(playerId);if(!rows.length){const el=document.querySelector('.player-options-loading');if(el)el.textContent='该球员暂无可用 System threshold。';return}openPlayerOptionModal(playerId)}
-  catch(e){const el=document.querySelector('.player-options-loading');if(el)el.textContent='暂时无法加载该球员玩法，请稍后重试。'}
-}
-
 function openPlayerOptionModal(playerId){
   closePlayerOptionModal();
   const legs=modalLegsForPlayer(playerId);const p=state.lineup.find(x=>x.player_id===playerId);if(!p)return;
@@ -812,17 +638,12 @@ function openPlayerOptionModal(playerId){
 
 function fieldAdd(playerId,market='best'){let legs=state.legs.filter(l=>l.player_id===playerId);if(market!=='best')legs=legs.filter(l=>l.market===market);legs.sort((a,b)=>Number(b.model_probability)-Number(a.model_probability));if(legs[0])addLegById(legs[0].prediction_leg_id)}
 
-function switchView(name){state.view=name;$$('.view').forEach(v=>v.classList.remove('active-view'));$(`#view-${name}`)?.classList.add('active-view');$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name));if(name==='match')renderMatchCore();if(name==='system-multi')safeRender('multis',renderMultis);if(name==='multi-lab')safeRender('builder',renderBuilder);if(name==='players'){loadLegsLazy().then(()=>loadRecentLazy()).catch(()=>{});api('/rest/v1/afl_api_availability?select=*',{timeoutMs:5000,retries:0}).then(rows=>{state.availability=new Map((rows||[]).map(r=>[r.player_id,r]));renderPlayers()}).catch(()=>{})}if(name==='system-multi'&&!state.legsLoaded)loadLegsLazy().catch(()=>{});if(name==='multi-lab'){renderBuilder();if(!state.legsLoaded)loadLegsLazy().catch(()=>{})}if(name==='validation'){renderValidation();loadValidation().catch(e=>console.warn('Validation load failed',e))}if(name==='shadow-live')renderShadowLive()}
-function showError(e){console.error(e);$('#healthBadge').className='badge bad';$('#healthBadge').textContent='API Error';$('#healthBadge').title=shortErr(e)}
-async function bootstrap(){
-  const boot=++state.loadSeq;$('#healthBadge').className='badge warn';$('#healthBadge').textContent='Connecting…';
-  try{await loadMatches()}catch(e){showModuleError('MATCHES',e);return}
-  if(boot!==state.loadSeq)return;
-  if(state.selected){try{await loadSelected()}catch(e){showModuleError('MATCH',e)}}
-}
+function switchView(name){state.view=name;$$('.view').forEach(v=>v.classList.remove('active-view'));$(`#view-${name}`)?.classList.add('active-view');$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name));if(name==='multi-lab')renderBuilder();if(name==='validation')renderValidation();if(name==='shadow-live')renderShadowLive()}
+function showError(e){console.error(e);$('#healthBadge').className='badge bad';$('#healthBadge').textContent='API Error'}
+async function bootstrap(){try{await loadValidation();await loadMatches();await loadSelected()}catch(e){showError(e)}}
 
 $$('.tab').forEach(t=>t.addEventListener('click',()=>switchView(t.dataset.view)));$$('[data-go]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.go)));
-$('#matchSelect').addEventListener('change',e=>{state.selected=e.target.value;state.loadSeq++;state.legsSeq++;state.recentSeq++;state.systemMultiOdds={};state.systemMultiRanking=new Map();loadSelected().catch(e=>showModuleError('MATCH',e))});
+$('#matchSelect').addEventListener('change',e=>{state.selected=e.target.value;state.systemMultiOdds={};state.systemMultiRanking=new Map();loadSelected().catch(showError)});
 $('#playerSearch').addEventListener('input',renderPlayers);$('#marketFilter').addEventListener('change',renderPlayers);
 $('#systemFilterConfirm').addEventListener('click',()=>{state.systemFilterActive=readSystemFilters();renderMultis()});$('#systemFilterReset').addEventListener('click',()=>resetSystemFilters(true));
 $('#builderSearch').addEventListener('input',renderBuilder);$('#clearBuilder').addEventListener('click',()=>{state.builder=[];saveBuilder()});

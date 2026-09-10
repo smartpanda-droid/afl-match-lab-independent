@@ -1,46 +1,8 @@
-# AFL Match Lab v47 — Match Interaction Recovery
+# AFL Match Lab v48 — Clean Recovery
 
-- Match page loads a lightweight top-legs preview instead of all prediction legs.
-- Clicking a lineup player fetches only that player's official System thresholds, then opens the existing selector.
-- Context and match quote use live-first, local-cache fallback.
-- Full Player Markets remains lazy-loaded only on its tab.
+This build intentionally restores the last stable v40 loading path while preserving the existing UI and backend Anchor/Value model. Client-side System Multi hybrid injection for match winner / line / total is temporarily disabled for isolation testing. Match-page score, line and total predictions remain available.
 
-# AFL Match Lab v46 — Bootstrap Render Isolation
-
-- Match bootstrap no longer calls renderAll before API loading.
-- Match page renders only Match/Field/Tactics during startup.
-- Hidden tabs render lazily when opened.
-- Individual render exceptions are isolated and cannot abort bootstrap.
-- Bootstrap errors now distinguish MATCHES vs MATCH failures.
-
-# AFL Match Lab v45 — Loader Reset
-
-- Restores fast core loading.
-- Adds request tokens to prevent stale match responses overwriting the current match.
-- Match page does not preload all player legs/recent5/validation.
-- 4.5–5s core timeouts with no chained auth retries.
-- Bundled lineup remains display-only fallback.
-
-# AFL Match Lab v44 — Bundled Lineup Fallback
-
-- Adds bundled pregame lineup snapshots for both 2026 semi-finals.
-- Live Supabase lineup remains primary; local snapshot activates only on lineup REST failure.
-- Recovery does not overwrite live data and disappears automatically when live lineup succeeds.
-
-# AFL Match Lab v43 — REST Gateway Fallback
-
-- Adds Authorization bearer header alongside apikey.
-- Automatically retries using the active legacy anon JWT if publishable-key gateway access fails.
-- Bundles a current 2026 upcoming-fixture bootstrap so the match selector does not become empty during a temporary REST gateway outage.
-- Keeps module-level recovery and lazy player-market loading from v42.
-- Fixes Player Markets tab lazy-load key (`players`).
-
-# v42 — Resilient Core Loading
-
-- Match page no longer waits for full prediction-leg payload.
-- Core startup only requires lineup/multis; heavy player legs and recent5 load lazily/background.
-- Per-module status identifies LINEUP / MULTIS / LEGS failures.
-- A slow prediction-leg endpoint can no longer blank the whole Match page.
+Validation target: Match, lineup, context, Top Edges, Player Markets and System Multi should load using the simple v40 request path.
 
 # AFL Match Lab v40 — Mainstream Multi Rebalance + Value Button Fix
 

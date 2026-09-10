@@ -19,6 +19,6 @@
     "final-lock",
     "settlement"
   ],
-  "version": "v26",
-  "notes": "Overlay lineup on same AFL field background; player popup thresholds use only System-generated legs."
+  "version": "v48",
+  "notes": "Clean recovery: v40 loader core; client-side match-market System Multi hybrid disabled temporarily."
 }

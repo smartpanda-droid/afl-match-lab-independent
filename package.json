@@ -1,7 +1,7 @@
 {
   "name": "afl-match-lab-independent-web",
   "private": true,
-  "version": "0.36.0",
+  "version": "0.48.0",
   "type": "module",
   "scripts": {
     "check": "node --check public/app.js",

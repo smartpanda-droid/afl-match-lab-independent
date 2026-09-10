@@ -496,8 +496,3 @@
 .final-lock-banner{grid-column:1/-1}
 @media(max-width:1050px){.multi-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:760px){.multi-grid{grid-template-columns:1fr!important}}
-
-
-/* v47 Match-page lightweight leg loading */
-.player-options-loading{padding:34px 12px;text-align:center;color:var(--muted);font-size:13px}
-.player-option-loading .player-option-dialog{max-width:560px}
