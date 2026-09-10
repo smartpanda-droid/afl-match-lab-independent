@@ -1,3 +1,55 @@
+# AFL Match Lab v56 — Bookmaker-Available System Multi
+
+System Multi is now tuned around commonly tradeable decimal-odds ranges rather than very high model probabilities.
+
+- Default fair-odds eligibility: 1.20–2.20
+- Equivalent model-probability eligibility: ~45.5%–83.3%
+- Conservative anchor band: 68–78% (target ~73%)
+- Balanced anchor band: 60–72% (target ~66%)
+- Aggressive anchor band: 52–65% (target ~58%)
+- Value floors: 52% / 48% / 45%
+- Automatic value targets: 60% / 56% / 52%
+- Extremely short fair-odds legs (<1.20) are excluded from normal System Multi selection.
+- Existing candidate caps, caching, Recent Form, match markets and Multi Lab manual controls remain intact.
+
+# AFL Match Lab v55 — Lower System Multi Probability Bands
+
+System Multi probability bands are lowered again so recommendations are closer to commonly available bookmaker thresholds.
+
+- Conservative Anchor: 75–84%, target ~79%
+- Balanced Anchor: 72–82%, target ~76%
+- Aggressive Anchor: 69–80%, target ~73%
+- Conservative Value floor: ~60% (slightly lower for 3–5 legs)
+- Balanced Value floor: ~57%
+- Aggressive Value floor: ~54%
+- Hard floor for longer combinations: 50%
+- Value targets used by automatic leg selection: 67% / 63% / 60%
+- Existing System Multi candidate caps, caching and one-match-market-leg limit remain unchanged.
+
+# AFL Match Lab v54 — Unified System Multi + Recent Form
+
+- System Multi uses one unified card language for player and match-market legs.
+- Winner / Total / Handicap are always available in System Multi filters.
+- Canonical System Multi can use at most one match-market leg per recommendation.
+- MATCH page restores RECENT FORM using the already-loaded match list, so no extra API polling is introduced.
+- Recent Form shows each team's last five completed pre-match games with W/L, opponent and score.
+- v52/v53 Multi Lab manual market controls remain intact.
+
+# AFL Match Lab v53 — System Multi Match Markets Restored
+
+- System Multi filter now always shows 胜负 / 大小球 / 让球.
+- Canonical System Multi recommendations can include one match-market leg.
+- Match-market injection is capped at one leg per multi to avoid combinatorial explosion.
+- Existing v52 Multi Lab independent home/away handicap controls are retained.
+- System Multi remains bounded/cached; Multi Lab remains manual-only.
+
+# AFL Match Lab v52 — Multi Lab Market Clarity
+
+- Winner buttons explicitly show home/away team names.
+- Total buttons explicitly show UNDER / OVER plus selected line.
+- Home and away handicap selectors are independent, each -15 to +15.
+- Multi Lab remains manual-only; no System Multi regeneration.
+
 # AFL Match Lab v50 — Comprehensive Checked Build
 
 Run `npm run verify` before deployment. See `QA_REPORT_V50.md` for the complete audit.

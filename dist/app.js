@@ -5,7 +5,7 @@ if(CFG?.PARALLEL_TEST){
 }else{
   const b=document.getElementById('parallelTestBanner'); if(b)b.hidden=true;
 }
-const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, lineupBuilderFloatClosed:false, systemFilterActive:null, view:'match', loadSeq:0, fullLegsMatch:null, topLegs:[], moduleStatus:{}, validationLoaded:false, shadowLoaded:false, multiLabMarketPicker:null, multiLabMarketPickerMatch:null, multiLabMarketLoading:false, multiLabTotalLine:null, multiLabHomeLine:null, multiLabQuoteSeq:0 };
+const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, lineupBuilderFloatClosed:false, systemFilterActive:null, view:'match', loadSeq:0, fullLegsMatch:null, topLegs:[], moduleStatus:{}, validationLoaded:false, shadowLoaded:false, multiLabMarketPicker:null, multiLabMarketPickerMatch:null, multiLabMarketLoading:false, multiLabTotalLine:null, multiLabHomeLine:null, multiLabAwayLine:null, multiLabQuoteSeq:0 };
 
 
 // 2026 finals branding + jumper numbers. Numbers verified against AFL official team squad pages.
@@ -327,6 +327,49 @@ function renderMatch(){
   $('#topLegs').innerHTML=topBalanced.map(l=>`<div class="top-leg"><div class="p">${pct(l.model_probability)}</div><div class="sel">${esc(l.selection)}</div><div class="meta">Fair ${odds(l.fair_odds)} · Recent ${pct(l.recent_hit_rate)} · n=${l.sample_size??'—'}</div><button class="add-leg" data-leg-id="${l.prediction_leg_id}">+ Multi Lab</button></div>`).join('')||'<div class="empty">暂无符合概率/赔率平衡条件的单腿</div>';
   $$('#topLegs .add-leg').forEach(b=>b.addEventListener('click',()=>addLegById(b.dataset.legId)));
   renderMatchPrediction();
+  renderRecentForm();
+}
+
+
+function teamRecentForm(teamName,currentStart,limit=5){
+  return state.matches
+    .filter(x=>x.start_time&&new Date(x.start_time)<new Date(currentStart)&&x.home_score!=null&&x.away_score!=null&&(x.home_team_name===teamName||x.away_team_name===teamName))
+    .sort((a,b)=>new Date(b.start_time)-new Date(a.start_time))
+    .slice(0,limit)
+    .map(x=>{
+      const home=x.home_team_name===teamName;
+      const pf=Number(home?x.home_score:x.away_score), pa=Number(home?x.away_score:x.home_score);
+      return {
+        result:pf>pa?'W':pf<pa?'L':'D',
+        pf,pa,
+        opponent:home?x.away_team_name:x.home_team_name,
+        date:x.start_time,
+        venue:x.venue||''
+      };
+    });
+}
+function renderRecentForm(){
+  const host=$('#recentForm');if(!host)return;
+  const m=state.matches.find(x=>x.match_id===state.selected);if(!m){host.innerHTML='';return}
+  const teams=[m.home_team_name,m.away_team_name];
+  host.innerHTML=teams.map(team=>{
+    const rows=teamRecentForm(team,m.start_time,5);
+    const wins=rows.filter(x=>x.result==='W').length;
+    return `<article class="recent-form-team">
+      <div class="recent-form-head">
+        <div class="recent-form-teamname">${teamLogoHtml(team,'recent-form-logo')}<div><strong>${esc(team)}</strong><small>最近 ${rows.length} 场 · ${wins} 胜</small></div></div>
+      </div>
+      <div class="recent-form-list">${rows.length?rows.map(r=>`
+        <div class="recent-form-row">
+          <span class="form-result ${r.result==='W'?'win':r.result==='L'?'loss':'draw'}">${r.result}</span>
+          <span class="form-opponent">vs ${esc(r.opponent)}</span>
+          <strong>${r.pf}–${r.pa}</strong>
+          <small>${dt(r.date)}</small>
+        </div>`).join(''):'<div class="empty">暂无已结束比赛</div>'}
+      </div>
+    </article>`;
+  }).join('');
+  bindTeamLogoImages(host);
 }
 
 function scenarioLabel(k){return ({home_control:'主队控制',away_control:'客队控制',close_contest:'全场焦灼',momentum_comeback:'追分/反扑',blowout_garbage_time:'大比分/垃圾时间',low_scoring_defensive:'低比分防守战'})[k]||k.replaceAll('_',' ')}
@@ -421,10 +464,17 @@ const SYSTEM_ODDS_DEFAULTS={
   aggressive:{2:[2.40,4.00],3:[3.50,6.50],4:[5.00,9.00],5:[6.50,12.00]}
 };
 const SYSTEM_STRATEGY_LABEL={conservative:'保守',balanced:'平衡',aggressive:'激进'};
-function systemAnchorBand(strategy){return strategy==='conservative'?[.80,.89,.84]:strategy==='balanced'?[.78,.88,.82]:[.76,.86,.80]}
-function systemValueFloor(strategy,legCount=2){const base=strategy==='conservative'?.68:strategy==='balanced'?.65:.62;return Math.max(.56,base-.005*Math.max(0,Number(legCount||2)-2))}
+function systemAnchorBand(strategy){return strategy==='conservative'?[.68,.78,.73]:strategy==='balanced'?[.60,.72,.66]:[.52,.65,.58]}
+function systemValueFloor(strategy,legCount=2){const base=strategy==='conservative'?.52:strategy==='balanced'?.48:.45;return Math.max(.45,base-.005*Math.max(0,Number(legCount||2)-2))}
+
 function systemAnchorCut(strategy){return systemAnchorBand(strategy)[0]}
-function availableSystemMarkets(){const ms=new Set();state.multis.forEach(m=>(m.legs||[]).forEach(l=>ms.add(l.market)));state.legs.forEach(l=>ms.add(l.market));return [...ms].sort()}
+function systemTradableProbability(p){
+  const n=Number(p);
+  // v56 default tradable fair-odds band: 1.20–2.20 => probability ~45.45%–83.33%.
+  return Number.isFinite(n)&&n>=1/2.20&&n<=1/1.20;
+}
+
+function availableSystemMarkets(){const ms=new Set(['match_winner','match_total','match_line']);state.multis.forEach(m=>(m.legs||[]).forEach(l=>ms.add(l.market)));state.legs.forEach(l=>ms.add(l.market));return [...ms].sort()}
 function defaultSystemFilterState(){return {strategy:'all',legCount:0,recommendedOnly:false,markets:new Set(availableSystemMarkets()),odds:JSON.parse(JSON.stringify(SYSTEM_ODDS_DEFAULTS))}}
 function renderSystemFilterUI(){
   const f=state.systemFilterActive||defaultSystemFilterState();
@@ -443,7 +493,7 @@ function readSystemFilters(){
 function resetSystemFilters(render=true){state.systemFilterActive=defaultSystemFilterState();if($('#systemMarketFilters'))renderSystemFilterUI();if(render)renderMultis()}
 function systemLegRole(strategy,leg){const p=Number(leg.probability),[lo,hi]=systemAnchorBand(strategy);return p>=lo&&p<=hi?'稳胆':'Value'}
 function multiStructureStats(m){
-  const [lo,hi]=systemAnchorBand(m.strategy);const floor=systemValueFloor(m.strategy,m.leg_count);const legs=m.legs||[];
+  const [lo,hi]=systemAnchorBand(m.strategy);const floor=systemValueFloor(m.strategy,m.leg_count);const legs=(m.legs||[]).filter(l=>systemTradableProbability(l.probability));
   const anchors=legs.filter(l=>{const p=Number(l.probability);return p>=lo&&p<=hi}).length;
   const values=legs.filter(l=>{const p=Number(l.probability);return p<lo&&p>=floor}).length;
   return {anchors,values,valid:anchors>=1&&anchors<=2&&values>=1};
@@ -474,7 +524,7 @@ function zForTarget(p){
 function matchMarketCandidates(strategy='balanced',legCount=2){
   const q=state.matchQuote;if(!q)return [];
   const floor=systemValueFloor(strategy,legCount),[alo,ahi,atarget]=systemAnchorBand(strategy);
-  const valueTarget=strategy==='conservative'?.73:strategy==='balanced'?.70:.68;
+  const valueTarget=strategy==='conservative'?.60:strategy==='balanced'?.56:.52;
   const targets=[Math.max(floor,valueTarget),atarget].filter((v,i,a)=>a.indexOf(v)===i&&v<.94);
   const out=[];const push=(market,selection,p,threshold,side)=>{p=Number(p);if(!Number.isFinite(p)||p<floor||p>.93)return;out.push({prediction_leg_id:`match:${market}:${side}:${threshold}`,player_id:null,player_name:'比赛市场',team_name:side==='home'?q.home_team_name:side==='away'?q.away_team_name:null,market,threshold:Number(threshold),selection,probability:p,model_probability:p,fair_odds:1/p,match_market:true})};
   push('match_winner',`${q.home_team_name} 胜`,q.home_win_probability,0,'home');
@@ -482,7 +532,7 @@ function matchMarketCandidates(strategy='balanced',legCount=2){
   const fairLine=Number(q.fair_home_line),marginSd=Number(q.margin_sd),fairTotal=Number(q.fair_total),totalSd=Number(q.total_sd);
   if(Number.isFinite(fairLine)&&marginSd>0){targets.forEach(tp=>{const z=zForTarget(tp);const homeLine=roundHalf(fairLine+z*marginSd),awayHomeLine=roundHalf(fairLine-z*marginSd);const hp=normalCdf((homeLine-fairLine)/marginSd),ap=normalCdf((fairLine-awayHomeLine)/marginSd);push('match_line',`${q.home_team_name} ${signedHalf(homeLine)}`,hp,homeLine,'home');push('match_line',`${q.away_team_name} ${signedHalf(-awayHomeLine)}`,ap,-awayHomeLine,'away')})}
   if(Number.isFinite(fairTotal)&&totalSd>0){targets.forEach(tp=>{const z=zForTarget(tp);const overLine=roundHalf(fairTotal-z*totalSd),underLine=roundHalf(fairTotal+z*totalSd);const op=normalCdf((fairTotal-overLine)/totalSd),up=normalCdf((underLine-fairTotal)/totalSd);push('match_total',`Over ${overLine.toFixed(1)}`,op,overLine,'over');push('match_total',`Under ${underLine.toFixed(1)}`,up,underLine,'under')})}
-  return [...new Map(out.map(x=>[x.prediction_leg_id,x])).values()];
+  return [...new Map(out.filter(x=>systemTradableProbability(x.probability)).map(x=>[x.prediction_leg_id,x])).values()];
 }
 function hybridMultiVariant(m,candidate,replaceIndex,range){
   const legs=(m.legs||[]).map(x=>({...x}));legs[replaceIndex]=candidate;
@@ -506,8 +556,12 @@ function pickCanonicalMulti(rows,strategy,count,f){
   if(!base.length)return null;
   const inBand=base.filter(x=>Number(x.fair_odds)>=Number(range[0])&&Number(x.fair_odds)<=Number(range[1]));
   const initial=inBand.length?inBand:base;const primaryHeavy=initial.filter(x=>multiMarketMixStats(x).majority);const pool=primaryHeavy.length?primaryHeavy:initial;
-  const picked=[...pool].sort((a,b)=>canonicalMultiScore(b,range)-canonicalMultiScore(a,range)||Number(a.rank_in_group||99)-Number(b.rank_in_group||99)||Number(b.combined_probability)-Number(a.combined_probability))[0]||null;
-  return picked;
+  const tradablePool=pool.filter(m=>(m.legs||[]).every(l=>systemTradableProbability(l.probability)));
+  const sourcePool=tradablePool.length?tradablePool:pool;
+  const picked=[...sourcePool].sort((a,b)=>canonicalMultiScore(b,range)-canonicalMultiScore(a,range)||Number(a.rank_in_group||99)-Number(b.rank_in_group||99)||Number(b.combined_probability)-Number(a.combined_probability))[0]||null;
+  if(!picked)return null;
+  const wantsMatchMarket=[...MATCH_MARKETS].some(x=>f.markets.has(x));
+  return wantsMatchMarket ? balanceWithMatchMarkets(picked,strategy,count,f,range) : picked;
 }
 function visibleMultiRows(){
   const f=state.systemFilterActive||defaultSystemFilterState();
@@ -551,7 +605,7 @@ function renderMultis(){
     const structure=multiStructureStats(m);const roleBadge=document.createElement('span');roleBadge.className=`badge ${structure.valid?'good':'warn'}`;roleBadge.textContent=`${structure.anchors}稳胆 + ${structure.values} Value`;node.querySelector('.multi-top').appendChild(roleBadge);const mix=multiMarketMixStats(m);const mixBadge=document.createElement('span');mixBadge.className=`badge ${mix.majority?'good':'neutral'}`;mixBadge.textContent=`主流 ${mix.primary}/${m.leg_count}`;node.querySelector('.multi-top').appendChild(mixBadge);
     const st=state.multiStability.get(`${m.strategy}:${m.leg_count}:${m.rank_in_group}`);
     if(st){const sb=document.createElement('span');const reason=String(st.last_reason||'');sb.className=`badge ${reason.includes('replaced')||reason.includes('risk')||reason.includes('improvement')?'warn':'good'}`;sb.textContent=reason.includes('replaced')||reason.includes('risk')||reason.includes('improvement')?'REPLACED':'STABLE';sb.title=`${reason} · kept ${st.kept_count||0} · replaced ${st.replace_count||0}`;node.querySelector('.multi-top').appendChild(sb)}
-    node.querySelector('.multi-legs').innerHTML=(m.legs||[]).map(l=>{const role=systemLegRole(m.strategy,l);return `<div class="multi-leg"><span class="multi-leg-main"><i class="leg-role ${role==='稳胆'?'anchor':'value'}">${role}</i><span>${esc(l.selection)}</span></span><strong>${pct(l.probability)}</strong></div>`}).join('');
+    node.querySelector('.multi-legs').innerHTML=(m.legs||[]).map(l=>{const role=systemLegRole(m.strategy,l);const mm=MATCH_MARKETS.has(l.market);return `<div class="multi-leg ${mm?'match-market-leg':''}"><span class="multi-leg-main"><span class="market-chip ${mm?'match-market-chip':''}">${esc(marketLabel(l.market))}</span><i class="leg-role ${role==='稳胆'?'anchor':'value'}">${role}</i><span class="multi-leg-selection">${esc(l.selection)}</span></span><strong>${pct(l.probability)}</strong></div>`}).join('');
     node.querySelector('.multi-metrics').innerHTML=metric('Model P',pct(m.combined_probability))+metric('Fair Odds',odds(m.fair_odds))+metric('Corr.',Number(m.correlation_penalty||1).toFixed(3))+(vrank?metric('Quality Rank',`#${vrank.quality_rank}`)+metric('Value Rank',`#${vrank.value_aware_rank}`):'');
     node.querySelector('.send-builder').addEventListener('click',()=>sendMultiToBuilder(m));
     const input=node.querySelector('.actual-odds'),result=node.querySelector('.value-result');
@@ -576,6 +630,7 @@ async function loadMultiLabMatchMarkets(force=false){
     state.multiLabMarketPicker=data;state.multiLabMarketPickerMatch=state.selected;
     state.multiLabTotalLine=roundHalf(data?.total?.center);
     state.multiLabHomeLine=roundHalf(data?.handicap?.home?.center);
+    state.multiLabAwayLine=roundHalf(data?.handicap?.away?.center);
   }finally{state.multiLabMarketLoading=false;renderMultiLabMatchMarkets()}
 }
 function matchMarketManualLeg(q,market,side,value){
@@ -607,36 +662,80 @@ function renderMultiLabMatchMarkets(){
   const d=state.multiLabMarketPicker;
   if(state.multiLabMarketLoading&&!d){host.innerHTML='<div class="empty">正在载入比赛市场…</div>';return}
   if(!d||d.status!=='ok'){host.innerHTML='<div class="empty">当前比赛暂时没有可用的胜负 / 大小球 / 让球模型。</div>';return}
+
   const total=Number(state.multiLabTotalLine??roundHalf(d.total?.center));
   const homeLine=Number(state.multiLabHomeLine??roundHalf(d.handicap?.home?.center));
-  const awayLine=-homeLine;
+  const awayLine=Number(state.multiLabAwayLine??roundHalf(d.handicap?.away?.center));
+  const handicapMin=-15, handicapMax=15, handicapStep=.5;
+
   host.innerHTML=`
     <section class="match-leg-box winner-box">
-      <div class="match-leg-box-head"><div><span class="eyebrow">WINNER</span><h3>胜负</h3></div><small>点选球队加入组合</small></div>
+      <div class="match-leg-box-head">
+        <div><span class="eyebrow">WINNER</span><h3>胜负</h3></div>
+        <small>点选球队加入组合</small>
+      </div>
       <div class="match-leg-choice-grid">
-        <button type="button" class="match-leg-choice" data-ml-winner="home"><span>${esc(d.home_team_name)}</span><b>${pct(d.winner?.home?.probability)}</b><small>Fair ${odds(d.winner?.home?.fair_odds)}</small></button>
-        <button type="button" class="match-leg-choice" data-ml-winner="away"><span>${esc(d.away_team_name)}</span><b>${pct(d.winner?.away?.probability)}</b><small>Fair ${odds(d.winner?.away?.fair_odds)}</small></button>
+        <button type="button" class="match-leg-choice winner-choice" data-ml-winner="home">
+          <span class="choice-kicker">主队</span>
+          <b class="choice-team">${esc(d.home_team_name)}</b>
+          <strong>${pct(d.winner?.home?.probability)}</strong>
+          <small>${esc(d.home_team_name)} 胜 · Fair ${odds(d.winner?.home?.fair_odds)}</small>
+        </button>
+        <button type="button" class="match-leg-choice winner-choice" data-ml-winner="away">
+          <span class="choice-kicker">客队</span>
+          <b class="choice-team">${esc(d.away_team_name)}</b>
+          <strong>${pct(d.winner?.away?.probability)}</strong>
+          <small>${esc(d.away_team_name)} 胜 · Fair ${odds(d.winner?.away?.fair_odds)}</small>
+        </button>
       </div>
     </section>
+
     <section class="match-leg-box total-box">
-      <div class="match-leg-box-head"><div><span class="eyebrow">TOTAL</span><h3>大小球</h3></div><strong>${halfText(total)}</strong></div>
+      <div class="match-leg-box-head">
+        <div><span class="eyebrow">TOTAL</span><h3>大小球</h3></div>
+        <strong>${halfText(total)}</strong>
+      </div>
       <div class="model-midline">模型中线 ${halfText(d.total?.center)} · 预测 ${Math.round(Number(d.total?.predicted_home_score||0))}–${Math.round(Number(d.total?.predicted_away_score||0))}</div>
       <input id="multiLabTotalSlider" class="market-range" type="range" min="${Number(d.total?.min)}" max="${Number(d.total?.max)}" step="${Number(d.total?.step||.5)}" value="${total}">
       <div class="market-range-labels"><span>${halfText(d.total?.min)}</span><span>${halfText(d.total?.max)}</span></div>
-      <div class="match-leg-choice-grid compact"><button type="button" class="match-leg-choice" data-ml-total="under"><span>UNDER</span><b>${halfText(total)}</b><small>加入组合</small></button><button type="button" class="match-leg-choice" data-ml-total="over"><span>OVER</span><b>${halfText(total)}</b><small>加入组合</small></button></div>
+      <div class="match-leg-choice-grid compact">
+        <button type="button" class="match-leg-choice total-choice" data-ml-total="under">
+          <span class="choice-market">UNDER</span><b>UNDER ${halfText(total)}</b><small>小于 ${halfText(total)} · 加入组合</small>
+        </button>
+        <button type="button" class="match-leg-choice total-choice" data-ml-total="over">
+          <span class="choice-market">OVER</span><b>OVER ${halfText(total)}</b><small>大于 ${halfText(total)} · 加入组合</small>
+        </button>
+      </div>
     </section>
+
     <section class="match-leg-box handicap-box">
-      <div class="match-leg-box-head"><div><span class="eyebrow">HANDICAP</span><h3>让球</h3></div><small>主客盘口同步反向</small></div>
-      <div class="handicap-midline"><span>${esc(d.home_team_name)}</span><b>${signedHalf(homeLine)}</b><em>vs</em><b>${signedHalf(awayLine)}</b><span>${esc(d.away_team_name)}</span></div>
-      <input id="multiLabHandicapSlider" class="market-range" type="range" min="${Number(d.handicap?.home?.min)}" max="${Number(d.handicap?.home?.max)}" step="${Number(d.handicap?.home?.step||.5)}" value="${homeLine}">
-      <div class="market-range-labels"><span>${signedHalf(d.handicap?.home?.min)}</span><span>${signedHalf(d.handicap?.home?.max)}</span></div>
-      <div class="match-leg-choice-grid"><button type="button" class="match-leg-choice" data-ml-line="home"><span>${esc(d.home_team_name)}</span><b>${signedHalf(homeLine)}</b><small>加入组合</small></button><button type="button" class="match-leg-choice" data-ml-line="away"><span>${esc(d.away_team_name)}</span><b>${signedHalf(awayLine)}</b><small>加入组合</small></button></div>
+      <div class="match-leg-box-head">
+        <div><span class="eyebrow">HANDICAP</span><h3>让球</h3></div>
+        <small>主客队盘口独立选择 · -15 至 +15</small>
+      </div>
+      <div class="independent-handicap-grid">
+        <div class="handicap-team-card">
+          <div class="handicap-team-head"><span class="choice-kicker">主队</span><b>${esc(d.home_team_name)}</b><strong>${signedHalf(homeLine)}</strong></div>
+          <div class="model-midline">模型公平让分 ${signedHalf(d.handicap?.home?.center)}</div>
+          <input id="multiLabHomeHandicapSlider" class="market-range" type="range" min="${handicapMin}" max="${handicapMax}" step="${handicapStep}" value="${homeLine}">
+          <div class="market-range-labels"><span>-15.0</span><span>+15.0</span></div>
+          <button type="button" class="match-leg-choice handicap-add" data-ml-line="home"><span>${esc(d.home_team_name)}</span><b>${signedHalf(homeLine)}</b><small>加入组合</small></button>
+        </div>
+        <div class="handicap-team-card">
+          <div class="handicap-team-head"><span class="choice-kicker">客队</span><b>${esc(d.away_team_name)}</b><strong>${signedHalf(awayLine)}</strong></div>
+          <div class="model-midline">模型公平让分 ${signedHalf(d.handicap?.away?.center)}</div>
+          <input id="multiLabAwayHandicapSlider" class="market-range" type="range" min="${handicapMin}" max="${handicapMax}" step="${handicapStep}" value="${awayLine}">
+          <div class="market-range-labels"><span>-15.0</span><span>+15.0</span></div>
+          <button type="button" class="match-leg-choice handicap-add" data-ml-line="away"><span>${esc(d.away_team_name)}</span><b>${signedHalf(awayLine)}</b><small>加入组合</small></button>
+        </div>
+      </div>
     </section>`;
   host.querySelectorAll('[data-ml-winner]').forEach(b=>b.addEventListener('click',()=>addMultiLabWinner(b.dataset.mlWinner).catch(showError)));
   const ts=host.querySelector('#multiLabTotalSlider');if(ts)ts.addEventListener('input',e=>{state.multiLabTotalLine=roundHalf(e.target.value);renderMultiLabMatchMarkets()});
   host.querySelectorAll('[data-ml-total]').forEach(b=>b.addEventListener('click',()=>quoteAndAddMultiLabMarket('TOTAL',b.dataset.mlTotal,state.multiLabTotalLine).catch(showError)));
-  const hs=host.querySelector('#multiLabHandicapSlider');if(hs)hs.addEventListener('input',e=>{state.multiLabHomeLine=roundHalf(e.target.value);renderMultiLabMatchMarkets()});
-  host.querySelectorAll('[data-ml-line]').forEach(b=>b.addEventListener('click',()=>{const side=b.dataset.mlLine;const value=side==='home'?state.multiLabHomeLine:-Number(state.multiLabHomeLine);quoteAndAddMultiLabMarket('HANDICAP',side,value).catch(showError)}));
+  const homeSlider=host.querySelector('#multiLabHomeHandicapSlider');if(homeSlider)homeSlider.addEventListener('input',e=>{state.multiLabHomeLine=roundHalf(e.target.value);renderMultiLabMatchMarkets()});
+  const awaySlider=host.querySelector('#multiLabAwayHandicapSlider');if(awaySlider)awaySlider.addEventListener('input',e=>{state.multiLabAwayLine=roundHalf(e.target.value);renderMultiLabMatchMarkets()});
+  host.querySelectorAll('[data-ml-line]').forEach(b=>b.addEventListener('click',()=>{const side=b.dataset.mlLine;const value=side==='home'?state.multiLabHomeLine:state.multiLabAwayLine;quoteAndAddMultiLabMarket('HANDICAP',side,value).catch(showError)}));
 }
 
 function normalizeLeg(l){return {prediction_leg_id:l.prediction_leg_id,player_id:l.player_id||null,player_name:l.player_name||'比赛市场',team_name:l.team_name||null,market:l.market,threshold:Number(l.threshold),selection:l.selection,probability:Number(l.model_probability??l.probability),fair_odds:Number(l.fair_odds||0)}}
@@ -820,7 +919,7 @@ async function bootstrap(){
 
 
 $$('.tab').forEach(t=>t.addEventListener('click',()=>switchView(t.dataset.view)));$$('[data-go]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.go)));
-$('#matchSelect').addEventListener('change',e=>{state.selected=e.target.value;state.systemMultiOdds={};state.systemMultiRanking=new Map();state.multiLabMarketPicker=null;state.multiLabMarketPickerMatch=null;state.multiLabTotalLine=null;state.multiLabHomeLine=null;loadSelected().catch(showError)});
+$('#matchSelect').addEventListener('change',e=>{state.selected=e.target.value;state.systemMultiOdds={};state.systemMultiRanking=new Map();state.multiLabMarketPicker=null;state.multiLabMarketPickerMatch=null;state.multiLabTotalLine=null;state.multiLabHomeLine=null;state.multiLabAwayLine=null;loadSelected().catch(showError)});
 $('#playerSearch').addEventListener('input',renderPlayers);$('#marketFilter').addEventListener('change',renderPlayers);
 $('#systemFilterConfirm').addEventListener('click',()=>{state.systemFilterActive=readSystemFilters();renderMultis()});$('#systemFilterReset').addEventListener('click',()=>resetSystemFilters(true));
 $('#clearBuilder').addEventListener('click',()=>{state.builder=[];saveBuilder()});

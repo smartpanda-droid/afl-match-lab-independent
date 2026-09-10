@@ -35,6 +35,10 @@
     <section id="view-match" class="view active-view">
       <section id="matchSummary" class="panel match-summary"></section>
       <section id="matchPrediction" class="panel"></section>
+      <section class="panel recent-form-panel">
+        <div class="section-head"><div><div class="eyebrow">RECENT FORM</div><h2>近期表现</h2></div><span class="badge neutral">LAST 5 · PRE-MATCH ONLY</span></div>
+        <div id="recentForm" class="recent-form-grid"></div>
+      </section>
       <section class="panel match-lineup-panel">
         <div class="section-head">
           <div><div class="eyebrow">LINEUP / FIELD</div><h2>阵容 · 球场阵容</h2></div>
@@ -86,13 +90,21 @@
       <section class="system-multi-layout">
         <aside class="panel system-filter-panel">
           <div class="eyebrow">FILTER SETTINGS</div><h2>系统推荐筛选</h2>
-          <p class="note system-rule-note">组合结构：1–2 个可交易稳胆 + 至少 1 个高质量 Value leg。稳胆目标约 85–90%，Value 目标约 72–78%；95%+ 腿保留在球员市场，但不作为 System Multi 默认胆。</p>
+          <p class="note system-rule-note">组合结构按博彩公司常见可交易区间筛选：默认 Fair Odds 约 1.20–2.20。Conservative 稳胆约 68–78%，Balanced 约 60–72%，Value 约 52–65%，Aggressive 可下探至约 45–60%；每组最多 1 条比赛市场腿。</p>
           <div class="system-filter-block">
             <label><span>策略</span><select id="strategyFilter"><option value="all" selected>全部</option><option value="conservative">保守</option><option value="balanced">平衡</option><option value="aggressive">激进</option></select></label>
             <label><span>串数</span><select id="legCountFilter"><option value="0" selected>全部 2–5串</option><option value="2">2串1</option><option value="3">3串1</option><option value="4">4串1</option><option value="5">5串1</option></select></label>
             <label class="check system-rec-check"><input id="recommendedOnly" type="checkbox"/> 只看默认推荐</label>
           </div>
-          <div class="system-filter-block"><strong>玩法</strong><div id="systemMarketFilters" class="system-market-filters"></div></div>
+          <div class="system-filter-block"><div class="filter-subhead"><strong>玩法</strong><small>球员 + 比赛市场统一筛选</small></div><div id="systemMarketFilters" class="system-market-filters"></div>
+<div class="system-tradable-legend">
+  <span><b>可交易 Fair Odds</b> 1.20–2.20</span>
+  <span>稳胆 68–78%</span>
+  <span>Balanced 60–72%</span>
+  <span>Value 52–65%</span>
+  <span>Aggressive 45–60%</span>
+</div>
+</div>
           <div class="system-filter-block">
             <div class="filter-subhead"><strong>模拟赔率范围</strong><small>Min / Max</small></div>
             <div id="systemOddsMatrix" class="system-odds-matrix"></div>
