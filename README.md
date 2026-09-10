@@ -64,3 +64,10 @@ The UI displays a persistent **PARALLEL TEST** banner so it cannot be mistaken f
 - Uses `named_position` slots (BPL/FB/BPR, HBFL/CHB/HBFR, WL/C/WR, HFFL/CHF/HFFR, FPL/FF/FPR, RK/R/RR, INT).
 - When `used_fallback_lineup=true`, the Match page explicitly marks the board as previous-match fallback; the existing sync pipeline replaces it automatically once the latest lineup arrives.
 - No jumper numbers are fabricated because the current public lineup API does not expose guernsey numbers.
+
+
+## v22 lineup rendering fixes
+- Replaced pale AFL watermark image URLs with stable full-contrast club symbol URLs.
+- Removed negative-margin lineup geometry that clipped player cards.
+- All mode uses 10 positional rows; single-team mode uses 5 evenly distributed rows.
+- Followers, Interchanges and Emergencies stay outside the oval.
