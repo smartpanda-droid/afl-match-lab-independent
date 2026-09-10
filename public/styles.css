@@ -217,3 +217,80 @@
 .modal-markets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding-top:16px}.modal-market{border:1px solid var(--line);border-radius:14px;padding:12px}.threshold-choice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(76px,1fr));gap:8px}.threshold-choice{background:var(--soft);color:var(--ink);border:1px solid var(--line);padding:9px 7px}.threshold-choice strong,.threshold-choice small{display:block}.threshold-choice strong{font-size:14px}.threshold-choice small{font-size:10px;margin-top:2px;color:var(--good);font-weight:900}
 @media(max-width:930px){.lineup-main-grid.names-first{grid-template-columns:1fr}.lineup-center{order:-1}.position-roster{padding:0 14px}.mini-afl-field{max-width:480px}.modal-markets{grid-template-columns:1fr}}
 @media(max-width:650px){.position-roster .position-row{grid-template-columns:28px minmax(0,1fr);gap:4px}.position-roster .position-three{gap:4px}.position-roster .lineup-player-card{font-size:9px;height:30px}.prob-band-grid{grid-template-columns:1fr}.player-option-dialog{padding:14px}.mini-afl-field{max-width:360px}}
+
+
+/* v26 overlay lineup: player cards above the same field background */
+.lineup-main-grid.overlay-field-mode{grid-template-columns:190px minmax(0,760px) 190px;gap:24px;justify-content:center;align-items:start}
+.overlay-lineup-center{display:block;min-width:0}
+.overlay-afl-field{
+  position:relative!important;
+  width:min(100%,760px)!important;
+  max-width:760px!important;
+  min-height:0!important;
+  aspect-ratio:.82!important;
+  margin:0 auto!important;
+  border:14px solid #2a7134!important;
+  border-radius:50%!important;
+  overflow:hidden!important;
+  background:
+    linear-gradient(rgba(255,255,255,.025),rgba(255,255,255,.025)),
+    repeating-linear-gradient(to bottom,#4aa047 0 52px,#439840 52px 104px)!important;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.16),0 6px 20px rgba(20,65,30,.14)!important;
+}
+.overlay-afl-field .oval-markings{position:absolute;inset:18px 15px;z-index:1;pointer-events:none}
+.overlay-position-roster{
+  position:absolute!important;
+  z-index:4!important;
+  inset:7% 4.5%!important;
+  width:auto!important;
+  height:auto!important;
+  padding:0!important;
+  margin:0!important;
+  display:grid!important;
+  grid-template-rows:repeat(5,minmax(0,1fr))!important;
+  align-items:center!important;
+  gap:0!important;
+  pointer-events:none;
+}
+.overlay-position-roster.single-team{inset:8% 4.5%!important;row-gap:4%!important}
+.overlay-position-roster .position-pair{display:grid!important;grid-template-rows:auto auto!important;align-content:center!important;gap:4px!important;margin:0!important;padding:0!important;position:relative}
+.overlay-position-roster .position-row{display:grid!important;grid-template-columns:34px minmax(0,1fr)!important;gap:8px!important;margin:0!important;min-width:0!important;pointer-events:auto}
+.overlay-position-roster .position-three{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;min-width:0!important}
+.overlay-position-roster .lineup-player-card{height:34px!important;width:100%!important;min-width:0!important;max-width:none!important;background:rgba(255,255,255,.97)!important;box-shadow:0 2px 8px rgba(0,0,0,.12)!important;backdrop-filter:blur(1px)}
+.overlay-position-roster .position-label{width:34px!important;min-width:34px!important;height:32px!important;display:grid!important;place-items:center!important;border-radius:6px!important}
+/* Inset end zones to respect the oval geometry; midfield stays widest */
+.overlay-position-roster .position-pair:nth-child(1),.overlay-position-roster.single-team>.position-row:nth-child(1),
+.overlay-position-roster .position-pair:nth-child(5),.overlay-position-roster.single-team>.position-row:nth-child(5){margin-left:8%!important;margin-right:8%!important}
+.overlay-position-roster .position-pair:nth-child(2),.overlay-position-roster.single-team>.position-row:nth-child(2),
+.overlay-position-roster .position-pair:nth-child(4),.overlay-position-roster.single-team>.position-row:nth-child(4){margin-left:3%!important;margin-right:3%!important}
+.overlay-position-roster .position-pair:nth-child(3),.overlay-position-roster.single-team>.position-row:nth-child(3){margin-left:0!important;margin-right:0!important}
+/* Position-pair spacing: same-zone teams tight, zones visually separated by the 5-row grid */
+.overlay-position-roster.all-teams .position-pair{align-self:center}
+.overlay-position-roster.all-teams .position-pair + .position-pair::before{display:none!important}
+.overlay-position-roster.single-team>.position-row{align-self:center}
+/* Keep the side lists outside the field while belonging to the same lineup section */
+.lineup-main-grid.overlay-field-mode .lineup-side{width:190px}
+@media(max-width:1180px){
+  .lineup-main-grid.overlay-field-mode{grid-template-columns:165px minmax(0,680px) 165px;gap:14px}
+  .lineup-main-grid.overlay-field-mode .lineup-side{width:165px}
+  .overlay-afl-field{max-width:680px!important}
+  .overlay-position-roster{inset:7% 4%!important}
+  .overlay-position-roster .position-three{gap:7px!important}
+  .overlay-position-roster .lineup-player-card{font-size:11px!important;padding:0 6px!important}
+}
+@media(max-width:930px){
+  .lineup-main-grid.overlay-field-mode{grid-template-columns:1fr;gap:12px}
+  .lineup-main-grid.overlay-field-mode .lineup-side{width:auto;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 24px}
+  .lineup-main-grid.overlay-field-mode .lineup-side h3{grid-column:1/-1}
+  .overlay-lineup-center{order:-1}
+  .overlay-afl-field{max-width:720px!important}
+}
+@media(max-width:700px){
+  .overlay-afl-field{border-width:10px!important;aspect-ratio:.84!important}
+  .overlay-position-roster{inset:6.5% 2.5%!important}
+  .overlay-position-roster .position-row{grid-template-columns:26px minmax(0,1fr)!important;gap:4px!important}
+  .overlay-position-roster .position-three{gap:4px!important}
+  .overlay-position-roster .position-label{width:26px!important;min-width:26px!important}
+  .overlay-position-roster .lineup-player-card{font-size:9px!important;height:29px!important;padding:0 4px!important}
+  .overlay-position-roster .jumper-token{display:none!important}
+}
