@@ -276,7 +276,7 @@ async function loadSelected(){
   state.legsSeq++;state.recentSeq++;
   state.legs=[];state.legsLoaded=false;state.recent5=new Map();state.recentLoaded=false;state.coreErrors={};state.context=null;state.matchQuote=null;state.multis=[];
   const bundled=fallbackLineup(matchId);state.lineup=bundled||[];
-  state.systemFilterActive=defaultSystemFilterState();loadBuilder();renderAll();
+  state.systemFilterActive=defaultSystemFilterState();loadBuilder();renderMatchCore();
   $('#healthBadge').className='badge warn';$('#healthBadge').textContent=bundled.length?'Loading Live…':'Loading…';
 
   const lineupP=api(`/rest/v1/afl_api_lineup?select=*&match_id=eq.${id}&order=team_name.asc,emergency.asc,bench.asc,player_name.asc`,{timeoutMs:4500,retries:0});
@@ -293,7 +293,7 @@ async function loadSelected(){
     state.coreErrors.multis=multisR.reason;
     try{const c=JSON.parse(localStorage.getItem(cacheKey)||'null');if(c?.multis?.length)state.multis=c.multis}catch{}
   }
-  renderAll();
+  renderMatchCore();
   try{localStorage.setItem(cacheKey,JSON.stringify({lineup:state.lineup,multis:state.multis,savedAt:Date.now()}))}catch{}
   if(!state.coreErrors.lineup&&!state.coreErrors.multis){$('#healthBadge').className='badge good';$('#healthBadge').textContent='Live'}
   else if(state.lineup.length||state.multis.length){$('#healthBadge').className='badge warn';$('#healthBadge').textContent=state.coreErrors.lineup?'Lineup Fallback':'Multi Cached';$('#healthBadge').title=Object.entries(state.coreErrors).map(([k,v])=>`${k.toUpperCase()}: ${shortErr(v)}`).join(' | ')}
@@ -309,7 +309,24 @@ async function loadSelected(){
   },0);
 }
 
-function renderAll(){renderMatch();renderPlayerControls();renderPlayers();renderMultis();renderBuilder();renderField();renderTactics();renderValidation();renderShadowLive()}
+function safeRender(name,fn){
+  try{fn()}catch(e){console.error(`RENDER ${name} failed`,e);state.coreErrors[`render_${name}`]=e}
+}
+function renderMatchCore(){
+  safeRender('match',renderMatch);
+  safeRender('field',renderField);
+  safeRender('tactics',renderTactics);
+}
+function renderAll(){
+  renderMatchCore();
+  safeRender('playerControls',renderPlayerControls);
+  safeRender('players',renderPlayers);
+  safeRender('multis',renderMultis);
+  safeRender('builder',renderBuilder);
+  safeRender('validation',renderValidation);
+  safeRender('shadow',renderShadowLive);
+}
+
 
 async function refreshMatchQuote(){
   if(!state.selected)return;
@@ -406,7 +423,8 @@ async function quotePlayerThreshold(playerId,market,threshold){
   }catch(e){showError(e)}
 }
 function renderPlayerControls(){
-  const markets=[...new Set(state.legs.map(x=>x.market))].sort(), el=$('#marketFilter'), cur=el.value;
+  const el=$('#marketFilter');if(!el)return;
+  const markets=[...new Set(state.legs.map(x=>x.market))].sort(), cur=el.value;
   el.innerHTML='<option value="">全部玩法</option>'+markets.map(x=>`<option value="${esc(x)}">${esc(marketLabel(x))}</option>`).join('');
   if(markets.includes(cur))el.value=cur;
 }
@@ -416,7 +434,8 @@ function renderRecent(leg){
   return `<div class="recent-block"><div class="recent-caption">最近 5 场 · ${esc(marketLabel(leg.market))} ${esc(leg.threshold)}+</div><div class="recent-strip">${games.map(g=>{const v=marketValue(g,leg.market);const ok=v!=null&&Number(v)>=Number(leg.threshold);return `<span class="recent-cell ${v==null?'na':ok?'hit':'miss'}" title="${esc(g.round_name)} vs ${esc(g.opponent)}">${v??'—'}</span>`}).join('')||'<span class="recent-cell na">—</span>'}</div></div>`;
 }
 function renderPlayers(){
-  const s=$('#playerSearch').value.trim().toLowerCase(), market=$('#marketFilter').value;
+  const searchEl=$('#playerSearch'),marketEl=$('#marketFilter'),cardsHost=$('#playerCards');if(!searchEl||!marketEl||!cardsHost)return;
+  const s=searchEl.value.trim().toLowerCase(), market=marketEl.value;
   const filtered=state.legs.filter(l=>(!s||l.player_name?.toLowerCase().includes(s))&&(!market||l.market===market));
   const byPlayer=new Map();
   filtered.forEach(l=>{
@@ -441,7 +460,7 @@ function renderPlayers(){
     }).join('');
     return `<article class="player-card"><div class="player-card-head"><div><h3>${esc(first.player_name)}</h3><div class="match-meta">${esc(first.team_name||'')} ${first.bench?'· Bench':''}</div>${riskLine}</div><span class="badge ${badgeClass}">${esc(badge)}</span></div>${rows}</article>`;
   });
-  $('#playerCards').innerHTML=cards.join('')||'<div class="empty">没有符合条件的球员</div>';
+  cardsHost.innerHTML=cards.join('')||'<div class="empty">没有符合条件的球员</div>';
   $$('#playerCards .threshold-input').forEach(inp=>inp.addEventListener('change',()=>{const v=Math.max(1,Math.round(Number(inp.value)||1));quotePlayerThreshold(inp.dataset.player,inp.dataset.market,v)}));
   $$('#playerCards .threshold-step').forEach(btn=>btn.addEventListener('click',()=>{const key=playerThresholdKey(btn.dataset.player,btn.dataset.market);const current=Number(state.playerThresholds[key]||btn.closest('.threshold-stepper').querySelector('.threshold-input').value||1);quotePlayerThreshold(btn.dataset.player,btn.dataset.market,Math.max(1,current+Number(btn.dataset.delta)))}));
   $$('#playerCards .add-leg[data-leg-id]').forEach(b=>b.addEventListener('click',()=>addLegById(b.dataset.legId)));
@@ -760,11 +779,13 @@ function openPlayerOptionModal(playerId){
 
 function fieldAdd(playerId,market='best'){let legs=state.legs.filter(l=>l.player_id===playerId);if(market!=='best')legs=legs.filter(l=>l.market===market);legs.sort((a,b)=>Number(b.model_probability)-Number(a.model_probability));if(legs[0])addLegById(legs[0].prediction_leg_id)}
 
-function switchView(name){state.view=name;$$('.view').forEach(v=>v.classList.remove('active-view'));$(`#view-${name}`)?.classList.add('active-view');$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name));if(name==='players'){loadLegsLazy().then(()=>loadRecentLazy()).catch(()=>{});api('/rest/v1/afl_api_availability?select=*',{timeoutMs:5000,retries:0}).then(rows=>{state.availability=new Map((rows||[]).map(r=>[r.player_id,r]));renderPlayers()}).catch(()=>{})}if(name==='system-multi'&&!state.legsLoaded)loadLegsLazy().catch(()=>{});if(name==='multi-lab'){renderBuilder();if(!state.legsLoaded)loadLegsLazy().catch(()=>{})}if(name==='validation'){renderValidation();loadValidation().catch(e=>console.warn('Validation load failed',e))}if(name==='shadow-live')renderShadowLive()}
+function switchView(name){state.view=name;$$('.view').forEach(v=>v.classList.remove('active-view'));$(`#view-${name}`)?.classList.add('active-view');$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name));if(name==='match')renderMatchCore();if(name==='system-multi')safeRender('multis',renderMultis);if(name==='multi-lab')safeRender('builder',renderBuilder);if(name==='players'){loadLegsLazy().then(()=>loadRecentLazy()).catch(()=>{});api('/rest/v1/afl_api_availability?select=*',{timeoutMs:5000,retries:0}).then(rows=>{state.availability=new Map((rows||[]).map(r=>[r.player_id,r]));renderPlayers()}).catch(()=>{})}if(name==='system-multi'&&!state.legsLoaded)loadLegsLazy().catch(()=>{});if(name==='multi-lab'){renderBuilder();if(!state.legsLoaded)loadLegsLazy().catch(()=>{})}if(name==='validation'){renderValidation();loadValidation().catch(e=>console.warn('Validation load failed',e))}if(name==='shadow-live')renderShadowLive()}
 function showError(e){console.error(e);$('#healthBadge').className='badge bad';$('#healthBadge').textContent='API Error';$('#healthBadge').title=shortErr(e)}
 async function bootstrap(){
   const boot=++state.loadSeq;$('#healthBadge').className='badge warn';$('#healthBadge').textContent='Connecting…';
-  try{await loadMatches();if(boot!==state.loadSeq)return;if(state.selected)await loadSelected()}catch(e){showModuleError('BOOTSTRAP',e)}
+  try{await loadMatches()}catch(e){showModuleError('MATCHES',e);return}
+  if(boot!==state.loadSeq)return;
+  if(state.selected){try{await loadSelected()}catch(e){showModuleError('MATCH',e)}}
 }
 
 $$('.tab').forEach(t=>t.addEventListener('click',()=>switchView(t.dataset.view)));$$('[data-go]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.go)));

@@ -1,3 +1,11 @@
+# AFL Match Lab v46 — Bootstrap Render Isolation
+
+- Match bootstrap no longer calls renderAll before API loading.
+- Match page renders only Match/Field/Tactics during startup.
+- Hidden tabs render lazily when opened.
+- Individual render exceptions are isolated and cannot abort bootstrap.
+- Bootstrap errors now distinguish MATCHES vs MATCH failures.
+
 # AFL Match Lab v45 — Loader Reset
 
 - Restores fast core loading.
