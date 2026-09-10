@@ -474,7 +474,7 @@ function systemTradableProbability(p){
   return Number.isFinite(n)&&n>=1/2.20&&n<=1/1.20;
 }
 
-function availableSystemMarkets(){const ms=new Set(['match_winner','match_total','match_line']);state.multis.forEach(m=>(m.legs||[]).forEach(l=>ms.add(l.market)));state.legs.forEach(l=>ms.add(l.market));return [...ms].sort()}
+function availableSystemMarkets(){const ms=new Set(['match_winner','match_total','match_line']);state.multis.forEach(m=>(m.legs||[]).forEach(l=>{if(!SYSTEM_MULTI_EXCLUDED_MARKETS.has(String(l.market||'').toLowerCase()))ms.add(l.market)}));state.legs.forEach(l=>{if(!SYSTEM_MULTI_EXCLUDED_MARKETS.has(String(l.market||'').toLowerCase()))ms.add(l.market)});return [...ms].sort()}
 function defaultSystemFilterState(){return {strategy:'all',legCount:0,recommendedOnly:false,markets:new Set(availableSystemMarkets()),odds:JSON.parse(JSON.stringify(SYSTEM_ODDS_DEFAULTS))}}
 function renderSystemFilterUI(){
   const f=state.systemFilterActive||defaultSystemFilterState();
@@ -493,7 +493,7 @@ function readSystemFilters(){
 function resetSystemFilters(render=true){state.systemFilterActive=defaultSystemFilterState();if($('#systemMarketFilters'))renderSystemFilterUI();if(render)renderMultis()}
 function systemLegRole(strategy,leg){const p=Number(leg.probability),[lo,hi]=systemAnchorBand(strategy);return p>=lo&&p<=hi?'稳胆':'Value'}
 function multiStructureStats(m){
-  const [lo,hi]=systemAnchorBand(m.strategy);const floor=systemValueFloor(m.strategy,m.leg_count);const legs=(m.legs||[]).filter(l=>systemTradableProbability(l.probability));
+  const [lo,hi]=systemAnchorBand(m.strategy);const floor=systemValueFloor(m.strategy,m.leg_count);const legs=(m.legs||[]).filter(l=>!SYSTEM_MULTI_EXCLUDED_MARKETS.has(String(l.market||'').toLowerCase())&&systemTradableProbability(l.probability));
   const anchors=legs.filter(l=>{const p=Number(l.probability);return p>=lo&&p<=hi}).length;
   const values=legs.filter(l=>{const p=Number(l.probability);return p<lo&&p>=floor}).length;
   return {anchors,values,valid:anchors>=1&&anchors<=2&&values>=1};
@@ -508,6 +508,7 @@ function canonicalMultiScore(m,range){
   return roleScore*.34+primaryScore*.30+rangeFit*.14+Math.min(.10,p*.16)+rec+rank;
 }
 const MATCH_MARKETS=new Set(['match_winner','match_line','match_total']);
+const SYSTEM_MULTI_EXCLUDED_MARKETS=new Set(['marks','mark','clearances','clearance','tackles','tackle','hitouts','hitout','hit_outs','hit_out']);
 const SYSTEM_PRIMARY_MARKETS=new Set(['goals','disposals','fantasy_points']);
 function multiMarketMixStats(m){const legs=m.legs||[];const primary=legs.filter(l=>SYSTEM_PRIMARY_MARKETS.has(l.market)).length;const secondary=legs.length-primary;return {primary,secondary,share:legs.length?primary/legs.length:0,majority:primary>=Math.ceil(legs.length/2)}}
 function roundHalf(x){return Math.round(Number(x)*2)/2}
@@ -532,7 +533,7 @@ function matchMarketCandidates(strategy='balanced',legCount=2){
   const fairLine=Number(q.fair_home_line),marginSd=Number(q.margin_sd),fairTotal=Number(q.fair_total),totalSd=Number(q.total_sd);
   if(Number.isFinite(fairLine)&&marginSd>0){targets.forEach(tp=>{const z=zForTarget(tp);const homeLine=roundHalf(fairLine+z*marginSd),awayHomeLine=roundHalf(fairLine-z*marginSd);const hp=normalCdf((homeLine-fairLine)/marginSd),ap=normalCdf((fairLine-awayHomeLine)/marginSd);push('match_line',`${q.home_team_name} ${signedHalf(homeLine)}`,hp,homeLine,'home');push('match_line',`${q.away_team_name} ${signedHalf(-awayHomeLine)}`,ap,-awayHomeLine,'away')})}
   if(Number.isFinite(fairTotal)&&totalSd>0){targets.forEach(tp=>{const z=zForTarget(tp);const overLine=roundHalf(fairTotal-z*totalSd),underLine=roundHalf(fairTotal+z*totalSd);const op=normalCdf((fairTotal-overLine)/totalSd),up=normalCdf((underLine-fairTotal)/totalSd);push('match_total',`Over ${overLine.toFixed(1)}`,op,overLine,'over');push('match_total',`Under ${underLine.toFixed(1)}`,up,underLine,'under')})}
-  return [...new Map(out.filter(x=>systemTradableProbability(x.probability)).map(x=>[x.prediction_leg_id,x])).values()];
+  return [...new Map(out.filter(x=>!SYSTEM_MULTI_EXCLUDED_MARKETS.has(String(x.market||'').toLowerCase())&&systemTradableProbability(x.probability)).map(x=>[x.prediction_leg_id,x])).values()];
 }
 function hybridMultiVariant(m,candidate,replaceIndex,range){
   const legs=(m.legs||[]).map(x=>({...x}));legs[replaceIndex]=candidate;
@@ -556,7 +557,7 @@ function pickCanonicalMulti(rows,strategy,count,f){
   if(!base.length)return null;
   const inBand=base.filter(x=>Number(x.fair_odds)>=Number(range[0])&&Number(x.fair_odds)<=Number(range[1]));
   const initial=inBand.length?inBand:base;const primaryHeavy=initial.filter(x=>multiMarketMixStats(x).majority);const pool=primaryHeavy.length?primaryHeavy:initial;
-  const tradablePool=pool.filter(m=>(m.legs||[]).every(l=>systemTradableProbability(l.probability)));
+  const tradablePool=pool.filter(m=>(m.legs||[]).every(l=>!SYSTEM_MULTI_EXCLUDED_MARKETS.has(String(l.market||'').toLowerCase())&&systemTradableProbability(l.probability)));
   const sourcePool=tradablePool.length?tradablePool:pool;
   const picked=[...sourcePool].sort((a,b)=>canonicalMultiScore(b,range)-canonicalMultiScore(a,range)||Number(a.rank_in_group||99)-Number(b.rank_in_group||99)||Number(b.combined_probability)-Number(a.combined_probability))[0]||null;
   if(!picked)return null;

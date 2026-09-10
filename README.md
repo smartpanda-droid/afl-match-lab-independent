@@ -1,3 +1,15 @@
+# AFL Match Lab v57 — System Multi Market Cleanup
+
+Removed from System Multi only:
+- MARKS
+- CLEARANCES
+- TACKLES
+- HITOUTS
+
+These markets remain available in Player Markets and for manual Multi Lab selection.
+
+System Multi now focuses on mainstream player markets such as GOALS / DISPOSALS / FANTASY plus Winner / Total / Handicap.
+
 # AFL Match Lab v56 — Bookmaker-Available System Multi
 
 System Multi is now tuned around commonly tradeable decimal-odds ranges rather than very high model probabilities.
