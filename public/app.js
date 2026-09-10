@@ -404,6 +404,15 @@ function lineRow(team,teamIndex,label,positions){return `<div class="position-ro
 function followerCards(team,teamIndex){return ['RK','R','RR'].map(pos=>lineupPlayerCard(positionPlayer(team,pos),teamIndex)).join('')}
 function benchCards(team,teamIndex){return state.lineup.filter(x=>x.team_name===team&&x.bench&&!x.emergency).map(p=>lineupPlayerCard(p,teamIndex)).join('')}
 function emergencyCards(team,teamIndex){return state.lineup.filter(x=>x.team_name===team&&x.emergency).map(p=>lineupPlayerCard(p,teamIndex)).join('')}
+function playerDot(p,teamIndex){
+  if(!p||p.bench||p.emergency)return '';
+  const no=jumperNumber(p.team_name,p.player_name);
+  return `<button class="mini-player-dot team-${teamIndex}" data-player-id="${p.player_id}" data-pos="${esc(p.named_position||'')}" title="${esc(p.player_name)} · ${esc(p.named_position||'')}">${no!==''?esc(no):'•'}</button>`;
+}
+function renderMiniField(teams,visible){
+  const dots=teams.map((t,i)=>visible(i)?state.lineup.filter(p=>p.team_name===t&&!p.bench&&!p.emergency).map(p=>playerDot(p,i)).join(''):'').join('');
+  return `<div class="mini-afl-field"><div class="oval-markings"><div class="boundary-inner"></div><div class="centre-square"></div><div class="centre-circle"></div><div class="centre-dot"></div><div class="arc arc-top"></div><div class="arc arc-bottom"></div><div class="goal-square goal-square-top"></div><div class="goal-square goal-square-bottom"></div><div class="goal-posts goal-posts-top"><i></i><i></i><i></i><i></i></div><div class="goal-posts goal-posts-bottom"><i></i><i></i><i></i><i></i></div></div><div class="mini-dots">${dots}</div></div>`;
+}
 function renderMatchFieldBoard(){
   const m=state.matches.find(x=>x.match_id===state.selected);
   const teams=[m?.home_team_name,m?.away_team_name].filter(Boolean);
@@ -413,9 +422,6 @@ function renderMatchFieldBoard(){
   const visible=i=>state.fieldTeamFilter==='all'||state.fieldTeamFilter===teams[i];
   const filters=`<div class="lineup-team-filters"><button data-team="all" class="${state.fieldTeamFilter==='all'?'active':''}">All</button>${teams.map((t,i)=>`<button data-team="${esc(t)}" class="${state.fieldTeamFilter===t?'active':''}">${teamAbbr(t)}</button>`).join('<span class="filter-divider"></span>')}</div>`;
   const legend=`<div class="lineup-team-legend">${teams.map((t,i)=>`<span class="legend-team team-${i} ${visible(i)?'':'dim'}"><span class="legend-logo">${teamLogoHtml(t,'team-logo-small')}</span>${esc(t)} <small>${i===0?'HOME':'AWAY'}</small></span>`).join('')}</div>`;
-  const rows=[];
-  if(visible(0)){rows.push(lineRow(teams[0],0,'FB',['BPL','FB','BPR']));rows.push(lineRow(teams[0],0,'HB',['HBFL','CHB','HBFR']));rows.push(lineRow(teams[0],0,'C',['WL','C','WR']));rows.push(lineRow(teams[0],0,'HF',['HFFL','CHF','HFFR']));rows.push(lineRow(teams[0],0,'FF',['FPL','FF','FPR']));}
-  if(visible(1)){const r=[lineRow(teams[1],1,'FF',['FPL','FF','FPR']),lineRow(teams[1],1,'HF',['HFFL','CHF','HFFR']),lineRow(teams[1],1,'C',['WL','C','WR']),lineRow(teams[1],1,'HB',['HBFL','CHB','HBFR']),lineRow(teams[1],1,'FB',['BPL','FB','BPR'])];if(state.fieldTeamFilter==='all'){rows.splice(1,0,r[0]);rows.splice(3,0,r[1]);rows.splice(5,0,r[2]);rows.splice(7,0,r[3]);rows.push(r[4]);}else rows.push(...r);}
   let centerRows;
   if(state.fieldTeamFilter==='all'){
     const pairs=[
@@ -434,16 +440,47 @@ function renderMatchFieldBoard(){
   const left=`<aside class="lineup-side followers"><h3>Followers</h3>${teams.map((t,i)=>visible(i)?`<div class="side-team-block team-${i}">${followerCards(t,i)}</div>`:'').join('')}</aside>`;
   const right=`<aside class="lineup-side interchanges"><h3>Interchanges</h3>${teams.map((t,i)=>visible(i)?`<div class="side-team-block team-${i}">${benchCards(t,i)}</div>`:'').join('')}</aside>`;
   const emergencies=teams.map((t,i)=>visible(i)?emergencyCards(t,i):'').join('');
-  host.innerHTML=`${filters}${legend}<div class="lineup-main-grid">${left}<div class="afl-oval ${state.fieldTeamFilter==='all'?'all-teams':'single-team'}"><div class="oval-markings"><div class="boundary-inner"></div><div class="centre-square"></div><div class="centre-circle"></div><div class="centre-dot"></div><div class="arc arc-top"></div><div class="arc arc-bottom"></div><div class="goal-square goal-square-top"></div><div class="goal-square goal-square-bottom"></div><div class="goal-posts goal-posts-top"><i></i><i></i><i></i><i></i></div><div class="goal-posts goal-posts-bottom"><i></i><i></i><i></i><i></i></div></div><div class="position-stack ${state.fieldTeamFilter==='all'?'all-teams':'single-team'}">${centerRows}</div></div>${right}</div>${emergencies?`<div class="emergency-strip"><span>Emergencies</span>${emergencies}</div>`:''}`;
+  host.innerHTML=`${filters}${legend}<div class="lineup-main-grid names-first">${left}<div class="lineup-center"><div class="position-roster ${state.fieldTeamFilter==='all'?'all-teams':'single-team'}">${centerRows}</div>${renderMiniField(teams,visible)}</div>${right}</div>${emergencies?`<div class="emergency-strip"><span>Emergencies</span>${emergencies}</div>`:''}`;
   $$('#matchFieldTeams .lineup-team-filters button').forEach(b=>b.addEventListener('click',()=>{state.fieldTeamFilter=b.dataset.team;renderMatchFieldBoard()}));
-  $$('#matchFieldTeams .lineup-player-card[data-player-id]').forEach(b=>b.addEventListener('click',()=>fieldAdd(b.dataset.playerId,$('#matchFieldMarket')?.value||'best')));
+  $$('#matchFieldTeams .lineup-player-card[data-player-id], #matchFieldTeams .mini-player-dot[data-player-id]').forEach(b=>b.addEventListener('click',()=>openPlayerOptionModal(b.dataset.playerId)));
 }
+
 function renderField(){
   renderMatchFieldBoard();
   const teams=[...new Set(state.lineup.map(x=>x.team_name))];
   const markup=teams.map(team=>`<div class="field-team"><h3>${esc(team)}</h3>${state.lineup.filter(x=>x.team_name===team).map(p=>`<button class="field-player ${p.emergency?'emergency':p.bench?'bench':''}" data-player-id="${p.player_id}"><strong>${esc(p.player_name)}</strong><br><span>${esc(p.named_position||'')}</span></button>`).join('')}</div>`).join('')||'<div class="empty">暂无阵容</div>';
   const host=$('#fieldTeams');if(host)host.innerHTML=markup;
-  $$('#fieldTeams .field-player').forEach(b=>b.addEventListener('click',()=>fieldAdd(b.dataset.playerId,$('#fieldMarket')?.value||'best')));
+  $$('#fieldTeams .field-player').forEach(b=>b.addEventListener('click',()=>openPlayerOptionModal(b.dataset.playerId)));
+}
+
+const MARKET_MODAL_ORDER=['goals','kicks','disposals','marks','tackles','handballs','hitouts','clearances','fantasy_points'];
+function modalLegsForPlayer(playerId){return state.legs.filter(l=>l.player_id===playerId).sort((a,b)=>MARKET_MODAL_ORDER.indexOf(a.market)-MARKET_MODAL_ORDER.indexOf(b.market)||Number(a.threshold)-Number(b.threshold))}
+function addLegsToBuilder(legs){
+  const clean=(legs||[]).filter(Boolean);
+  clean.forEach(l=>{if(l.prediction_leg_id&&!state.builder.some(x=>x.prediction_leg_id===l.prediction_leg_id))state.builder.push(normalizeLeg(l))});
+  if(clean.length){saveBuilder();closePlayerOptionModal();switchView('multi-lab')}
+}
+function probabilityBandLegs(playerId,min,max){
+  const eligible=modalLegsForPlayer(playerId).filter(l=>{const p=Number(l.model_probability);return p>=min&&p<(max>=1?1.00001:max)});
+  const best=new Map();
+  eligible.forEach(l=>{const prev=best.get(l.market);if(!prev||Number(l.threshold)>Number(prev.threshold))best.set(l.market,l)});
+  return [...best.values()].sort((a,b)=>Number(b.model_probability)-Number(a.model_probability));
+}
+function closePlayerOptionModal(){document.querySelector('.player-option-modal')?.remove()}
+function openPlayerOptionModal(playerId){
+  closePlayerOptionModal();
+  const legs=modalLegsForPlayer(playerId);const p=state.lineup.find(x=>x.player_id===playerId);if(!p)return;
+  const grouped=new Map();legs.forEach(l=>{if(!grouped.has(l.market))grouped.set(l.market,[]);grouped.get(l.market).push(l)});
+  const overlay=document.createElement('div');overlay.className='player-option-modal';
+  const bands=[[.9,1,'90–100%'],[.8,.9,'80–90%'],[.7,.8,'70–80%']];
+  const bandHtml=bands.map(([min,max,label])=>{const xs=probabilityBandLegs(playerId,min,max);return `<button class="prob-band" data-min="${min}" data-max="${max}" ${xs.length?'':'disabled'}><strong>${label}</strong><small>${xs.length} markets · highest threshold each</small></button>`}).join('');
+  const marketHtml=MARKET_MODAL_ORDER.filter(m=>grouped.has(m)).map(m=>`<section class="modal-market"><h4>${esc(marketLabel(m))}</h4><div class="threshold-choice-grid">${grouped.get(m).map(l=>`<button class="threshold-choice" data-leg-id="${l.prediction_leg_id}"><strong>${esc(String(Number(l.threshold)))}+</strong><small>${pct(l.model_probability)}</small></button>`).join('')}</div></section>`).join('');
+  overlay.innerHTML=`<div class="player-option-dialog"><div class="modal-head"><div><span class="eyebrow">PLAYER OPTIONS</span><h3>${esc(p.player_name)}</h3><small>${esc(p.team_name)} · ${esc(p.named_position||'')}</small></div><button class="modal-close" aria-label="Close">×</button></div><section class="modal-bands"><h4>高概率范围</h4><div class="prob-band-grid">${bandHtml}</div><p>选择概率范围时，每个玩法只取该范围内 threshold 最高的一腿。</p></section><div class="modal-markets">${marketHtml}</div></div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)closePlayerOptionModal()});
+  overlay.querySelector('.modal-close').addEventListener('click',closePlayerOptionModal);
+  overlay.querySelectorAll('.threshold-choice').forEach(b=>b.addEventListener('click',()=>{const l=state.legs.find(x=>x.prediction_leg_id===b.dataset.legId);addLegsToBuilder([l])}));
+  overlay.querySelectorAll('.prob-band:not([disabled])').forEach(b=>b.addEventListener('click',()=>addLegsToBuilder(probabilityBandLegs(playerId,Number(b.dataset.min),Number(b.dataset.max)))));
 }
 
 function fieldAdd(playerId,market='best'){let legs=state.legs.filter(l=>l.player_id===playerId);if(market!=='best')legs=legs.filter(l=>l.market===market);legs.sort((a,b)=>Number(b.model_probability)-Number(a.model_probability));if(legs[0])addLegById(legs[0].prediction_leg_id)}

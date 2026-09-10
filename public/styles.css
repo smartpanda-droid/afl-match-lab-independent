@@ -186,3 +186,34 @@
   .centre-square{left:29%;right:29%}
   .goal-square{left:38%;right:38%}
 }
+
+
+/* v25 names-first lineup + compact field + player option modal */
+.lineup-main-grid.names-first{grid-template-columns:190px minmax(0,760px) 190px;gap:24px;align-items:start}
+.lineup-center{display:grid;gap:18px;min-width:0}
+.position-roster{display:grid;gap:14px;padding:6px 0}
+.position-roster.all-teams{grid-template-rows:repeat(5,auto)}
+.position-roster.single-team{grid-template-rows:repeat(5,auto);gap:18px}
+.position-roster .position-pair{display:grid;gap:3px}
+.position-roster .position-row{margin:0!important;grid-template-columns:34px minmax(0,1fr);gap:8px}
+.position-roster .position-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.position-roster .lineup-player-card{height:34px;width:100%;min-width:0}
+.mini-afl-field{position:relative;width:min(100%,520px);aspect-ratio:.78;margin:0 auto;border:10px solid #286f33;border-radius:50%;overflow:hidden;background:repeating-linear-gradient(to bottom,#489e44 0 36px,#42973f 36px 72px);box-shadow:inset 0 0 0 2px rgba(255,255,255,.14),0 5px 18px rgba(22,62,31,.12)}
+.mini-afl-field .oval-markings{position:absolute;inset:12px 10px;z-index:1}
+.mini-afl-field .mini-dots{position:absolute;inset:0;z-index:2}
+.mini-player-dot{position:absolute;width:25px;height:25px;padding:0;border-radius:50%;display:grid;place-items:center;font-size:9px;font-weight:950;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.mini-player-dot.team-0{background:#32145f;color:#fff}.mini-player-dot.team-1{background:#0d4f86;color:#fff}
+.mini-player-dot[data-pos="BPL"]{left:29%;top:13%}.mini-player-dot[data-pos="FB"]{left:48%;top:10%}.mini-player-dot[data-pos="BPR"]{left:67%;top:13%}
+.mini-player-dot[data-pos="HBFL"]{left:23%;top:29%}.mini-player-dot[data-pos="CHB"]{left:48%;top:27%}.mini-player-dot[data-pos="HBFR"]{left:73%;top:29%}
+.mini-player-dot[data-pos="WL"]{left:19%;top:48%}.mini-player-dot[data-pos="C"]{left:48%;top:47%}.mini-player-dot[data-pos="WR"]{left:77%;top:48%}
+.mini-player-dot[data-pos="HFFL"]{left:23%;top:66%}.mini-player-dot[data-pos="CHF"]{left:48%;top:68%}.mini-player-dot[data-pos="HFFR"]{left:73%;top:66%}
+.mini-player-dot[data-pos="FPL"]{left:29%;top:83%}.mini-player-dot[data-pos="FF"]{left:48%;top:86%}.mini-player-dot[data-pos="FPR"]{left:67%;top:83%}
+.mini-player-dot.team-1{transform:translate(11px,8px)}
+.player-option-modal{position:fixed;inset:0;z-index:9999;background:rgba(10,28,20,.45);display:grid;place-items:center;padding:24px;backdrop-filter:blur(4px)}
+.player-option-dialog{width:min(920px,96vw);max-height:88vh;overflow:auto;background:#fff;border-radius:20px;padding:20px;box-shadow:0 24px 70px rgba(0,0,0,.28)}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid var(--line);padding-bottom:14px}.modal-head h3{margin:0 0 2px;font-size:22px}.modal-close{width:38px;height:38px;border-radius:50%;padding:0;font-size:24px;background:var(--soft);color:var(--ink)}
+.modal-bands{padding:16px 0;border-bottom:1px solid var(--line)}.modal-bands h4,.modal-market h4{margin:0 0 9px}.modal-bands p{margin:8px 0 0;font-size:10px;color:var(--muted)}
+.prob-band-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.prob-band{background:#eef5ef;color:var(--accent);border:1px solid #dce9df;text-align:left}.prob-band strong,.prob-band small{display:block}.prob-band strong{font-size:16px}.prob-band small{font-size:10px;margin-top:3px;color:var(--muted)}.prob-band[disabled]{opacity:.4;cursor:not-allowed}
+.modal-markets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding-top:16px}.modal-market{border:1px solid var(--line);border-radius:14px;padding:12px}.threshold-choice-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(76px,1fr));gap:8px}.threshold-choice{background:var(--soft);color:var(--ink);border:1px solid var(--line);padding:9px 7px}.threshold-choice strong,.threshold-choice small{display:block}.threshold-choice strong{font-size:14px}.threshold-choice small{font-size:10px;margin-top:2px;color:var(--good);font-weight:900}
+@media(max-width:930px){.lineup-main-grid.names-first{grid-template-columns:1fr}.lineup-center{order:-1}.position-roster{padding:0 14px}.mini-afl-field{max-width:480px}.modal-markets{grid-template-columns:1fr}}
+@media(max-width:650px){.position-roster .position-row{grid-template-columns:28px minmax(0,1fr);gap:4px}.position-roster .position-three{gap:4px}.position-roster .lineup-player-card{font-size:9px;height:30px}.prob-band-grid{grid-template-columns:1fr}.player-option-dialog{padding:14px}.mini-afl-field{max-width:360px}}
