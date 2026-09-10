@@ -5,7 +5,7 @@ if(CFG?.PARALLEL_TEST){
 }else{
   const b=document.getElementById('parallelTestBanner'); if(b)b.hidden=true;
 }
-const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, lineupBuilderFloatClosed:false, systemFilterActive:null, view:'match' };
+const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, lineupBuilderFloatClosed:false, systemFilterActive:null, legsLoaded:false, recentLoaded:false, coreErrors:{}, view:'match' };
 
 
 // 2026 finals branding + jumper numbers. Numbers verified against AFL official team squad pages.
@@ -187,47 +187,64 @@ async function loadMatches(){
   $('#matchSelect').value=state.selected||'';
 }
 
+async function loadLegsLazy(force=false){
+  if(!state.selected)return [];
+  if(state.legsLoaded&&!force)return state.legs;
+  const id=encodeURIComponent(state.selected);
+  try{
+    const legs=await apiPaged(`/rest/v1/afl_api_prediction_legs?select=*&match_id=eq.${id}&order=player_name.asc,market.asc,threshold.asc`,1000);
+    state.legs=legs||[];state.legsLoaded=true;delete state.coreErrors.legs;
+    state.systemFilterActive=defaultSystemFilterState();
+    renderMatch();renderPlayerControls();renderPlayers();renderMultis();renderBuilder();
+    return state.legs;
+  }catch(e){state.coreErrors.legs=e;showModuleError('LEGS',e);throw e}
+}
+async function loadRecentLazy(force=false){
+  if(!state.selected)return [];
+  if(state.recentLoaded&&!force)return [...state.recent5.values()];
+  const id=encodeURIComponent(state.selected);
+  try{
+    const rows=await api(`/rest/v1/afl_api_player_recent5?select=player_id,player_name,team_name,recent5&match_id=eq.${id}`,{timeoutMs:18000,retries:1});
+    state.recent5=new Map((rows||[]).map(r=>[r.player_id,r.recent5||[]]));state.recentLoaded=true;delete state.coreErrors.recent;
+    renderPlayers();renderField();return rows||[];
+  }catch(e){state.coreErrors.recent=e;console.warn('RECENT5 background load failed',e);return []}
+}
+function shortErr(e){const m=String(e?.message||e||'error');return m.length>42?m.slice(0,39)+'…':m}
+function showModuleError(label,e){console.error(label,e);const b=$('#healthBadge');b.className='badge bad';b.textContent=`${label} Error`;b.title=shortErr(e)}
 async function loadSelected(){
   if(!state.selected)return;
   const id=encodeURIComponent(state.selected);
-  const cacheKey=`afl:selected:${state.selected}`;
-  $('#healthBadge').className='badge warn';$('#healthBadge').textContent='Loading…';
-  try{
-    const [legs,multis,lineup,recent]=await Promise.all([
-      apiPaged(`/rest/v1/afl_api_prediction_legs?select=*&match_id=eq.${id}&order=player_name.asc,market.asc,threshold.asc`),
-      api(`/rest/v1/afl_api_multis?select=*&match_id=eq.${id}&order=strategy.asc,leg_count.asc,rank_in_group.asc`),
-      api(`/rest/v1/afl_api_lineup?select=*&match_id=eq.${id}&order=team_name.asc,emergency.asc,bench.asc,player_name.asc`),
-      api(`/rest/v1/afl_api_player_recent5?select=player_id,player_name,team_name,recent5&match_id=eq.${id}`)
-    ]);
-    state.legs=legs||[];state.multis=multis||[];state.lineup=lineup||[];state.recent5=new Map((recent||[]).map(r=>[r.player_id,r.recent5||[]]));
-    state.systemFilterActive=defaultSystemFilterState();
-    localStorage.setItem(cacheKey,JSON.stringify({legs:state.legs,multis:state.multis,lineup:state.lineup,recent:recent||[],savedAt:Date.now()}));
-    loadBuilder();renderAll();
-    $('#healthBadge').className='badge good';$('#healthBadge').textContent='Supabase Connected';
-  }catch(e){
-    console.error('Core match load failed',e);
-    try{
-      const c=JSON.parse(localStorage.getItem(cacheKey)||'null');
-      if(c){state.legs=c.legs||[];state.multis=c.multis||[];state.lineup=c.lineup||[];state.recent5=new Map((c.recent||[]).map(r=>[r.player_id,r.recent5||[]]));state.systemFilterActive=defaultSystemFilterState();loadBuilder();renderAll();$('#healthBadge').className='badge warn';$('#healthBadge').textContent='Cached Data';}
-      else throw e;
-    }catch{showError(e);return}
+  const cacheKey=`afl:selected-lite:${state.selected}`;
+  $('#healthBadge').className='badge warn';$('#healthBadge').textContent='Loading core…';
+  state.legs=[];state.legsLoaded=false;state.recent5=new Map();state.recentLoaded=false;state.coreErrors={};
+  let gotAny=false;
+  const jobs=[
+    ['LINEUP',api(`/rest/v1/afl_api_lineup?select=*&match_id=eq.${id}&order=team_name.asc,emergency.asc,bench.asc,player_name.asc`,{timeoutMs:18000,retries:1})],
+    ['MULTIS',api(`/rest/v1/afl_api_multis?select=*&match_id=eq.${id}&order=strategy.asc,leg_count.asc,rank_in_group.asc`,{timeoutMs:18000,retries:1})]
+  ];
+  const settled=await Promise.allSettled(jobs.map(x=>x[1]));
+  settled.forEach((r,i)=>{const label=jobs[i][0];if(r.status==='fulfilled'){gotAny=true;if(label==='LINEUP')state.lineup=r.value||[];if(label==='MULTIS')state.multis=r.value||[];delete state.coreErrors[label.toLowerCase()]}else{state.coreErrors[label.toLowerCase()]=r.reason;console.warn(`${label} core load failed`,r.reason)}});
+  if(!gotAny){
+    try{const c=JSON.parse(localStorage.getItem(cacheKey)||'null');if(c){state.lineup=c.lineup||[];state.multis=c.multis||[];gotAny=true;$('#healthBadge').className='badge warn';$('#healthBadge').textContent='Cached Core'}}catch{}
   }
+  if(!gotAny){const first=Object.entries(state.coreErrors)[0];showModuleError(first?.[0]?.toUpperCase()||'CORE',first?.[1]||new Error('core load failed'));return}
+  state.systemFilterActive=defaultSystemFilterState();loadBuilder();renderAll();
+  try{localStorage.setItem(cacheKey,JSON.stringify({lineup:state.lineup,multis:state.multis,savedAt:Date.now()}))}catch{}
+  if(Object.keys(state.coreErrors).length){const names=Object.keys(state.coreErrors).map(x=>x.toUpperCase()).join('/');$('#healthBadge').className='badge warn';$('#healthBadge').textContent=`${names} partial`}
+  else{$('#healthBadge').className='badge good';$('#healthBadge').textContent='Core Connected'}
+  // Heavy player markets are intentionally background/lazy so they cannot blank Match.
+  loadLegsLazy().catch(()=>{});
+  loadRecentLazy().catch(()=>{});
   // Non-critical modules load independently so one slow endpoint cannot blank the whole page.
   Promise.allSettled([
-    api(`/rest/v1/afl_api_availability?select=*`).then(rows=>{state.availability=new Map((rows||[]).map(r=>[r.player_id,r]));renderPlayers();renderField()}),
-    api(`/rest/v1/afl_api_match_context?select=*&match_id=eq.${id}`).then(rows=>{state.context=(rows||[])[0]||null;renderMatch();renderTactics()}),
-    api(`/rest/v1/afl_api_multi_stability?select=*&match_id=eq.${id}`).then(rows=>{state.multiStability=new Map((rows||[]).map(x=>[`${x.strategy}:${x.leg_count}:${x.slot}`,x]));renderMultis()}),
-    api(`/rest/v1/afl_api_final_recommendations?select=*&match_id=eq.${id}`).then(rows=>{state.finalLock=(rows||[])[0]||null;renderMatch();renderValidation()}),
-    api(`/rest/v1/afl_api_shadow_observations?select=*&match_id=eq.${id}&order=sequence_no.asc`).then(rows=>{state.shadowObs=rows||[];renderShadowLive()}),
-    api('/rest/v1/rpc/afl_match_market_quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_match_id:state.selected,p_line:null,p_total:null}),timeoutMs:9000,retries:0}).then(rows=>{state.matchQuote=Array.isArray(rows)?rows[0]:rows;renderMatch();renderMultis()})
-  ]).then(()=>evaluateBuilder().catch(console.error));
+    api(`/rest/v1/afl_api_availability?select=*`,{timeoutMs:16000,retries:1}).then(rows=>{state.availability=new Map((rows||[]).map(r=>[r.player_id,r]));renderPlayers();renderField()}),
+    api(`/rest/v1/afl_api_match_context?select=*&match_id=eq.${id}`,{timeoutMs:16000,retries:1}).then(rows=>{state.context=(rows||[])[0]||null;renderMatch();renderTactics()}),
+    api(`/rest/v1/afl_api_multi_stability?select=*&match_id=eq.${id}`,{timeoutMs:16000,retries:1}).then(rows=>{state.multiStability=new Map((rows||[]).map(x=>[`${x.strategy}:${x.leg_count}:${x.slot}`,x]));renderMultis()}),
+    api(`/rest/v1/afl_api_final_recommendations?select=*&match_id=eq.${id}`,{timeoutMs:16000,retries:1}).then(rows=>{state.finalLock=(rows||[])[0]||null;renderMatch();renderValidation()})
+  ]).catch(()=>{});
 }
 
-function stat(label,value){return `<div class="stat"><b>${value}</b><span>${label}</span></div>`}
-function metric(label,value){return `<div class="metric"><b>${value}</b>${label}</div>`}
-function probClass(p){p=Number(p);return p>=.65?'high':p>=.5?'mid':'low'}
-
-function renderAll(){renderMatch();renderPlayerControls();renderPlayers();renderMultis();renderBuilder();renderField();renderTactics();renderValidation();renderShadowLive();$('#healthBadge').className='badge good';$('#healthBadge').textContent='Supabase Connected'}
+function renderAll(){renderMatch();renderPlayerControls();renderPlayers();renderMultis();renderBuilder();renderField();renderTactics();renderValidation();renderShadowLive()}
 
 async function refreshMatchQuote(){
   if(!state.selected)return;
@@ -678,8 +695,8 @@ function openPlayerOptionModal(playerId){
 
 function fieldAdd(playerId,market='best'){let legs=state.legs.filter(l=>l.player_id===playerId);if(market!=='best')legs=legs.filter(l=>l.market===market);legs.sort((a,b)=>Number(b.model_probability)-Number(a.model_probability));if(legs[0])addLegById(legs[0].prediction_leg_id)}
 
-function switchView(name){state.view=name;$$('.view').forEach(v=>v.classList.remove('active-view'));$(`#view-${name}`)?.classList.add('active-view');$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name));if(name==='multi-lab')renderBuilder();if(name==='validation')renderValidation();if(name==='shadow-live')renderShadowLive()}
-function showError(e){console.error(e);$('#healthBadge').className='badge bad';$('#healthBadge').textContent='API Error'}
+function switchView(name){state.view=name;$$('.view').forEach(v=>v.classList.remove('active-view'));$(`#view-${name}`)?.classList.add('active-view');$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name));if(name==='player-markets'&&!state.legsLoaded){$('#healthBadge').className='badge warn';$('#healthBadge').textContent='Loading Player Markets…';loadLegsLazy().then(()=>{$('#healthBadge').className='badge good';$('#healthBadge').textContent='Player Markets Loaded'}).catch(()=>{})}if(name==='multi-lab'){renderBuilder();if(!state.legsLoaded)loadLegsLazy().catch(()=>{})}if(name==='validation')renderValidation();if(name==='shadow-live')renderShadowLive()}
+function showError(e){console.error(e);$('#healthBadge').className='badge bad';$('#healthBadge').textContent='API Error';$('#healthBadge').title=shortErr(e)}
 async function bootstrap(){
   $('#healthBadge').className='badge warn';$('#healthBadge').textContent='Connecting…';
   try{

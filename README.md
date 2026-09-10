@@ -1,3 +1,10 @@
+# v42 — Resilient Core Loading
+
+- Match page no longer waits for full prediction-leg payload.
+- Core startup only requires lineup/multis; heavy player legs and recent5 load lazily/background.
+- Per-module status identifies LINEUP / MULTIS / LEGS failures.
+- A slow prediction-leg endpoint can no longer blank the whole Match page.
+
 # AFL Match Lab v40 — Mainstream Multi Rebalance + Value Button Fix
 
 - System Multi primary-market preference: Goals, Disposals, Fantasy, Match Winner and Total.
