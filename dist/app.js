@@ -53,9 +53,24 @@ const dt = iso => new Intl.DateTimeFormat('en-AU',{dateStyle:'medium',timeStyle:
 
 async function api(path, options={}){
   const headers={apikey:CFG.SUPABASE_PUBLISHABLE_KEY,...(options.headers||{})};
-  const r=await fetch(`${CFG.SUPABASE_URL}${path}`,{...options,headers});
-  if(!r.ok) throw new Error(`${r.status} ${await r.text()}`);
-  return r.status===204?null:r.json();
+  const timeoutMs=Number(options.timeoutMs||12000);
+  const retries=Number(options.retries??1);
+  let lastErr;
+  for(let attempt=0;attempt<=retries;attempt++){
+    const ctl=new AbortController();
+    const timer=setTimeout(()=>ctl.abort(),timeoutMs);
+    try{
+      const {timeoutMs:_t,retries:_r,...fetchOptions}=options;
+      const r=await fetch(`${CFG.SUPABASE_URL}${path}`,{...fetchOptions,headers,signal:ctl.signal});
+      clearTimeout(timer);
+      if(!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+      return r.status===204?null:r.json();
+    }catch(e){
+      clearTimeout(timer);lastErr=e;
+      if(attempt<retries) await new Promise(r=>setTimeout(r,450*(attempt+1)));
+    }
+  }
+  throw lastErr;
 }
 
 async function apiPaged(path, pageSize=1000){
@@ -156,7 +171,15 @@ function saveBuilder(){localStorage.setItem(storageKey(),JSON.stringify(state.bu
 function updateBuilderCount(){$('#builderCount').textContent=state.builder.length}
 
 async function loadMatches(){
-  const rows=await api('/rest/v1/afl_api_matches?select=*&season=eq.2026&order=start_time.asc');
+  let rows;
+  try{
+    rows=await api('/rest/v1/afl_api_matches?select=*&season=eq.2026&order=start_time.asc',{timeoutMs:10000,retries:1});
+    localStorage.setItem('afl:matches:2026',JSON.stringify({rows,savedAt:Date.now()}));
+  }catch(e){
+    const cached=JSON.parse(localStorage.getItem('afl:matches:2026')||'null');
+    if(!cached?.rows?.length)throw e;rows=cached.rows;
+    $('#healthBadge').className='badge warn';$('#healthBadge').textContent='Cached Data';
+  }
   state.matches=rows;
   const future=rows.filter(m=>['scheduled','live'].includes(m.status));
   $('#matchSelect').innerHTML=future.map(m=>`<option value="${m.match_id}">${esc(m.round_name)} · ${esc(m.home_team_name)} vs ${esc(m.away_team_name)} · ${dt(m.start_time)}</option>`).join('');
@@ -167,20 +190,37 @@ async function loadMatches(){
 async function loadSelected(){
   if(!state.selected)return;
   const id=encodeURIComponent(state.selected);
-  const [legs,multis,lineup,recent,availability,contextRows,stabilityRows,finalRows,shadowRows,matchQuoteRows]=await Promise.all([
-    apiPaged(`/rest/v1/afl_api_prediction_legs?select=*&match_id=eq.${id}&order=player_name.asc,market.asc,threshold.asc`),
-    api(`/rest/v1/afl_api_multis?select=*&match_id=eq.${id}&order=strategy.asc,leg_count.asc,rank_in_group.asc`),
-    api(`/rest/v1/afl_api_lineup?select=*&match_id=eq.${id}&order=team_name.asc,emergency.asc,bench.asc,player_name.asc`),
-    api(`/rest/v1/afl_api_player_recent5?select=player_id,player_name,team_name,recent5&match_id=eq.${id}`),
-    api(`/rest/v1/afl_api_availability?select=*`),
-    api(`/rest/v1/afl_api_match_context?select=*&match_id=eq.${id}`),
-    api(`/rest/v1/afl_api_multi_stability?select=*&match_id=eq.${id}`),
-    api(`/rest/v1/afl_api_final_recommendations?select=*&match_id=eq.${id}`),
-    api(`/rest/v1/afl_api_shadow_observations?select=*&match_id=eq.${id}&order=sequence_no.asc`),
-    api('/rest/v1/rpc/afl_match_market_quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_match_id:state.selected,p_line:null,p_total:null})})
-  ]);
-  state.legs=legs;state.multis=multis;state.lineup=lineup;state.recent5=new Map(recent.map(r=>[r.player_id,r.recent5||[]]));state.availability=new Map(availability.map(r=>[r.player_id,r]));state.context=contextRows[0]||null;state.multiStability=new Map((stabilityRows||[]).map(x=>[`${x.strategy}:${x.leg_count}:${x.slot}`,x]));state.finalLock=(finalRows||[])[0]||null;state.shadowObs=shadowRows||[];state.matchQuote=Array.isArray(matchQuoteRows)?matchQuoteRows[0]:matchQuoteRows;state.systemFilterActive=defaultSystemFilterState();
-  loadBuilder();renderAll();evaluateBuilder().catch(showError);
+  const cacheKey=`afl:selected:${state.selected}`;
+  $('#healthBadge').className='badge warn';$('#healthBadge').textContent='Loading…';
+  try{
+    const [legs,multis,lineup,recent]=await Promise.all([
+      apiPaged(`/rest/v1/afl_api_prediction_legs?select=*&match_id=eq.${id}&order=player_name.asc,market.asc,threshold.asc`),
+      api(`/rest/v1/afl_api_multis?select=*&match_id=eq.${id}&order=strategy.asc,leg_count.asc,rank_in_group.asc`),
+      api(`/rest/v1/afl_api_lineup?select=*&match_id=eq.${id}&order=team_name.asc,emergency.asc,bench.asc,player_name.asc`),
+      api(`/rest/v1/afl_api_player_recent5?select=player_id,player_name,team_name,recent5&match_id=eq.${id}`)
+    ]);
+    state.legs=legs||[];state.multis=multis||[];state.lineup=lineup||[];state.recent5=new Map((recent||[]).map(r=>[r.player_id,r.recent5||[]]));
+    state.systemFilterActive=defaultSystemFilterState();
+    localStorage.setItem(cacheKey,JSON.stringify({legs:state.legs,multis:state.multis,lineup:state.lineup,recent:recent||[],savedAt:Date.now()}));
+    loadBuilder();renderAll();
+    $('#healthBadge').className='badge good';$('#healthBadge').textContent='Supabase Connected';
+  }catch(e){
+    console.error('Core match load failed',e);
+    try{
+      const c=JSON.parse(localStorage.getItem(cacheKey)||'null');
+      if(c){state.legs=c.legs||[];state.multis=c.multis||[];state.lineup=c.lineup||[];state.recent5=new Map((c.recent||[]).map(r=>[r.player_id,r.recent5||[]]));state.systemFilterActive=defaultSystemFilterState();loadBuilder();renderAll();$('#healthBadge').className='badge warn';$('#healthBadge').textContent='Cached Data';}
+      else throw e;
+    }catch{showError(e);return}
+  }
+  // Non-critical modules load independently so one slow endpoint cannot blank the whole page.
+  Promise.allSettled([
+    api(`/rest/v1/afl_api_availability?select=*`).then(rows=>{state.availability=new Map((rows||[]).map(r=>[r.player_id,r]));renderPlayers();renderField()}),
+    api(`/rest/v1/afl_api_match_context?select=*&match_id=eq.${id}`).then(rows=>{state.context=(rows||[])[0]||null;renderMatch();renderTactics()}),
+    api(`/rest/v1/afl_api_multi_stability?select=*&match_id=eq.${id}`).then(rows=>{state.multiStability=new Map((rows||[]).map(x=>[`${x.strategy}:${x.leg_count}:${x.slot}`,x]));renderMultis()}),
+    api(`/rest/v1/afl_api_final_recommendations?select=*&match_id=eq.${id}`).then(rows=>{state.finalLock=(rows||[])[0]||null;renderMatch();renderValidation()}),
+    api(`/rest/v1/afl_api_shadow_observations?select=*&match_id=eq.${id}&order=sequence_no.asc`).then(rows=>{state.shadowObs=rows||[];renderShadowLive()}),
+    api('/rest/v1/rpc/afl_match_market_quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_match_id:state.selected,p_line:null,p_total:null}),timeoutMs:9000,retries:0}).then(rows=>{state.matchQuote=Array.isArray(rows)?rows[0]:rows;renderMatch();renderMultis()})
+  ]).then(()=>evaluateBuilder().catch(console.error));
 }
 
 function stat(label,value){return `<div class="stat"><b>${value}</b><span>${label}</span></div>`}
@@ -640,7 +680,14 @@ function fieldAdd(playerId,market='best'){let legs=state.legs.filter(l=>l.player
 
 function switchView(name){state.view=name;$$('.view').forEach(v=>v.classList.remove('active-view'));$(`#view-${name}`)?.classList.add('active-view');$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name));if(name==='multi-lab')renderBuilder();if(name==='validation')renderValidation();if(name==='shadow-live')renderShadowLive()}
 function showError(e){console.error(e);$('#healthBadge').className='badge bad';$('#healthBadge').textContent='API Error'}
-async function bootstrap(){try{await loadValidation();await loadMatches();await loadSelected()}catch(e){showError(e)}}
+async function bootstrap(){
+  $('#healthBadge').className='badge warn';$('#healthBadge').textContent='Connecting…';
+  try{
+    await loadMatches();
+    await loadSelected();
+    loadValidation().catch(e=>console.warn('Validation background load failed',e));
+  }catch(e){showError(e)}
+}
 
 $$('.tab').forEach(t=>t.addEventListener('click',()=>switchView(t.dataset.view)));$$('[data-go]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.go)));
 $('#matchSelect').addEventListener('change',e=>{state.selected=e.target.value;state.systemMultiOdds={};state.systemMultiRanking=new Map();loadSelected().catch(showError)});
