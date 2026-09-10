@@ -11,8 +11,8 @@ const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent
 // 2026 finals branding + jumper numbers. Numbers verified against AFL official team squad pages.
 const TEAM_BRAND = {
   'Fremantle': {abbr:'FRE', logo:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fremantlesymbol.png', homeBg:'linear-gradient(145deg,#2b0a3d 0 42%,#fff 43% 49%,#2b0a3d 50% 59%,#fff 60% 66%,#2b0a3d 67%)', homeFg:'#fff', awayBg:'linear-gradient(145deg,#fff 0 42%,#5b2c83 43% 49%,#fff 50% 59%,#5b2c83 60% 66%,#fff 67%)', awayFg:'#4b1f69', border:'#5b2c83'},
-  'Geelong Cats': {abbr:'GEEL', logo:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Geelongsymbol.png', homeBg:'repeating-linear-gradient(to bottom,#0b2341 0 5px,#fff 5px 10px)', homeFg:'#0b2341', awayBg:'repeating-linear-gradient(to bottom,#fff 0 6px,#0b2341 6px 9px)', awayFg:'#0b2341', border:'#0b2341'},
-  'Brisbane Lions': {abbr:'BL', logo:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Brisbanesymbol.png', homeBg:'linear-gradient(135deg,#7b1635 0 60%,#f5c542 61% 72%,#1d4d8f 73%)', homeFg:'#fff', awayBg:'linear-gradient(135deg,#1d4d8f 0 58%,#f5c542 59% 71%,#7b1635 72%)', awayFg:'#fff', border:'#7b1635'},
+  'Geelong Cats': {abbr:'GEEL', logo:'https://upload.wikimedia.org/wikipedia/commons/1/1a/Geelong_icon.svg', homeBg:'repeating-linear-gradient(to bottom,#0b2341 0 5px,#fff 5px 10px)', homeFg:'#0b2341', awayBg:'repeating-linear-gradient(to bottom,#fff 0 6px,#0b2341 6px 9px)', awayFg:'#0b2341', border:'#0b2341'},
+  'Brisbane Lions': {abbr:'BL', logo:'https://upload.wikimedia.org/wikipedia/commons/0/0c/Brisbanelions_icon_lion.png', homeBg:'linear-gradient(135deg,#7b1635 0 60%,#f5c542 61% 72%,#1d4d8f 73%)', homeFg:'#fff', awayBg:'linear-gradient(135deg,#1d4d8f 0 58%,#f5c542 59% 71%,#7b1635 72%)', awayFg:'#fff', border:'#7b1635'},
   'Adelaide Crows': {abbr:'ADEL', logo:'https://commons.wikimedia.org/wiki/Special:Redirect/file/Adelaidesymbol.png', homeBg:'repeating-linear-gradient(to bottom,#071a3d 0 7px,#d71920 7px 12px,#f6c400 12px 17px)', homeFg:'#fff', awayBg:'repeating-linear-gradient(to bottom,#fff 0 8px,#d71920 8px 11px,#f6c400 11px 14px,#071a3d 14px 17px)', awayFg:'#071a3d', border:'#071a3d'}
 };
 
@@ -24,7 +24,7 @@ const JUMPER_2026 = {
 };
 
 function brandFor(name){return TEAM_BRAND[name]||{abbr:teamAbbr(name),logo:'',homeBg:'#123',homeFg:'#fff',awayBg:'#fff',awayFg:'#123',border:'#123'}}
-function teamLogoHtml(name,cls='team-logo'){const b=brandFor(name);return b.logo?`<img class="${cls}" src="${b.logo}" alt="${esc(name)} logo" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><span class="team-logo-fallback" style="display:none">${esc(b.abbr)}</span>`:`<span class="team-logo-fallback">${esc(b.abbr)}</span>`}
+function teamLogoHtml(name,cls='team-logo'){const b=brandFor(name);const bg=b.logo?`background-image:url('${b.logo.replace(/'/g,"%27")}')`:'';return `<span class="team-logo-shell ${cls}" style="--team-border:${esc(b.border||'#173f34')}"><span class="team-logo-fallback">${esc(b.abbr)}</span><span class="team-logo-image" style="${bg}"></span></span>`}
 function jumperNumber(team,player){return JUMPER_2026[team]?.[player] ?? ''}
 function jumperCss(team,isHome){const b=brandFor(team);return `background:${isHome?b.homeBg:b.awayBg};color:${isHome?b.homeFg:b.awayFg};border-color:${b.border}`}
 const $ = s => document.querySelector(s);

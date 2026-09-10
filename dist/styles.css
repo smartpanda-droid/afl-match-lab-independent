@@ -445,3 +445,12 @@
   .overlay-position-roster{inset:11% 6%!important}
   .overlay-position-roster .position-pair:nth-child(1),.overlay-position-roster.single-team>.position-row:nth-child(1),.overlay-position-roster .position-pair:nth-child(5),.overlay-position-roster.single-team>.position-row:nth-child(5){margin-left:16%!important;margin-right:16%!important}
 }
+
+/* v31 robust team logo rendering */
+.team-logo-shell{position:relative;display:inline-grid;place-items:center;overflow:hidden;border:1px solid var(--team-border,#d7e0db);background:#fff;border-radius:12px;isolation:isolate}
+.team-logo-shell.team-logo-large{width:64px;height:64px}
+.team-logo-shell.team-logo-small{width:28px;height:28px;border-radius:7px}
+.team-logo-shell .team-logo-fallback{position:absolute;inset:0;display:grid;place-items:center;font-size:11px;font-weight:950;letter-spacing:.02em;color:#173f34;background:#f3f7f4;z-index:0}
+.team-logo-shell .team-logo-image{position:absolute;inset:3px;background-repeat:no-repeat;background-position:center;background-size:contain;z-index:1}
+.team-logo-shell.team-logo-small .team-logo-image{inset:2px}
+.team-logo-shell.team-logo-large .team-logo-fallback{font-size:13px}
