@@ -367,3 +367,81 @@
 .lineup-float-leg{grid-template-columns:minmax(0,1fr) auto 24px!important}
 .lineup-float-remove{width:24px;height:24px;min-width:24px;padding:0!important;border-radius:50%!important;background:transparent!important;color:var(--muted)!important;border:1px solid var(--line)!important;font-size:16px!important;line-height:1!important;display:grid!important;place-items:center!important}
 .lineup-float-remove:hover{background:var(--soft)!important;color:var(--ink)!important}
+
+
+/* v30 structural field-layer fix: one border, field below markings, players always on top */
+.overlay-afl-field{
+  position:relative!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+  isolation:isolate!important;
+}
+.overlay-afl-field::before,
+.overlay-afl-field::after{
+  content:none!important;
+  display:none!important;
+}
+.overlay-afl-field .field-surface{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  border:9px solid #286d31;
+  border-radius:50%;
+  box-sizing:border-box;
+  overflow:hidden;
+  pointer-events:none;
+  background:
+    linear-gradient(rgba(255,255,255,.018),rgba(255,255,255,.018)),
+    repeating-linear-gradient(to bottom,#4aa047 0 52px,#439840 52px 104px);
+  box-shadow:0 6px 18px rgba(20,65,30,.12);
+}
+.overlay-afl-field .oval-markings{
+  position:absolute!important;
+  inset:18px 15px!important;
+  z-index:2!important;
+  overflow:hidden!important;
+  border-radius:50%!important;
+  pointer-events:none!important;
+}
+.overlay-afl-field .oval-markings *{z-index:2!important}
+.overlay-position-roster{
+  inset:11.5% 8.5%!important;
+  z-index:20!important;
+  overflow:visible!important;
+}
+.overlay-position-roster .position-pair,
+.overlay-position-roster .position-row,
+.overlay-position-roster .position-three{
+  z-index:21!important;
+  overflow:visible!important;
+}
+.overlay-position-roster .position-label{z-index:30!important}
+.overlay-position-roster .lineup-player-card{
+  z-index:40!important;
+  overflow:hidden!important;
+  clip-path:none!important;
+}
+.overlay-position-roster .lineup-player-card strong,
+.overlay-position-roster .jumper-token{z-index:41!important}
+/* End zones need extra horizontal inset because the oval is narrow there. */
+.overlay-position-roster .position-pair:nth-child(1),
+.overlay-position-roster.single-team>.position-row:nth-child(1),
+.overlay-position-roster .position-pair:nth-child(5),
+.overlay-position-roster.single-team>.position-row:nth-child(5){margin-left:20%!important;margin-right:20%!important}
+.overlay-position-roster .position-pair:nth-child(2),
+.overlay-position-roster.single-team>.position-row:nth-child(2),
+.overlay-position-roster .position-pair:nth-child(4),
+.overlay-position-roster.single-team>.position-row:nth-child(4){margin-left:10%!important;margin-right:10%!important}
+.overlay-position-roster .position-pair:nth-child(3),
+.overlay-position-roster.single-team>.position-row:nth-child(3){margin-left:4%!important;margin-right:4%!important}
+@media(max-width:1180px){
+  .overlay-position-roster{inset:12% 8%!important}
+  .overlay-position-roster .position-pair:nth-child(1),.overlay-position-roster.single-team>.position-row:nth-child(1),.overlay-position-roster .position-pair:nth-child(5),.overlay-position-roster.single-team>.position-row:nth-child(5){margin-left:21%!important;margin-right:21%!important}
+}
+@media(max-width:700px){
+  .overlay-afl-field .field-surface{border-width:7px}
+  .overlay-position-roster{inset:11% 6%!important}
+  .overlay-position-roster .position-pair:nth-child(1),.overlay-position-roster.single-team>.position-row:nth-child(1),.overlay-position-roster .position-pair:nth-child(5),.overlay-position-roster.single-team>.position-row:nth-child(5){margin-left:16%!important;margin-right:16%!important}
+}
