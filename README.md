@@ -1,3 +1,11 @@
+# AFL Match Lab v45 — Loader Reset
+
+- Restores fast core loading.
+- Adds request tokens to prevent stale match responses overwriting the current match.
+- Match page does not preload all player legs/recent5/validation.
+- 4.5–5s core timeouts with no chained auth retries.
+- Bundled lineup remains display-only fallback.
+
 # AFL Match Lab v44 — Bundled Lineup Fallback
 
 - Adds bundled pregame lineup snapshots for both 2026 semi-finals.
