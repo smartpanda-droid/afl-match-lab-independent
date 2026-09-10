@@ -5,7 +5,7 @@ if(CFG?.PARALLEL_TEST){
 }else{
   const b=document.getElementById('parallelTestBanner'); if(b)b.hidden=true;
 }
-const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, lineupBuilderFloatClosed:false, systemFilterActive:null, view:'match', loadSeq:0, fullLegsMatch:null, topLegs:[], moduleStatus:{}, validationLoaded:false, shadowLoaded:false };
+const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, lineupBuilderFloatClosed:false, systemFilterActive:null, view:'match', loadSeq:0, fullLegsMatch:null, topLegs:[], moduleStatus:{}, validationLoaded:false, shadowLoaded:false, multiLabMarketPicker:null, multiLabMarketPickerMatch:null, multiLabMarketLoading:false, multiLabTotalLine:null, multiLabHomeLine:null, multiLabQuoteSeq:0 };
 
 
 // 2026 finals branding + jumper numbers. Numbers verified against AFL official team squad pages.
@@ -563,6 +563,82 @@ function renderMultis(){
   })
 }
 
+
+async function loadMultiLabMatchMarkets(force=false){
+  if(!state.selected)return;
+  if(!force&&state.multiLabMarketPickerMatch===state.selected&&state.multiLabMarketPicker)return;
+  if(state.multiLabMarketLoading)return;
+  state.multiLabMarketLoading=true;
+  renderMultiLabMatchMarkets();
+  try{
+    const data=await api('/rest/v1/rpc/afl_multi_lab_market_picker',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_match_id:state.selected})},4500);
+    if(state.selected!==data?.match_id)return;
+    state.multiLabMarketPicker=data;state.multiLabMarketPickerMatch=state.selected;
+    state.multiLabTotalLine=roundHalf(data?.total?.center);
+    state.multiLabHomeLine=roundHalf(data?.handicap?.home?.center);
+  }finally{state.multiLabMarketLoading=false;renderMultiLabMatchMarkets()}
+}
+function matchMarketManualLeg(q,market,side,value){
+  const sideKey=String(side||'').toLowerCase();
+  const threshold=Number(value||0);
+  return normalizeLeg({
+    prediction_leg_id:`match:${market.toLowerCase()}:${sideKey}:${threshold}`,
+    player_id:null,player_name:'比赛市场',team_name:sideKey==='home'?q.home_team_name:sideKey==='away'?q.away_team_name:null,
+    market:market==='TOTAL'?'match_total':market==='HANDICAP'?'match_line':'match_winner',threshold,
+    selection:q.selection,model_probability:Number(q.probability),fair_odds:Number(q.fair_odds)
+  });
+}
+async function addMultiLabWinner(side){
+  const d=state.multiLabMarketPicker;if(!d)return;
+  const w=side==='home'?d.winner?.home:d.winner?.away;if(!w)return;
+  const q={selection:`${w.team} 胜`,probability:Number(w.probability),fair_odds:Number(w.fair_odds),home_team_name:d.home_team_name,away_team_name:d.away_team_name};
+  const leg=matchMarketManualLeg(q,'WINNER',side,0);
+  if(!state.builder.some(x=>x.prediction_leg_id===leg.prediction_leg_id)){state.builder.push(leg);saveBuilder()}
+}
+async function quoteAndAddMultiLabMarket(market,side,value){
+  const seq=++state.multiLabQuoteSeq;
+  const q=await api('/rest/v1/rpc/afl_multi_lab_match_market_quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_match_id:state.selected,p_market:market,p_side:side,p_value:Number(value)})},4500);
+  if(seq!==state.multiLabQuoteSeq||q?.status!=='ok')return;
+  const leg=matchMarketManualLeg(q,market,side,value);
+  if(!state.builder.some(x=>x.prediction_leg_id===leg.prediction_leg_id)){state.builder.push(leg);saveBuilder()}
+}
+function renderMultiLabMatchMarkets(){
+  const host=$('#builderMatchMarkets');if(!host)return;
+  const d=state.multiLabMarketPicker;
+  if(state.multiLabMarketLoading&&!d){host.innerHTML='<div class="empty">正在载入比赛市场…</div>';return}
+  if(!d||d.status!=='ok'){host.innerHTML='<div class="empty">当前比赛暂时没有可用的胜负 / 大小球 / 让球模型。</div>';return}
+  const total=Number(state.multiLabTotalLine??roundHalf(d.total?.center));
+  const homeLine=Number(state.multiLabHomeLine??roundHalf(d.handicap?.home?.center));
+  const awayLine=-homeLine;
+  host.innerHTML=`
+    <section class="match-leg-box winner-box">
+      <div class="match-leg-box-head"><div><span class="eyebrow">WINNER</span><h3>胜负</h3></div><small>点选球队加入组合</small></div>
+      <div class="match-leg-choice-grid">
+        <button type="button" class="match-leg-choice" data-ml-winner="home"><span>${esc(d.home_team_name)}</span><b>${pct(d.winner?.home?.probability)}</b><small>Fair ${odds(d.winner?.home?.fair_odds)}</small></button>
+        <button type="button" class="match-leg-choice" data-ml-winner="away"><span>${esc(d.away_team_name)}</span><b>${pct(d.winner?.away?.probability)}</b><small>Fair ${odds(d.winner?.away?.fair_odds)}</small></button>
+      </div>
+    </section>
+    <section class="match-leg-box total-box">
+      <div class="match-leg-box-head"><div><span class="eyebrow">TOTAL</span><h3>大小球</h3></div><strong>${halfText(total)}</strong></div>
+      <div class="model-midline">模型中线 ${halfText(d.total?.center)} · 预测 ${Math.round(Number(d.total?.predicted_home_score||0))}–${Math.round(Number(d.total?.predicted_away_score||0))}</div>
+      <input id="multiLabTotalSlider" class="market-range" type="range" min="${Number(d.total?.min)}" max="${Number(d.total?.max)}" step="${Number(d.total?.step||.5)}" value="${total}">
+      <div class="market-range-labels"><span>${halfText(d.total?.min)}</span><span>${halfText(d.total?.max)}</span></div>
+      <div class="match-leg-choice-grid compact"><button type="button" class="match-leg-choice" data-ml-total="under"><span>UNDER</span><b>${halfText(total)}</b><small>加入组合</small></button><button type="button" class="match-leg-choice" data-ml-total="over"><span>OVER</span><b>${halfText(total)}</b><small>加入组合</small></button></div>
+    </section>
+    <section class="match-leg-box handicap-box">
+      <div class="match-leg-box-head"><div><span class="eyebrow">HANDICAP</span><h3>让球</h3></div><small>主客盘口同步反向</small></div>
+      <div class="handicap-midline"><span>${esc(d.home_team_name)}</span><b>${signedHalf(homeLine)}</b><em>vs</em><b>${signedHalf(awayLine)}</b><span>${esc(d.away_team_name)}</span></div>
+      <input id="multiLabHandicapSlider" class="market-range" type="range" min="${Number(d.handicap?.home?.min)}" max="${Number(d.handicap?.home?.max)}" step="${Number(d.handicap?.home?.step||.5)}" value="${homeLine}">
+      <div class="market-range-labels"><span>${signedHalf(d.handicap?.home?.min)}</span><span>${signedHalf(d.handicap?.home?.max)}</span></div>
+      <div class="match-leg-choice-grid"><button type="button" class="match-leg-choice" data-ml-line="home"><span>${esc(d.home_team_name)}</span><b>${signedHalf(homeLine)}</b><small>加入组合</small></button><button type="button" class="match-leg-choice" data-ml-line="away"><span>${esc(d.away_team_name)}</span><b>${signedHalf(awayLine)}</b><small>加入组合</small></button></div>
+    </section>`;
+  host.querySelectorAll('[data-ml-winner]').forEach(b=>b.addEventListener('click',()=>addMultiLabWinner(b.dataset.mlWinner).catch(showError)));
+  const ts=host.querySelector('#multiLabTotalSlider');if(ts)ts.addEventListener('input',e=>{state.multiLabTotalLine=roundHalf(e.target.value);renderMultiLabMatchMarkets()});
+  host.querySelectorAll('[data-ml-total]').forEach(b=>b.addEventListener('click',()=>quoteAndAddMultiLabMarket('TOTAL',b.dataset.mlTotal,state.multiLabTotalLine).catch(showError)));
+  const hs=host.querySelector('#multiLabHandicapSlider');if(hs)hs.addEventListener('input',e=>{state.multiLabHomeLine=roundHalf(e.target.value);renderMultiLabMatchMarkets()});
+  host.querySelectorAll('[data-ml-line]').forEach(b=>b.addEventListener('click',()=>{const side=b.dataset.mlLine;const value=side==='home'?state.multiLabHomeLine:-Number(state.multiLabHomeLine);quoteAndAddMultiLabMarket('HANDICAP',side,value).catch(showError)}));
+}
+
 function normalizeLeg(l){return {prediction_leg_id:l.prediction_leg_id,player_id:l.player_id||null,player_name:l.player_name||'比赛市场',team_name:l.team_name||null,market:l.market,threshold:Number(l.threshold),selection:l.selection,probability:Number(l.model_probability??l.probability),fair_odds:Number(l.fair_odds||0)}}
 function addLegById(id){const l=state.legs.find(x=>x.prediction_leg_id===id)||state.topLegs.find(x=>x.prediction_leg_id===id);if(!l)return;if(state.builder.some(x=>x.prediction_leg_id===id))return;state.builder.push(normalizeLeg(l));saveBuilder();switchView('multi-lab')}
 function sendMultiToBuilder(m){state.builder=[];(m.legs||[]).forEach(l=>{const full=state.legs.find(x=>x.prediction_leg_id===l.prediction_leg_id);state.builder.push(normalizeLeg(full||l))});saveBuilder();switchView('multi-lab')}
@@ -580,7 +656,7 @@ async function evaluateBuilder(){
   state.builderEval=result;renderBuilder();
 }
 function renderBuilder(){
-  $('#builderLegs').innerHTML=state.builder.length?state.builder.map((l,i)=>`<div class="builder-leg"><span><strong>${esc(l.selection)}</strong><br><span class="match-meta">${esc(l.player_name)} · ${pct(l.probability)}</span></span><span>${odds(l.fair_odds)}</span><button class="remove-leg" data-i="${i}">移除</button></div>`).join(''):'<div class="empty">尚未加入单腿。可从 Player Markets、System Multi 或球场阵容添加。</div>';
+  $('#builderLegs').innerHTML=state.builder.length?state.builder.map((l,i)=>`<div class="builder-leg"><span><strong>${esc(l.selection)}</strong><br><span class="match-meta">${esc(l.player_name)} · ${pct(l.probability)}</span></span><span>${odds(l.fair_odds)}</span><button class="remove-leg" data-i="${i}">移除</button></div>`).join(''):'<div class="empty">尚未加入单腿。可从比赛市场、球员市场、System Multi 或球场阵容添加。</div>';
   $$('#builderLegs .remove-leg').forEach(b=>b.addEventListener('click',()=>{state.builder.splice(Number(b.dataset.i),1);saveBuilder()}));
   const naive=state.builder.length?builderProbability():0,ev=state.builderEval,ok=ev?.status==='ok';
   const joint=ok?Number(ev.joint_probability):naive;
@@ -592,9 +668,7 @@ function renderBuilder(){
   }
   const vr=$('#builderValueResult');
   if(vr){if(ok&&ev.actual_odds){vr.className=`value-result ${Number(ev.value_pct)>=0?'good':'bad'}`;vr.textContent=`${String(ev.value_label||'').replaceAll('_',' ')} · Value ${Number(ev.value_pct)>=0?'+':''}${Number(ev.value_pct).toFixed(2)}% · Model P ${pct(ev.joint_probability)} · Fair ${odds(ev.fair_odds)}`}else if(state.builder.length>=2){vr.className='value-result';vr.textContent='输入实际赔率后自动计算 Value'}else{vr.className='value-result';vr.textContent=''}}
-  const search=$('#builderSearch').value.trim().toLowerCase();const candidates=state.legs.filter(l=>!state.builder.some(x=>x.prediction_leg_id===l.prediction_leg_id)&&(!search||`${l.player_name} ${l.market} ${l.selection}`.toLowerCase().includes(search))).slice(0,50);
-  $('#builderCandidates').innerHTML=candidates.map(l=>`<div class="candidate"><span><strong>${esc(l.selection)}</strong><br><span class="match-meta">${pct(l.model_probability)} · Fair ${odds(l.fair_odds)}</span></span><span class="prob ${probClass(l.model_probability)}">${pct(l.model_probability)}</span><button data-leg-id="${l.prediction_leg_id}">+</button></div>`).join('')||'<div class="empty">没有更多候选</div>';
-  $$('#builderCandidates button').forEach(b=>b.addEventListener('click',()=>addLegById(b.dataset.legId)));updateBuilderCount();
+  renderMultiLabMatchMarkets();updateBuilderCount();
 }
 
 function teamAbbr(name){
@@ -731,7 +805,7 @@ function fieldAdd(playerId,market='best'){let legs=state.legs.filter(l=>l.player
 function switchView(name){
   state.view=name;$$('.view').forEach(v=>v.classList.remove('active-view'));$(`#view-${name}`)?.classList.add('active-view');$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name));
   if(name==='players')ensurePlayerMarketData().catch(e=>setModuleStatus('legs','error',e.message));
-  if(name==='multi-lab'){renderBuilder();if(state.fullLegsMatch!==state.selected)ensureFullLegs().then(renderBuilder).catch(e=>setModuleStatus('legs','error',e.message))}
+  if(name==='multi-lab'){renderBuilder();loadMultiLabMatchMarkets().catch(e=>setModuleStatus('multi_lab_markets','error',e.message))}
   if(name==='system-multi')renderMultis();
   if(name==='validation'){if(!state.validationLoaded)loadValidation().then(()=>state.validationLoaded=true).catch(e=>setModuleStatus('validation','error',e.message));else renderValidation()}
   if(name==='shadow-live'){if(!state.shadowLoaded)ensureShadowData();else renderShadowLive()}
@@ -746,10 +820,10 @@ async function bootstrap(){
 
 
 $$('.tab').forEach(t=>t.addEventListener('click',()=>switchView(t.dataset.view)));$$('[data-go]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.go)));
-$('#matchSelect').addEventListener('change',e=>{state.selected=e.target.value;state.systemMultiOdds={};state.systemMultiRanking=new Map();loadSelected().catch(showError)});
+$('#matchSelect').addEventListener('change',e=>{state.selected=e.target.value;state.systemMultiOdds={};state.systemMultiRanking=new Map();state.multiLabMarketPicker=null;state.multiLabMarketPickerMatch=null;state.multiLabTotalLine=null;state.multiLabHomeLine=null;loadSelected().catch(showError)});
 $('#playerSearch').addEventListener('input',renderPlayers);$('#marketFilter').addEventListener('change',renderPlayers);
 $('#systemFilterConfirm').addEventListener('click',()=>{state.systemFilterActive=readSystemFilters();renderMultis()});$('#systemFilterReset').addEventListener('click',()=>resetSystemFilters(true));
-$('#builderSearch').addEventListener('input',renderBuilder);$('#clearBuilder').addEventListener('click',()=>{state.builder=[];saveBuilder()});
+$('#clearBuilder').addEventListener('click',()=>{state.builder=[];saveBuilder()});
 let builderOddsTimer;$('#builderActualOdds').addEventListener('input',()=>{clearTimeout(builderOddsTimer);builderOddsTimer=setTimeout(()=>evaluateBuilder().catch(showError),250)});
 $('#builderValueBtn').addEventListener('click',()=>evaluateBuilder().catch(showError));
 $('#refreshBtn').addEventListener('click',bootstrap);
