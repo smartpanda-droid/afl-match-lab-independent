@@ -262,7 +262,7 @@ function renderTactics(){
   if($('#matchFieldTacticalSummary'))$('#matchFieldTacticalSummary').innerHTML=fieldSummary;
 }
 
-const MARKET_LABELS={disposals:'Disposals',kicks:'Kicks',marks:'Marks',tackles:'Tackles',fantasy_points:'Fantasy',handballs:'Handballs',hitouts:'Hitouts',clearances:'Clearances',goals:'Goals'};
+const MARKET_LABELS={disposals:'Disposals',kicks:'Kicks',marks:'Marks',tackles:'Tackles',fantasy_points:'Fantasy',handballs:'Handballs',hitouts:'Hitouts',clearances:'Clearances',goals:'Goals',match_winner:'胜负',match_line:'让球',match_total:'大小球'};
 function marketLabel(m){return MARKET_LABELS[m]||String(m||'').replaceAll('_',' ')}
 function playerThresholdKey(playerId,market){return `${playerId}:${market}`}
 function selectedPlayerLeg(options){
@@ -338,14 +338,14 @@ const SYSTEM_ODDS_DEFAULTS={
   aggressive:{2:[2.40,4.00],3:[3.50,6.50],4:[5.00,9.00],5:[6.50,12.00]}
 };
 const SYSTEM_STRATEGY_LABEL={conservative:'保守',balanced:'平衡',aggressive:'激进'};
-function systemAnchorBand(strategy){return strategy==='conservative'?[.86,.93,.89]:strategy==='balanced'?[.84,.92,.87]:[.82,.91,.85]}
-function systemValueFloor(strategy,legCount=2){const base=strategy==='conservative'?.72:strategy==='balanced'?.69:.66;return Math.max(.50,base-.01*Math.max(0,Number(legCount||2)-2))}
+function systemAnchorBand(strategy){return strategy==='conservative'?[.80,.89,.84]:strategy==='balanced'?[.78,.88,.82]:[.76,.86,.80]}
+function systemValueFloor(strategy,legCount=2){const base=strategy==='conservative'?.68:strategy==='balanced'?.65:.62;return Math.max(.56,base-.005*Math.max(0,Number(legCount||2)-2))}
 function systemAnchorCut(strategy){return systemAnchorBand(strategy)[0]}
-function defaultSystemFilterState(){return {strategy:'all',legCount:0,recommendedOnly:false,markets:new Set([...new Set(state.legs.map(x=>x.market))]),odds:JSON.parse(JSON.stringify(SYSTEM_ODDS_DEFAULTS))}}
+function defaultSystemFilterState(){return {strategy:'all',legCount:0,recommendedOnly:false,markets:new Set([...new Set(state.legs.map(x=>x.market)),'match_winner','match_line','match_total']),odds:JSON.parse(JSON.stringify(SYSTEM_ODDS_DEFAULTS))}}
 function renderSystemFilterUI(){
   const f=state.systemFilterActive||defaultSystemFilterState();
   $('#strategyFilter').value=f.strategy;$('#legCountFilter').value=String(f.legCount);$('#recommendedOnly').checked=!!f.recommendedOnly;
-  const markets=[...new Set(state.legs.map(x=>x.market))].sort();
+  const markets=[...new Set([...state.legs.map(x=>x.market),'match_winner','match_line','match_total'])].sort();
   $('#systemMarketFilters').innerHTML=markets.map(m=>`<label class="system-market-check"><input type="checkbox" value="${esc(m)}" ${f.markets.has(m)?'checked':''}><span>${esc(marketLabel(m))}</span></label>`).join('');
   $('#systemOddsMatrix').innerHTML=['conservative','balanced','aggressive'].map(st=>`<div class="odds-strategy-group"><div class="odds-strategy-name">${SYSTEM_STRATEGY_LABEL[st]}</div>${[2,3,4,5].map(n=>{const r=f.odds[st][n];return `<div class="odds-range-row"><span>${n}串1</span><input class="system-odds-input" data-strategy="${st}" data-count="${n}" data-side="min" type="number" step="0.1" min="1.01" value="${Number(r[0]).toFixed(2)}"><em>–</em><input class="system-odds-input" data-strategy="${st}" data-count="${n}" data-side="max" type="number" step="0.1" min="1.01" value="${Number(r[1]).toFixed(2)}"></div>`}).join('')}</div>`).join('');
 }
@@ -365,20 +365,65 @@ function multiStructureStats(m){
   return {anchors,values,valid:anchors>=1&&anchors<=2&&values>=1};
 }
 function canonicalMultiScore(m,range){
-  const st=multiStructureStats(m);const fair=Number(m.fair_odds||0),p=Number(m.combined_probability||0);
+  const st=multiStructureStats(m),mix=multiMarketMixStats(m);const fair=Number(m.fair_odds||0),p=Number(m.combined_probability||0);
   const mid=(Number(range[0])+Number(range[1]))/2,span=Math.max(.25,(Number(range[1])-Number(range[0]))/2);
   const rangeFit=Math.max(0,1-Math.abs(fair-mid)/span);
   const roleScore=st.valid?1:(st.anchors>=1&&st.values>=1?.65:.15);
-  const rec=m.recommended?.12:0;const rank=Math.max(0,.10-Math.max(0,Number(m.rank_in_group||1)-1)*.025);
-  return roleScore*.52+rangeFit*.18+Math.min(.15,p*.22)+rec+rank;
+  const rec=m.recommended?.08:0;const rank=Math.max(0,.06-Math.max(0,Number(m.rank_in_group||1)-1)*.015);
+  const primaryScore=mix.share+(mix.majority?.18:0);
+  return roleScore*.34+primaryScore*.30+rangeFit*.14+Math.min(.10,p*.16)+rec+rank;
+}
+const MATCH_MARKETS=new Set(['match_winner','match_line','match_total']);
+const SYSTEM_PRIMARY_MARKETS=new Set(['goals','disposals','fantasy_points','match_winner','match_total']);
+function multiMarketMixStats(m){const legs=m.legs||[];const primary=legs.filter(l=>SYSTEM_PRIMARY_MARKETS.has(l.market)).length;const secondary=legs.length-primary;return {primary,secondary,share:legs.length?primary/legs.length:0,majority:primary>=Math.ceil(legs.length/2)}}
+function roundHalf(x){return Math.round(Number(x)*2)/2}
+function signedHalf(x){const n=roundHalf(x);return `${n>0?'+':''}${n.toFixed(1)}`}
+function normalCdf(x){
+  const t=1/(1+.2316419*Math.abs(x)),d=.3989423*Math.exp(-x*x/2);
+  let p=1-d*t*(.319381530+t*(-.356563782+t*(1.781477937+t*(-1.821255978+t*1.330274429))));
+  return x>=0?p:1-p;
+}
+function zForTarget(p){
+  const table=[[.68,.468],[.70,.524],[.72,.583],[.74,.643],[.75,.674],[.76,.706],[.78,.772],[.80,.842],[.82,.915],[.84,.994],[.85,1.036],[.86,1.080],[.87,1.126],[.88,1.175],[.89,1.227],[.90,1.282]];
+  return table.reduce((best,x)=>Math.abs(x[0]-p)<Math.abs(best[0]-p)?x:best,table[0])[1];
+}
+function matchMarketCandidates(strategy='balanced',legCount=2){
+  const q=state.matchQuote;if(!q)return [];
+  const floor=systemValueFloor(strategy,legCount),[alo,ahi,atarget]=systemAnchorBand(strategy);
+  const valueTarget=strategy==='conservative'?.73:strategy==='balanced'?.70:.68;
+  const targets=[Math.max(floor,valueTarget),atarget].filter((v,i,a)=>a.indexOf(v)===i&&v<.94);
+  const out=[];const push=(market,selection,p,threshold,side)=>{p=Number(p);if(!Number.isFinite(p)||p<floor||p>.93)return;out.push({prediction_leg_id:`match:${market}:${side}:${threshold}`,player_id:null,player_name:'比赛市场',team_name:side==='home'?q.home_team_name:side==='away'?q.away_team_name:null,market,threshold:Number(threshold),selection,probability:p,model_probability:p,fair_odds:1/p,match_market:true})};
+  push('match_winner',`${q.home_team_name} 胜`,q.home_win_probability,0,'home');
+  push('match_winner',`${q.away_team_name} 胜`,q.away_win_probability,0,'away');
+  const fairLine=Number(q.fair_home_line),marginSd=Number(q.margin_sd),fairTotal=Number(q.fair_total),totalSd=Number(q.total_sd);
+  if(Number.isFinite(fairLine)&&marginSd>0){targets.forEach(tp=>{const z=zForTarget(tp);const homeLine=roundHalf(fairLine+z*marginSd),awayHomeLine=roundHalf(fairLine-z*marginSd);const hp=normalCdf((homeLine-fairLine)/marginSd),ap=normalCdf((fairLine-awayHomeLine)/marginSd);push('match_line',`${q.home_team_name} ${signedHalf(homeLine)}`,hp,homeLine,'home');push('match_line',`${q.away_team_name} ${signedHalf(-awayHomeLine)}`,ap,-awayHomeLine,'away')})}
+  if(Number.isFinite(fairTotal)&&totalSd>0){targets.forEach(tp=>{const z=zForTarget(tp);const overLine=roundHalf(fairTotal-z*totalSd),underLine=roundHalf(fairTotal+z*totalSd);const op=normalCdf((fairTotal-overLine)/totalSd),up=normalCdf((underLine-fairTotal)/totalSd);push('match_total',`Over ${overLine.toFixed(1)}`,op,overLine,'over');push('match_total',`Under ${underLine.toFixed(1)}`,up,underLine,'under')})}
+  return [...new Map(out.map(x=>[x.prediction_leg_id,x])).values()];
+}
+function hybridMultiVariant(m,candidate,replaceIndex,range){
+  const legs=(m.legs||[]).map(x=>({...x}));legs[replaceIndex]=candidate;
+  if(legs.filter(x=>MATCH_MARKETS.has(x.market)).length>1)return null;
+  const temp={...m,legs};const st=multiStructureStats(temp);if(!st.valid)return null;
+  const probs=legs.map(x=>Number(x.probability??x.model_probability)).filter(x=>x>0&&x<=1);if(probs.length!==legs.length)return null;
+  const naive=probs.reduce((a,b)=>a*b,1);const dep=Math.min(1,Number(m.correlation_penalty||1));const joint=Math.min(Math.min(...probs),Math.max(.0001,naive*dep));const fair=1/joint;
+  const mid=(Number(range[0])+Number(range[1]))/2,span=Math.max(.25,(Number(range[1])-Number(range[0]))/2),rangeFit=Math.max(0,1-Math.abs(fair-mid)/span);
+  return {...m,multi_id:`${m.multi_id}|${candidate.prediction_leg_id}`,base_multi_id:m.multi_id,legs,combined_probability:joint,fair_odds:fair,hybrid_match_market:true,hybrid_score:canonicalMultiScore({...temp,combined_probability:joint,fair_odds:fair},range)+.10*rangeFit+.06};
+}
+function balanceWithMatchMarkets(m,strategy,count,f,range){
+  if(!m)return null;const allowed=matchMarketCandidates(strategy,count).filter(x=>f.markets.has(x.market));if(!allowed.length)return m;
+  const originalScore=canonicalMultiScore(m,range);const variants=[{...m,hybrid_score:originalScore}];
+  (m.legs||[]).forEach((leg,i)=>allowed.forEach(c=>{const v=hybridMultiVariant(m,c,i,range);if(v)variants.push(v)}));
+  variants.forEach(v=>{const mm=(v.legs||[]).find(x=>MATCH_MARKETS.has(x.market));if(mm?.market==='match_winner'||mm?.market==='match_total')v.hybrid_score=Number(v.hybrid_score||0)+.07;else if(mm?.market==='match_line')v.hybrid_score=Number(v.hybrid_score||0)+.01});
+  return variants.sort((a,b)=>Number(b.hybrid_score||0)-Number(a.hybrid_score||0))[0]||m;
 }
 function pickCanonicalMulti(rows,strategy,count,f){
   const range=f.odds[strategy][count];
   const base=rows.filter(x=>x.strategy===strategy&&Number(x.leg_count)===count&&(!f.recommendedOnly||x.recommended)&&(x.legs||[]).every(l=>f.markets.has(l.market)));
   if(!base.length)return null;
   const inBand=base.filter(x=>Number(x.fair_odds)>=Number(range[0])&&Number(x.fair_odds)<=Number(range[1]));
-  const pool=inBand.length?inBand:base;
-  return [...pool].sort((a,b)=>canonicalMultiScore(b,range)-canonicalMultiScore(a,range)||Number(a.rank_in_group||99)-Number(b.rank_in_group||99)||Number(b.combined_probability)-Number(a.combined_probability))[0]||null;
+  const initial=inBand.length?inBand:base;const primaryHeavy=initial.filter(x=>multiMarketMixStats(x).majority);const pool=primaryHeavy.length?primaryHeavy:initial;
+  const picked=[...pool].sort((a,b)=>canonicalMultiScore(b,range)-canonicalMultiScore(a,range)||Number(a.rank_in_group||99)-Number(b.rank_in_group||99)||Number(b.combined_probability)-Number(a.combined_probability))[0]||null;
+  return balanceWithMatchMarkets(picked,strategy,count,f,range);
 }
 function visibleMultiRows(){
   const f=state.systemFilterActive||defaultSystemFilterState();
@@ -389,14 +434,15 @@ function visibleMultiRows(){
   return out;
 }
 async function rankVisibleMultis(){
-  const seq=++state.systemRankSeq;
-  const rows=visibleMultiRows();
-  const items=rows.map(m=>({multi_id:m.multi_id,actual_odds:Number(state.systemMultiOdds[m.multi_id]||0)})).filter(x=>x.actual_odds>1);
-  if(items.length<2){state.systemMultiRanking=new Map();renderMultis();return}
-  const r=await api('/rest/v1/rpc/afl_rank_system_multis',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_items:items})});
+  const seq=++state.systemRankSeq;const rows=visibleMultiRows();
+  const entered=rows.map((m,i)=>({m,i,actual:Number(state.systemMultiOdds[m.multi_id]||0)})).filter(x=>x.actual>1);
+  if(!entered.length){state.systemMultiRanking=new Map();renderMultis();return}
+  const ps=entered.map(x=>Number(x.m.combined_probability||0)),minp=Math.min(...ps),maxp=Math.max(...ps),span=Math.max(.000001,maxp-minp);
+  const scored=entered.map(x=>{const p=Number(x.m.combined_probability||0),ev=(p*x.actual-1)*100,quality=(p-minp)/span,valueNorm=Math.max(0,Math.min(1,(ev+20)/40)),score=.80*quality+.20*valueNorm;return {...x,p,ev,quality,valueNorm,score}});
+  const byQuality=[...scored].sort((a,b)=>b.quality-a.quality||b.p-a.p);byQuality.forEach((x,i)=>x.quality_rank=i+1);
+  const byValue=[...scored].sort((a,b)=>b.score-a.score||b.ev-a.ev||b.p-a.p);byValue.forEach((x,i)=>x.value_aware_rank=i+1);
   if(seq!==state.systemRankSeq)return;
-  const x=Array.isArray(r)?r[0]:r;
-  state.systemMultiRanking=new Map((x.items||[]).map(v=>[v.multi_id,v]));
+  state.systemMultiRanking=new Map(scored.map(x=>[x.m.multi_id,{multi_id:x.m.multi_id,actual_odds:x.actual,value_pct:x.ev,value_label:x.ev>=8?'strong_value':x.ev>=3?'value':x.ev>-3?'fair':'poor_value',quality_rank:x.quality_rank,value_aware_rank:x.value_aware_rank,value_aware_score:x.score}]));
   renderMultis();
 }
 function renderMultis(){
@@ -418,7 +464,7 @@ function renderMultis(){
     node.querySelector('.multi-strategy').textContent=SYSTEM_STRATEGY_LABEL[m.strategy]||m.strategy;
     node.querySelector('.multi-title').textContent=`${m.leg_count}串1 · ${SYSTEM_STRATEGY_LABEL[m.strategy]||m.strategy}`;
     const rb=node.querySelector('.multi-rec');rb.textContent=m.recommended?'RECOMMENDED':'OUT OF BAND';rb.className=`multi-rec badge ${m.recommended?'good':'warn'}`;
-    const structure=multiStructureStats(m);const roleBadge=document.createElement('span');roleBadge.className=`badge ${structure.valid?'good':'warn'}`;roleBadge.textContent=`${structure.anchors}稳胆 + ${structure.values} Value`;node.querySelector('.multi-top').appendChild(roleBadge);
+    const structure=multiStructureStats(m);const roleBadge=document.createElement('span');roleBadge.className=`badge ${structure.valid?'good':'warn'}`;roleBadge.textContent=`${structure.anchors}稳胆 + ${structure.values} Value`;node.querySelector('.multi-top').appendChild(roleBadge);const mix=multiMarketMixStats(m);const mixBadge=document.createElement('span');mixBadge.className=`badge ${mix.majority?'good':'neutral'}`;mixBadge.textContent=`主流 ${mix.primary}/${m.leg_count}`;node.querySelector('.multi-top').appendChild(mixBadge);
     const st=state.multiStability.get(`${m.strategy}:${m.leg_count}:${m.rank_in_group}`);
     if(st){const sb=document.createElement('span');const reason=String(st.last_reason||'');sb.className=`badge ${reason.includes('replaced')||reason.includes('risk')||reason.includes('improvement')?'warn':'good'}`;sb.textContent=reason.includes('replaced')||reason.includes('risk')||reason.includes('improvement')?'REPLACED':'STABLE';sb.title=`${reason} · kept ${st.kept_count||0} · replaced ${st.replace_count||0}`;node.querySelector('.multi-top').appendChild(sb)}
     node.querySelector('.multi-legs').innerHTML=(m.legs||[]).map(l=>{const role=systemLegRole(m.strategy,l);return `<div class="multi-leg"><span class="multi-leg-main"><i class="leg-role ${role==='稳胆'?'anchor':'value'}">${role}</i><span>${esc(l.selection)}</span></span><strong>${pct(l.probability)}</strong></div>`}).join('');
@@ -428,12 +474,12 @@ function renderMultis(){
     input.value=state.systemMultiOdds[m.multi_id]||'';
     if(vrank){const vp=Number(vrank.value_pct);result.className=`value-result ${vp>=0?'good':'bad'}`;result.textContent=`${String(vrank.value_label||'').replaceAll('_',' ')} · EV ${vp>=0?'+':''}${vp.toFixed(2)}% · Value Rank #${vrank.value_aware_rank}`}
     input.addEventListener('input',()=>{state.systemMultiOdds[m.multi_id]=input.value;clearTimeout(window.__systemMultiRankTimer);window.__systemMultiRankTimer=setTimeout(()=>rankVisibleMultis().catch(showError),300)});
-    node.querySelector('.value-btn').addEventListener('click',()=>{state.systemMultiOdds[m.multi_id]=input.value;rankVisibleMultis().catch(showError);if(!(Number(input.value)>1))valueResult(m.combined_probability,Number(input.value),result)});
+    node.querySelector('.value-btn').addEventListener('click',()=>{state.systemMultiOdds[m.multi_id]=input.value;const actual=Number(input.value);if(!(actual>1)){result.className='value-result bad';result.textContent='请输入大于 1.00 的实际赔率';return}rankVisibleMultis().catch(showError)});
     host.appendChild(node)
   })
 }
 
-function normalizeLeg(l){return {prediction_leg_id:l.prediction_leg_id,player_id:l.player_id||null,player_name:l.player_name,team_name:l.team_name||null,market:l.market,threshold:Number(l.threshold),selection:l.selection,probability:Number(l.model_probability??l.probability),fair_odds:Number(l.fair_odds||0)}}
+function normalizeLeg(l){return {prediction_leg_id:l.prediction_leg_id,player_id:l.player_id||null,player_name:l.player_name||'比赛市场',team_name:l.team_name||null,market:l.market,threshold:Number(l.threshold),selection:l.selection,probability:Number(l.model_probability??l.probability),fair_odds:Number(l.fair_odds||0)}}
 function addLegById(id){const l=state.legs.find(x=>x.prediction_leg_id===id);if(!l)return;if(state.builder.some(x=>x.prediction_leg_id===id))return;state.builder.push(normalizeLeg(l));saveBuilder();switchView('multi-lab')}
 function sendMultiToBuilder(m){state.builder=[];(m.legs||[]).forEach(l=>{const full=state.legs.find(x=>x.prediction_leg_id===l.prediction_leg_id);state.builder.push(normalizeLeg(full||l))});saveBuilder();switchView('multi-lab')}
 function builderProbability(){return state.builder.reduce((a,l)=>a*Number(l.probability||0),1)}
@@ -441,7 +487,11 @@ async function evaluateBuilder(){
   const seq=++state.builderEvalSeq;
   if(state.builder.length<2){state.builderEval=null;renderBuilder();return}
   const actual=Number($('#builderActualOdds')?.value||0);
-  const result=await api('/rest/v1/rpc/afl_multi_lab_evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_leg_ids:state.builder.map(l=>l.prediction_leg_id),p_actual_odds:actual>1?actual:null})});
+  let result;
+  if(state.builder.some(l=>String(l.prediction_leg_id||'').startsWith('match:'))){
+    const probs=state.builder.map(l=>Number(l.probability)).filter(p=>p>0&&p<=1),naive=probs.reduce((a,b)=>a*b,1),minp=Math.min(...probs),dep=.95,joint=Math.min(minp,Math.max(.0001,naive*dep));
+    result={status:'ok',joint_probability:joint,fair_odds:1/joint,dependency_factor:dep,dependent_pairs:1,empirical_pairs:0,pair_details:[],actual_odds:actual>1?actual:null,value_pct:actual>1?(joint*actual-1)*100:null,value_label:actual>1?(joint*actual-1>=.08?'strong_value':joint*actual-1>=.03?'value':joint*actual-1>-.03?'fair':'poor_value'):null,method:'match_market_proxy_v0.1'};
+  }else result=await api('/rest/v1/rpc/afl_multi_lab_evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_leg_ids:state.builder.map(l=>l.prediction_leg_id),p_actual_odds:actual>1?actual:null})});
   if(seq!==state.builderEvalSeq)return;
   state.builderEval=result;renderBuilder();
 }

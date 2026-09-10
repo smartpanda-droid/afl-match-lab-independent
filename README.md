@@ -1,3 +1,18 @@
+# AFL Match Lab v40 — Mainstream Multi Rebalance + Value Button Fix
+
+- System Multi primary-market preference: Goals, Disposals, Fantasy, Match Winner and Total.
+- Secondary markets remain eligible as supporting legs.
+- New lower anchor/value bands: Conservative 80–89 / 68+, Balanced 78–88 / 65+, Aggressive 76–86 / 62+.
+- Any single bookmaker odds input now calculates EV immediately; 2+ quoted multis enable Value ranking.
+- Hybrid match-market multis are included in Value calculation instead of being excluded.
+
+# AFL Match Lab v39 — Match Markets in System Multi
+
+- Adds match winner, line and total markets to System Multi filtering and candidate mixing.
+- Match lines/totals are generated in 0.5 increments around the model fair line/total to fit the current anchor/value probability bands.
+- At most one match-level leg is used per recommended multi to limit same-match correlation concentration.
+- Hybrid match-market multis can be sent to Multi Lab; when present, Multi Lab uses a conservative 0.95 dependency proxy until empirical match↔player dependency calibration is available.
+
 # v38 — Tradable Anchor / Higher-Quality Value Balance
 
 - System Multi no longer prioritizes 95%+ legs that often have no practical bookmaker threshold.
