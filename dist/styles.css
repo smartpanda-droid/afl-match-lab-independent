@@ -465,3 +465,9 @@
 .position-three .lineup-player-card{overflow:visible!important}
 @media(max-width:1180px){.overlay-position-roster .lineup-player-card strong{font-size:9px!important}}
 @media(max-width:760px){.overlay-position-roster .lineup-player-card{height:40px!important}.overlay-position-roster .lineup-player-card strong{font-size:8.5px!important}}
+
+/* v34: CSP-safe local logo images */
+.team-logo-shell{--team-border:#d7e0db}
+.team-logo-shell .team-logo-image{position:absolute;inset:3px;width:calc(100% - 6px);height:calc(100% - 6px);object-fit:contain;display:block;z-index:2;background:none!important}
+.team-logo-shell.team-logo-small .team-logo-image{inset:2px;width:calc(100% - 4px);height:calc(100% - 4px)}
+.team-logo-shell:has(.team-logo-image) .team-logo-fallback{opacity:0}

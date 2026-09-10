@@ -40,7 +40,7 @@ const JUMPER_2026 = {
 };
 
 function brandFor(name){return TEAM_BRAND[name]||{abbr:teamAbbr(name),logo:'',homeBg:'#123',homeFg:'#fff',awayBg:'#fff',awayFg:'#123',border:'#123'}}
-function teamLogoHtml(name,cls='team-logo'){const b=brandFor(name);const bg=b.logo?`background-image:url('${b.logo.replace(/'/g,"%27")}')`:'';return `<span class="team-logo-shell ${cls}" style="--team-border:${esc(b.border||'#173f34')}"><span class="team-logo-fallback">${esc(b.abbr)}</span><span class="team-logo-image" style="${bg}"></span></span>`}
+function teamLogoHtml(name,cls='team-logo'){const b=brandFor(name);const src=b.logo?b.logo.replace(/^\.\//,'/'):'';return `<span class="team-logo-shell ${cls}"><span class="team-logo-fallback">${esc(b.abbr)}</span>${src?`<img class="team-logo-image" src="${esc(src)}" alt="${esc(name)} logo">`:''}</span>`}
 function jumperNumber(team,player){return JUMPER_2026[team]?.[player] ?? ''}
 function jumperCss(team,isHome){const b=brandFor(team);return `background:${isHome?b.homeBg:b.awayBg};color:${isHome?b.homeFg:b.awayFg};border-color:${b.border}`}
 const $ = s => document.querySelector(s);

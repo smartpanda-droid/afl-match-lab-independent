@@ -1,3 +1,9 @@
+# AFL Match Lab v34 — CSP-safe Local Logos
+
+- Fixes team logos not rendering under Cloudflare CSP.
+- Replaces inline CSS background-image logo loading with normal local <img> assets.
+- All 18 local SVG club badges remain bundled under public/assets/logos/.
+
 ## v28 overlay safe-area update
 
 - Safer end-zone insets to prevent oval-edge clipping.
