@@ -176,6 +176,51 @@ function loadBuilder(){try{state.builder=JSON.parse(localStorage.getItem(storage
 function saveBuilder(){localStorage.setItem(storageKey(),JSON.stringify(state.builder));state.builderEval=null;updateBuilderCount();renderBuilder();evaluateBuilder().catch(showError)}
 function updateBuilderCount(){$('#builderCount').textContent=state.builder.length}
 
+
+const BOOTSTRAP_LINEUPS_2026 = {
+  '59712394-5931-4487-8d5c-b1e080206a53': [
+    ['Fremantle','Jordan Clark','BPL'],['Fremantle','Alex Pearce','FB'],['Fremantle','Oscar McDonald','BPR'],
+    ['Fremantle','Karl Worner','HBFL'],['Fremantle','Brandon Walker','CHB'],['Fremantle','Heath Chapman','HBFR'],
+    ['Fremantle','Matthew Johnson','WL'],['Fremantle','Andrew Brayshaw','C'],['Fremantle','Michael Frederick','WR'],
+    ['Fremantle','Isaiah Dudley','HFFL'],['Fremantle','Murphy Reid','CHF'],['Fremantle','Sam Switkowski','HFFR'],
+    ['Fremantle','Jye Amiss','FPL'],['Fremantle','Josh Treacy','FF'],['Fremantle','Patrick Voss','FPR'],
+    ['Fremantle','Luke Jackson','RK'],['Fremantle','Shai Bolton','R'],['Fremantle','Caleb Serong','RR'],
+    ['Fremantle','Hayden Young','INT',true],['Fremantle','Luke Ryan','INT',true],['Fremantle','Mason Cox','INT',true],['Fremantle',"Nathan O'Driscoll",'INT',true],['Fremantle','Neil Erasmus','INT',true],
+    ['Fremantle','Christopher Scerri','EMERG',false,true],['Fremantle','Corey Wagner','EMERG',false,true],['Fremantle','Hugh Davies','EMERG',false,true],
+    ['Geelong Cats','Zach Guthrie','BPL'],['Geelong Cats',"Connor O'Sullivan",'FB'],['Geelong Cats','Jack Henry','BPR'],
+    ['Geelong Cats','Tom Stewart','HBFL'],['Geelong Cats','Tanner Bruhn','CHB'],['Geelong Cats','Lawson Humphries','HBFR'],
+    ['Geelong Cats','Oliver Dempsey','WL'],['Geelong Cats','Bailey Smith','C'],['Geelong Cats','Mark Blicavs','WR'],
+    ['Geelong Cats','Gryan Miers','HFFL'],['Geelong Cats','Jeremy Cameron','CHF'],['Geelong Cats','Brad Close','HFFR'],
+    ['Geelong Cats','Patrick Dangerfield','FPL'],['Geelong Cats','Shannon Neale','FF'],['Geelong Cats','Jay Polkinghorne','FPR'],
+    ['Geelong Cats','Mitchell Edwards','RK'],['Geelong Cats','Oisin Mullin','R'],['Geelong Cats','Tom Atkins','RR'],
+    ['Geelong Cats',"Mark O'Connor",'INT',true],['Geelong Cats','Max Holmes','INT',true],['Geelong Cats','Oliver Henry','INT',true],['Geelong Cats','Oliver Wiltshire','INT',true],['Geelong Cats','Shaun Mannagh','INT',true],
+    ['Geelong Cats','Jack Martin','EMERG',false,true],['Geelong Cats','Jhye Clark','EMERG',false,true],['Geelong Cats','Sam De Koning','EMERG',false,true]
+  ],
+  '5f4b20e2-dad6-4ba8-b940-946577653eb2': [
+    ['Brisbane Lions','Noah Answerth','BPL'],['Brisbane Lions','Harris Andrews','FB'],['Brisbane Lions','Ryan Lester','BPR'],
+    ['Brisbane Lions','Darcy Wilmot','HBFL'],['Brisbane Lions','Darcy Gardiner','CHB'],['Brisbane Lions','Dayne Zorko','HBFR'],
+    ['Brisbane Lions','Jarrod Berry','WL'],['Brisbane Lions','Zac Bailey','C'],['Brisbane Lions','Hugh McCluggage','WR'],
+    ['Brisbane Lions','Charlie Cameron','HFFL'],['Brisbane Lions','Logan Morris','CHF'],['Brisbane Lions','Oscar Allen','HFFR'],
+    ['Brisbane Lions','Eric Hipwood','FPL'],['Brisbane Lions','Cam Rayner','FF'],['Brisbane Lions','Conor McKenna','FPR'],
+    ['Brisbane Lions','Sam Draper','RK'],['Brisbane Lions','Lachie Neale','R'],['Brisbane Lions','Josh Dunkley','RR'],
+    ['Brisbane Lions','Darcy Fort','INT',true],['Brisbane Lions','Jaspa Fletcher','INT',true],['Brisbane Lions','Kai Lohmann','INT',true],['Brisbane Lions','Levi Ashcroft','INT',true],['Brisbane Lions','Will Ashcroft','INT',true],
+    ['Brisbane Lions','Bruce Reville','EMERG',false,true],['Brisbane Lions','Lincoln McCarthy','EMERG',false,true],['Brisbane Lions','Ty Gallop','EMERG',false,true],
+    ['Adelaide Crows','Josh Worrell','BPL'],['Adelaide Crows','James Borlase','FB'],['Adelaide Crows','Max Michalanney','BPR'],
+    ['Adelaide Crows','Wayne Milera','HBFL'],['Adelaide Crows','Mark Keane','CHB'],['Adelaide Crows','Rory Laird','HBFR'],
+    ['Adelaide Crows','Brayden Cook','WL'],['Adelaide Crows','Jordan Dawson','C'],['Adelaide Crows','Daniel Curtin','WR'],
+    ['Adelaide Crows','Ben Keays','HFFL'],['Adelaide Crows','Riley Thilthorpe','CHF'],['Adelaide Crows','Josh Rachele','HFFR'],
+    ['Adelaide Crows','Darcy Fogarty','FPL'],['Adelaide Crows','Taylor Walker','FF'],['Adelaide Crows','Callum Ah Chee','FPR'],
+    ['Adelaide Crows','Lachlan McAndrew','RK'],['Adelaide Crows','Isaac Cumming','R'],['Adelaide Crows','Izak Rankine','RR'],
+    ['Adelaide Crows','Alex Neal-Bullen','INT',true],['Adelaide Crows','Hugo Hall-Kahan','INT',true],['Adelaide Crows','Jake Soligo','INT',true],['Adelaide Crows','Luke Nankervis','INT',true],['Adelaide Crows','Sam Berry','INT',true],
+    ['Adelaide Crows','Billy Dowling','EMERG',false,true],['Adelaide Crows','Nick Murray','EMERG',false,true],['Adelaide Crows',"Reilly O'Brien",'EMERG',false,true]
+  ]
+};
+function fallbackLineup(matchId){
+  return (BOOTSTRAP_LINEUPS_2026[matchId]||[]).map(([team_name,player_name,named_position,bench=false,emergency=false])=>({
+    match_id:matchId,player_id:`fallback:${team_name}:${player_name}`,player_name,team_name,named_position,bench,emergency,confirmed:false,local_fallback:true
+  }));
+}
+
 const BOOTSTRAP_MATCHES_2026 = [
   {match_id:'59712394-5931-4487-8d5c-b1e080206a53',external_id:'9023',season:2026,round_name:'Semi Finals',venue:'Optus Stadium',start_time:'2026-09-11T10:10:00Z',status:'scheduled',home_team_name:'Fremantle',away_team_name:'Geelong Cats',model_version:'baseline-v0.2',prediction_is_final:false,lineup_confirmed:false,used_fallback_lineup:true,final_recommendation_locked:false},
   {match_id:'5f4b20e2-dad6-4ba8-b940-946577653eb2',external_id:'9030',season:2026,round_name:'Semi Finals',venue:'Gabba',start_time:'2026-09-12T09:35:00Z',status:'scheduled',home_team_name:'Brisbane Lions',away_team_name:'Adelaide Crows',model_version:'baseline-v0.2',prediction_is_final:false,lineup_confirmed:false,used_fallback_lineup:true,final_recommendation_locked:false},
@@ -239,6 +284,10 @@ async function loadSelected(){
   ];
   const settled=await Promise.allSettled(jobs.map(x=>x[1]));
   settled.forEach((r,i)=>{const label=jobs[i][0];if(r.status==='fulfilled'){gotAny=true;if(label==='LINEUP')state.lineup=r.value||[];if(label==='MULTIS')state.multis=r.value||[];delete state.coreErrors[label.toLowerCase()]}else{state.coreErrors[label.toLowerCase()]=r.reason;console.warn(`${label} core load failed`,r.reason)}});
+  if(!state.lineup.length){
+    const fb=fallbackLineup(state.selected);
+    if(fb.length){state.lineup=fb;gotAny=true;delete state.coreErrors.lineup;$('#healthBadge').className='badge warn';$('#healthBadge').textContent='Lineup Fallback';$('#healthBadge').title='Live lineup unavailable; using bundled pregame snapshot until Supabase reconnects.'}
+  }
   if(!gotAny){
     try{const c=JSON.parse(localStorage.getItem(cacheKey)||'null');if(c){state.lineup=c.lineup||[];state.multis=c.multis||[];gotAny=true;$('#healthBadge').className='badge warn';$('#healthBadge').textContent='Cached Core'}}catch{}
   }
@@ -305,7 +354,7 @@ function renderMatch(){
   const m=state.matches.find(x=>x.match_id===state.selected);if(!m)return;
   $('#matchSummary').innerHTML=`<div class="match-team home"><div class="team-name">${esc(m.home_team_name)}</div><div class="match-meta">HOME</div><div class="match-team-logo">${teamLogoHtml(m.home_team_name,'team-logo-large')}</div></div><div class="match-mid"><div class="eyebrow">${esc(m.round_name)} · ${esc(m.venue||'TBC')}</div><strong>${dt(m.start_time)}</strong><div class="match-meta">${esc(m.status)}</div></div><div class="match-team away"><div class="team-name">${esc(m.away_team_name)}</div><div class="match-meta">AWAY</div><div class="match-team-logo">${teamLogoHtml(m.away_team_name,'team-logo-large')}</div></div>`;
   bindTeamLogoImages($('#matchSummary'));
-  const confirmed=!!m.lineup_confirmed,fallback=!!m.used_fallback_lineup;
+  const confirmed=!!m.lineup_confirmed,fallback=!!m.used_fallback_lineup||state.lineup.some(x=>x.local_fallback);
   $('#lineupBadge').className=`badge ${confirmed?'good':fallback?'warn':'neutral'}`;$('#lineupBadge').textContent=confirmed?'LATEST TEAM':fallback?'PREVIOUS MATCH':'PENDING';
   const bench=state.lineup.filter(x=>x.bench&&!x.emergency).length, emerg=state.lineup.filter(x=>x.emergency).length;
   $('#lineupSummary').innerHTML=stat('Players',state.lineup.filter(x=>!x.emergency).length)+stat('Interchanges',bench)+stat('Emergencies',emerg);
@@ -640,7 +689,7 @@ function renderMatchFieldBoard(){
   host.innerHTML=`${filters}${legend}<div class="lineup-main-grid overlay-field-mode">${left}<div class="lineup-center overlay-lineup-center"><div class="afl-oval overlay-afl-field"><div class="field-surface" aria-hidden="true"></div><div class="oval-markings"><div class="boundary-inner"></div><div class="centre-square"></div><div class="centre-circle"></div><div class="centre-dot"></div><div class="arc arc-top"></div><div class="arc arc-bottom"></div><div class="goal-square goal-square-top"></div><div class="goal-square goal-square-bottom"></div><div class="goal-posts goal-posts-top"><i></i><i></i><i></i><i></i></div><div class="goal-posts goal-posts-bottom"><i></i><i></i><i></i><i></i></div></div><div class="position-roster overlay-position-roster ${state.fieldTeamFilter==='all'?'all-teams':'single-team'}">${centerRows}</div></div></div>${right}</div>${emergencies?`<div class="emergency-strip"><span>Emergencies</span>${emergencies}</div>`:''}`;
   bindTeamLogoImages(host);
   $$('#matchFieldTeams .lineup-team-filters button').forEach(b=>b.addEventListener('click',()=>{state.fieldTeamFilter=b.dataset.team;renderMatchFieldBoard()}));
-  $$('#matchFieldTeams .lineup-player-card[data-player-id], #matchFieldTeams .mini-player-dot[data-player-id]').forEach(b=>b.addEventListener('click',()=>openPlayerOptionModal(b.dataset.playerId)));
+  $$('#matchFieldTeams .lineup-player-card[data-player-id], #matchFieldTeams .mini-player-dot[data-player-id]').forEach(b=>b.addEventListener('click',()=>{if(!String(b.dataset.playerId||'').startsWith('fallback:'))openPlayerOptionModal(b.dataset.playerId)}));
   bindLineupBuilderFloat();
 }
 

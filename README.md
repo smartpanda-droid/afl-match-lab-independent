@@ -1,3 +1,9 @@
+# AFL Match Lab v44 — Bundled Lineup Fallback
+
+- Adds bundled pregame lineup snapshots for both 2026 semi-finals.
+- Live Supabase lineup remains primary; local snapshot activates only on lineup REST failure.
+- Recovery does not overwrite live data and disappears automatically when live lineup succeeds.
+
 # AFL Match Lab v43 — REST Gateway Fallback
 
 - Adds Authorization bearer header alongside apikey.
