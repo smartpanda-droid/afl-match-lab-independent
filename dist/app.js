@@ -551,25 +551,85 @@ function balanceWithMatchMarkets(m,strategy,count,f,range){
   variants.forEach(v=>{const mm=(v.legs||[]).find(x=>MATCH_MARKETS.has(x.market));if(mm?.market==='match_winner'||mm?.market==='match_total')v.hybrid_score=Number(v.hybrid_score||0)+.07;else if(mm?.market==='match_line')v.hybrid_score=Number(v.hybrid_score||0)+.01});
   return variants.sort((a,b)=>Number(b.hybrid_score||0)-Number(a.hybrid_score||0))[0]||m;
 }
+function systemCandidateProbability(l){return Number(l.probability??l.model_probability??l.calibrated_probability??0)}
+function systemAllowedLeg(l,f){
+  const market=String(l.market||'').toLowerCase(),p=systemCandidateProbability(l);
+  return !SYSTEM_MULTI_EXCLUDED_MARKETS.has(market)&&f.markets.has(l.market)&&systemTradableProbability(p);
+}
+function systemRepairCandidates(strategy,count,f){
+  const [alo,ahi,atarget]=systemAnchorBand(strategy),floor=systemValueFloor(strategy,count);
+  const valueTarget=strategy==='conservative'?.60:strategy==='balanced'?.56:.52;
+  const player=(state.legs||[]).filter(l=>systemAllowedLeg(l,f)&&systemCandidateProbability(l)>=floor).map(l=>{
+    const p=systemCandidateProbability(l),primary=SYSTEM_PRIMARY_MARKETS.has(l.market)?1:0;
+    const target=(p>=alo&&p<=ahi)?atarget:valueTarget;
+    const score=primary*.30+(1-Math.min(1,Math.abs(p-target)/.25))*.55+Math.min(.15,Number(l.recent_hit_rate||0)*.15);
+    return {...l,probability:p,model_probability:p,system_candidate_score:score};
+  });
+  const match=matchMarketCandidates(strategy,count).filter(l=>f.markets.has(l.market)).map(l=>({...l,system_candidate_score:.72}));
+  const all=[...player,...match].sort((a,b)=>Number(b.system_candidate_score||0)-Number(a.system_candidate_score||0)||systemCandidateProbability(b)-systemCandidateProbability(a));
+  const seen=new Set(),out=[];
+  for(const l of all){const key=String(l.prediction_leg_id||`${l.market}|${l.selection}`);if(seen.has(key))continue;seen.add(key);out.push(l);if(out.length>=40)break}
+  return out;
+}
+function recalcSyntheticMulti(base,legs,strategy,count,range,reason){
+  const probs=legs.map(systemCandidateProbability).filter(p=>p>0&&p<=1);if(probs.length!==count)return null;
+  const naive=probs.reduce((a,b)=>a*b,1),dep=Math.min(1,Number(base?.correlation_penalty||.97));
+  const joint=Math.min(Math.min(...probs),Math.max(.0001,naive*dep));
+  return {...(base||{}),multi_id:`${base?.multi_id||`synthetic:${strategy}:${count}`}|v58`,base_multi_id:base?.multi_id||null,
+    strategy,leg_count:count,legs,combined_probability:joint,fair_odds:1/joint,correlation_penalty:dep,recommended:false,
+    v58_best_available:true,v58_fallback_reason:reason,rank_in_group:Number(base?.rank_in_group||99)};
+}
+function repairBackendMulti(base,strategy,count,f,range){
+  const source=(base?.legs||[]).map(x=>({...x})),replacements=systemRepairCandidates(strategy,count,f);
+  const used=new Set(),fixed=[];let mm=0;
+  const usable=x=>{const key=String(x.prediction_leg_id||`${x.market}|${x.selection}`);return !used.has(key)&&systemAllowedLeg(x,f)&&(!MATCH_MARKETS.has(x.market)||mm<1)};
+  for(let i=0;i<count;i++){
+    const original=source[i];let chosen=original&&usable(original)?original:null;
+    if(!chosen)chosen=replacements.find(x=>usable(x))||null;
+    if(!chosen)break;
+    const key=String(chosen.prediction_leg_id||`${chosen.market}|${chosen.selection}`);used.add(key);if(MATCH_MARKETS.has(chosen.market))mm++;
+    fixed.push({...chosen,probability:systemCandidateProbability(chosen)});
+  }
+  return fixed.length===count?recalcSyntheticMulti(base,fixed,strategy,count,range,'repaired_excluded_or_unavailable_leg'):null;
+}
+function buildBestAvailableMulti(strategy,count,f,range){
+  const candidates=systemRepairCandidates(strategy,count,f);if(candidates.length<count)return null;
+  const [alo,ahi]=systemAnchorBand(strategy),floor=systemValueFloor(strategy,count);
+  const anchors=candidates.filter(x=>{const p=systemCandidateProbability(x);return p>=alo&&p<=ahi});
+  const values=candidates.filter(x=>{const p=systemCandidateProbability(x);return p<alo&&p>=floor});
+  const selected=[],used=new Set();let mm=0;
+  const take=x=>{if(!x)return false;const key=String(x.prediction_leg_id||`${x.market}|${x.selection}`);if(used.has(key)||(MATCH_MARKETS.has(x.market)&&mm>=1))return false;selected.push(x);used.add(key);if(MATCH_MARKETS.has(x.market))mm++;return true};
+  take(anchors[0]||candidates[0]);take(values[0]||candidates.find(x=>!used.has(String(x.prediction_leg_id||`${x.market}|${x.selection}`))));
+  for(const x of candidates){if(selected.length>=count)break;take(x)}
+  return selected.length===count?recalcSyntheticMulti(null,selected,strategy,count,range,'constructed_from_bounded_current_candidates'):null;
+}
 function pickCanonicalMulti(rows,strategy,count,f){
-  const range=f.odds[strategy][count];
-  const base=rows.filter(x=>x.strategy===strategy&&Number(x.leg_count)===count&&(!f.recommendedOnly||x.recommended)&&(x.legs||[]).every(l=>f.markets.has(l.market)));
-  if(!base.length)return null;
-  const inBand=base.filter(x=>Number(x.fair_odds)>=Number(range[0])&&Number(x.fair_odds)<=Number(range[1]));
-  const initial=inBand.length?inBand:base;const primaryHeavy=initial.filter(x=>multiMarketMixStats(x).majority);const pool=primaryHeavy.length?primaryHeavy:initial;
-  const tradablePool=pool.filter(m=>(m.legs||[]).every(l=>!SYSTEM_MULTI_EXCLUDED_MARKETS.has(String(l.market||'').toLowerCase())&&systemTradableProbability(l.probability)));
-  const sourcePool=tradablePool.length?tradablePool:pool;
-  const picked=[...sourcePool].sort((a,b)=>canonicalMultiScore(b,range)-canonicalMultiScore(a,range)||Number(a.rank_in_group||99)-Number(b.rank_in_group||99)||Number(b.combined_probability)-Number(a.combined_probability))[0]||null;
-  if(!picked)return null;
-  const wantsMatchMarket=[...MATCH_MARKETS].some(x=>f.markets.has(x));
-  return wantsMatchMarket ? balanceWithMatchMarkets(picked,strategy,count,f,range) : picked;
+  const range=f.odds[strategy][count],group=rows.filter(x=>x.strategy===strategy&&Number(x.leg_count)===count);
+  if(!group.length)return buildBestAvailableMulti(strategy,count,f,range);
+
+  const eligible=group.filter(x=>(x.legs||[]).every(l=>systemAllowedLeg(l,f)));
+  const recEligible=eligible.filter(x=>x.recommended);
+  const preferred=f.recommendedOnly?recEligible:(recEligible.length?recEligible:eligible);
+  const exactPool=preferred.length?preferred:eligible;
+  if(exactPool.length){
+    const inBand=exactPool.filter(x=>Number(x.fair_odds)>=Number(range[0])&&Number(x.fair_odds)<=Number(range[1]));
+    const initial=inBand.length?inBand:exactPool,primaryHeavy=initial.filter(x=>multiMarketMixStats(x).majority),pool=primaryHeavy.length?primaryHeavy:initial;
+    const picked=[...pool].sort((a,b)=>canonicalMultiScore(b,range)-canonicalMultiScore(a,range)||Number(a.rank_in_group||99)-Number(b.rank_in_group||99)||Number(b.combined_probability)-Number(a.combined_probability))[0]||null;
+    if(picked){
+      const wantsMatchMarket=[...MATCH_MARKETS].some(x=>f.markets.has(x)),balanced=wantsMatchMarket?balanceWithMatchMarkets(picked,strategy,count,f,range):picked;
+      return {...balanced,v58_best_available:!inBand.length||!balanced.recommended,v58_fallback_reason:!inBand.length?'outside_target_odds_band':(!balanced.recommended?'backend_not_recommended':null)};
+    }
+  }
+  for(const seed of [...group].sort((a,b)=>canonicalMultiScore(b,range)-canonicalMultiScore(a,range))){
+    const repaired=repairBackendMulti(seed,strategy,count,f,range);if(repaired)return repaired;
+  }
+  return buildBestAvailableMulti(strategy,count,f,range);
 }
 function visibleMultiRows(){
   const f=state.systemFilterActive||defaultSystemFilterState();
   const strategies=f.strategy==='all'?['conservative','balanced','aggressive']:[f.strategy];
-  const counts=f.legCount===0?[2,3,4,5]:[f.legCount];
-  const out=[];
-  counts.forEach(n=>strategies.forEach(st=>{const m=pickCanonicalMulti(state.multis,st,n,f);if(m)out.push(m)}));
+  const counts=f.legCount===0?[2,3,4,5]:[f.legCount],out=[];
+  strategies.forEach(st=>counts.forEach(n=>{const m=pickCanonicalMulti(state.multis,st,n,f);if(m)out.push(m)}));
   return out;
 }
 async function rankVisibleMultis(){
@@ -587,10 +647,10 @@ async function rankVisibleMultis(){
 function renderMultis(){
   if(!state.systemFilterActive)state.systemFilterActive=defaultSystemFilterState();
   if($('#systemMarketFilters')&&!$('#systemMarketFilters').children.length)renderSystemFilterUI();
-  const f=state.systemFilterActive;const summary=$('#systemFilterSummary');if(summary){if(f.strategy==='all'&&f.legCount===0)summary.innerHTML=`<span>2–5串1 · 保守 / 平衡 / 激进</span><b>12 组默认推荐</b><small>${f.markets.size} markets</small>`;else if(f.strategy==='all')summary.innerHTML=`<span>${f.legCount}串1 · 全部策略</span><b>3 组</b><small>${f.markets.size} markets</small>`;else if(f.legCount===0)summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · 2–5串1</span><b>4 组</b><small>${f.markets.size} markets</small>`;else{const range=f.odds[f.strategy][f.legCount];summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · ${f.legCount}串1</span><b>Fair ${Number(range[0]).toFixed(2)}–${Number(range[1]).toFixed(2)}</b><small>${f.markets.size} markets</small>`}};
+  const f=state.systemFilterActive;const summary=$('#systemFilterSummary');if(summary){if(f.strategy==='all'&&f.legCount===0)summary.innerHTML=`<span>2–5串1 · 保守 / 平衡 / 激进</span><b>12 组固定推荐</b><small>${f.markets.size} markets</small>`;else if(f.strategy==='all')summary.innerHTML=`<span>${f.legCount}串1 · 全部策略</span><b>3 组</b><small>${f.markets.size} markets</small>`;else if(f.legCount===0)summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · 2–5串1</span><b>4 组</b><small>${f.markets.size} markets</small>`;else{const range=f.odds[f.strategy][f.legCount];summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · ${f.legCount}串1</span><b>Fair ${Number(range[0]).toFixed(2)}–${Number(range[1]).toFixed(2)}</b><small>${f.markets.size} markets</small>`}};
   let rows=visibleMultiRows();const host=$('#multiCards');host.innerHTML='';
   if(state.finalLock){const lock=document.createElement('div');lock.className='final-lock-banner';lock.innerHTML=`<strong>🔒 T-30 FINAL RECOMMENDATION LOCK</strong><span>${dt(state.finalLock.frozen_at)} · ${state.finalLock.recommendation_count} recommendations · SHA ${esc(String(state.finalLock.snapshot_sha256||'').slice(0,12))}…</span>`;host.appendChild(lock)}
-  if(!rows.length){host.innerHTML='<div class="empty system-empty"><strong>当前筛选下没有组合</strong><span>系统不会为了凑赔率加入低质量腿。可放宽 Fair Odds 范围或勾选更多玩法后再确认。</span></div>';return}
+  if(!rows.length){host.innerHTML='<div class="empty system-empty"><strong>当前筛选下没有足够可用腿</strong><span>默认模式固定输出 12 组；只有当前比赛连最基本的可用腿数量都不足时才会缺组。</span></div>';return}
   const ranked=rows.filter(m=>state.systemMultiRanking.has(m.multi_id));
   if(ranked.length>=2)rows=[...rows].sort((a,b)=>{
     const ra=state.systemMultiRanking.get(a.multi_id)?.value_aware_rank??999;

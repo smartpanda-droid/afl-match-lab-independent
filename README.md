@@ -1,3 +1,16 @@
+# AFL Match Lab v58 — Fixed 12 System Multi Slots
+
+Default output contract is now 12 recommendations:
+Conservative / Balanced / Aggressive × 2 / 3 / 4 / 5 legs.
+
+Fallback hierarchy prevents a whole group disappearing:
+1. Exact eligible + recommended + target odds.
+2. Best eligible backend combination.
+3. Repair backend combination by replacing excluded/unavailable legs.
+4. Build one deterministic Best Available combination from a bounded top-40 current candidate pool.
+
+No all-combination enumeration is performed. MARKS / CLEARANCES / TACKLES / HITOUTS stay excluded. At most one match-market leg is allowed per multi.
+
 # AFL Match Lab v57 — System Multi Market Cleanup
 
 Removed from System Multi only:
