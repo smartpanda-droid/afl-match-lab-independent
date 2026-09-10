@@ -1,3 +1,10 @@
+# AFL Match Lab v37 — 12 System Multi recommendations + sharp club marks
+
+- Default System Multi view now shows one canonical recommendation for every 2/3/4/5-leg × conservative/balanced/aggressive group (12 total when all groups are available).
+- Canonical pick prefers 1–2 anchor legs plus at least one Value leg, then fair-odds band fit and recommendation rank.
+- Strategy and leg-count filters include an All option; specific filters show one canonical recommendation per selected group.
+- Replaces pale AFL watermark marks with sharp current-club-design image samples; team abbreviation remains fallback only.
+
 # v36 — System Multi parity + Anchor/Value balance
 
 - Restores Site-style System Multi filter panel: markets, strategy, 2–5 leg count, editable Fair Odds ranges, Confirm/Reset.

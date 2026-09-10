@@ -10,26 +10,26 @@ const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent
 
 // 2026 finals branding + jumper numbers. Numbers verified against AFL official team squad pages.
 const TEAM_BRAND = {
-  'Adelaide Crows': {abbr:'ADEL', logo:'https://www.afl.com.au/resources/club-watermarks/25715/adel-right-colour.png', homeBg:'repeating-linear-gradient(to bottom,#071a3d 0 7px,#d71920 7px 12px,#f6c400 12px 17px)', homeFg:'#fff', awayBg:'repeating-linear-gradient(to bottom,#fff 0 8px,#d71920 8px 11px,#f6c400 11px 14px,#071a3d 14px 17px)', awayFg:'#071a3d', border:'#071a3d'},
-  'Brisbane Lions': {abbr:'BL', logo:'https://www.afl.com.au/resources/club-watermarks/25715/bl-right-colour.png', homeBg:'linear-gradient(135deg,#7b1635 0 60%,#f5c542 61% 72%,#1d4d8f 73%)', homeFg:'#fff', awayBg:'linear-gradient(135deg,#1d4d8f 0 58%,#f5c542 59% 71%,#7b1635 72%)', awayFg:'#fff', border:'#7b1635'},
-  'Carlton': {abbr:'CARL', logo:'https://www.afl.com.au/resources/club-watermarks/25715/carl-right-colour.png', homeBg:'#081f3d', homeFg:'#fff', awayBg:'#fff', awayFg:'#081f3d', border:'#081f3d'},
-  'Collingwood': {abbr:'COLL', logo:'https://www.afl.com.au/resources/club-watermarks/25715/coll-right-colour.png', homeBg:'repeating-linear-gradient(90deg,#111 0 6px,#fff 6px 12px)', homeFg:'#111', awayBg:'repeating-linear-gradient(90deg,#fff 0 6px,#111 6px 12px)', awayFg:'#111', border:'#111'},
-  'Essendon': {abbr:'ESS', logo:'https://www.afl.com.au/resources/club-watermarks/25715/ess-right-colour.png', homeBg:'linear-gradient(135deg,#111 0 42%,#e31b23 43% 57%,#111 58%)', homeFg:'#fff', awayBg:'linear-gradient(135deg,#fff 0 42%,#e31b23 43% 57%,#fff 58%)', awayFg:'#111', border:'#e31b23'},
-  'Fremantle': {abbr:'FRE', logo:'https://www.afl.com.au/resources/club-watermarks/25715/fre-right-colour.png', homeBg:'linear-gradient(145deg,#2b0a3d 0 42%,#fff 43% 49%,#2b0a3d 50% 59%,#fff 60% 66%,#2b0a3d 67%)', homeFg:'#fff', awayBg:'linear-gradient(145deg,#fff 0 42%,#5b2c83 43% 49%,#fff 50% 59%,#5b2c83 60% 66%,#fff 67%)', awayFg:'#4b1f69', border:'#5b2c83'},
-  'Geelong Cats': {abbr:'GEEL', logo:'https://www.afl.com.au/resources/club-watermarks/25715/geel-right-colour.png', homeBg:'repeating-linear-gradient(to bottom,#0b2341 0 5px,#fff 5px 10px)', homeFg:'#0b2341', awayBg:'repeating-linear-gradient(to bottom,#fff 0 6px,#0b2341 6px 9px)', awayFg:'#0b2341', border:'#0b2341'},
-  'Gold Coast SUNS': {abbr:'GCS', logo:'https://www.afl.com.au/resources/club-watermarks/25715/gcfc-right-colour.png', homeBg:'#e31b23', homeFg:'#f6c400', awayBg:'#f6c400', awayFg:'#e31b23', border:'#e31b23'},
-  'Gold Coast Suns': {abbr:'GCS', logo:'https://www.afl.com.au/resources/club-watermarks/25715/gcfc-right-colour.png', homeBg:'#e31b23', homeFg:'#f6c400', awayBg:'#f6c400', awayFg:'#e31b23', border:'#e31b23'},
-  'GWS GIANTS': {abbr:'GWS', logo:'https://www.afl.com.au/resources/club-watermarks/25715/gws-right-colour.png', homeBg:'#f47920', homeFg:'#111', awayBg:'#fff', awayFg:'#f47920', border:'#f47920'},
-  'Greater Western Sydney Giants': {abbr:'GWS', logo:'https://www.afl.com.au/resources/club-watermarks/25715/gws-right-colour.png', homeBg:'#f47920', homeFg:'#111', awayBg:'#fff', awayFg:'#f47920', border:'#f47920'},
-  'Hawthorn': {abbr:'HAW', logo:'https://www.afl.com.au/resources/club-watermarks/25715/haw-right-colour.png', homeBg:'repeating-linear-gradient(90deg,#4b2b20 0 7px,#f6c400 7px 14px)', homeFg:'#111', awayBg:'repeating-linear-gradient(90deg,#fff 0 7px,#4b2b20 7px 10px,#f6c400 10px 14px)', awayFg:'#4b2b20', border:'#4b2b20'},
-  'Melbourne': {abbr:'MEL', logo:'https://www.afl.com.au/resources/club-watermarks/25715/melb-right-colour.png', homeBg:'linear-gradient(#d71920 0 28%,#061a3a 29%)', homeFg:'#fff', awayBg:'#fff', awayFg:'#061a3a', border:'#061a3a'},
-  'North Melbourne': {abbr:'NM', logo:'https://www.afl.com.au/resources/club-watermarks/25715/nmfc-right-colour.png', homeBg:'repeating-linear-gradient(90deg,#1769aa 0 7px,#fff 7px 14px)', homeFg:'#1769aa', awayBg:'#fff', awayFg:'#1769aa', border:'#1769aa'},
-  'Port Adelaide': {abbr:'PORT', logo:'https://www.afl.com.au/resources/club-watermarks/25715/port-right-colour.png', homeBg:'linear-gradient(135deg,#111 0 62%,#00a0b0 63%)', homeFg:'#fff', awayBg:'#fff', awayFg:'#111', border:'#00a0b0'},
-  'Richmond': {abbr:'RICH', logo:'https://www.afl.com.au/resources/club-watermarks/25715/rich-right-colour.png', homeBg:'linear-gradient(135deg,#111 0 42%,#f6c400 43% 57%,#111 58%)', homeFg:'#fff', awayBg:'#f6c400', awayFg:'#111', border:'#111'},
-  'St Kilda': {abbr:'STK', logo:'https://www.afl.com.au/resources/club-watermarks/25715/stk-right-colour.png', homeBg:'linear-gradient(90deg,#111 0 33%,#fff 33% 66%,#d71920 66%)', homeFg:'#111', awayBg:'#fff', awayFg:'#111', border:'#d71920'},
-  'Sydney Swans': {abbr:'SYD', logo:'https://www.afl.com.au/resources/club-watermarks/25715/syd-right-colour.png', homeBg:'linear-gradient(#fff 0 45%,#d71920 46%)', homeFg:'#d71920', awayBg:'#fff', awayFg:'#d71920', border:'#d71920'},
-  'West Coast Eagles': {abbr:'WCE', logo:'https://www.afl.com.au/resources/club-watermarks/25715/wce-right-colour.png', homeBg:'#003087', homeFg:'#f6c400', awayBg:'#f6c400', awayFg:'#003087', border:'#003087'},
-  'Western Bulldogs': {abbr:'WB', logo:'https://www.afl.com.au/resources/club-watermarks/25715/wb-right-colour.png', homeBg:'repeating-linear-gradient(to bottom,#0057b8 0 7px,#fff 7px 11px,#d71920 11px 15px)', homeFg:'#fff', awayBg:'#fff', awayFg:'#0057b8', border:'#0057b8'}
+  'Adelaide Crows': {abbr:'ADEL', logo:'https://i.logos-download.com/6720/1500-99794d47da9674199df203d56e3459b8.svg/Adelaide_Football_Club_Logo_2025.svg?dl=', homeBg:'repeating-linear-gradient(to bottom,#071a3d 0 7px,#d71920 7px 12px,#f6c400 12px 17px)', homeFg:'#fff', awayBg:'repeating-linear-gradient(to bottom,#fff 0 8px,#d71920 8px 11px,#f6c400 11px 14px,#071a3d 14px 17px)', awayFg:'#071a3d', border:'#071a3d'},
+  'Brisbane Lions': {abbr:'BL', logo:'https://yourjersey.com.au/wp-content/uploads/2018/02/1200px-Brisbane_Lions_logo_2010.svg.png.webp', homeBg:'linear-gradient(135deg,#7b1635 0 60%,#f5c542 61% 72%,#1d4d8f 73%)', homeFg:'#fff', awayBg:'linear-gradient(135deg,#1d4d8f 0 58%,#f5c542 59% 71%,#7b1635 72%)', awayFg:'#fff', border:'#7b1635'},
+  'Carlton': {abbr:'CARL', logo:'https://resources.carltonfc.com.au/photo-resources/2019/11/27/ecff8c40-81c5-4c7c-a3e7-35dfba928eca/BnupVBWG.jpg?height=1062&width=708', homeBg:'#081f3d', homeFg:'#fff', awayBg:'#fff', awayFg:'#081f3d', border:'#081f3d'},
+  'Collingwood': {abbr:'COLL', logo:'https://d32qys9a6wm9no.cloudfront.net/images/sports/188a2a745c1.png?t=1692639885', homeBg:'repeating-linear-gradient(90deg,#111 0 6px,#fff 6px 12px)', homeFg:'#111', awayBg:'repeating-linear-gradient(90deg,#fff 0 6px,#111 6px 12px)', awayFg:'#111', border:'#111'},
+  'Essendon': {abbr:'ESS', logo:'https://membership.essendonfc.com.au/images/brand/EssendonFC_A.png', homeBg:'linear-gradient(135deg,#111 0 42%,#e31b23 43% 57%,#111 58%)', homeFg:'#fff', awayBg:'linear-gradient(135deg,#fff 0 42%,#e31b23 43% 57%,#fff 58%)', awayFg:'#111', border:'#e31b23'},
+  'Fremantle': {abbr:'FRE', logo:'https://s1.ticketm.net/dam/a/eda/6004ce7b-df46-4584-ae42-08b27874feda_SOURCE', homeBg:'linear-gradient(145deg,#2b0a3d 0 42%,#fff 43% 49%,#2b0a3d 50% 59%,#fff 60% 66%,#2b0a3d 67%)', homeFg:'#fff', awayBg:'linear-gradient(145deg,#fff 0 42%,#5b2c83 43% 49%,#fff 50% 59%,#5b2c83 60% 66%,#fff 67%)', awayFg:'#4b1f69', border:'#5b2c83'},
+  'Geelong Cats': {abbr:'GEEL', logo:'https://aflca-static.s3-ap-southeast-2.amazonaws.com/media/171/conversions/geelong-cats-main.jpg', homeBg:'repeating-linear-gradient(to bottom,#0b2341 0 5px,#fff 5px 10px)', homeFg:'#0b2341', awayBg:'repeating-linear-gradient(to bottom,#fff 0 6px,#0b2341 6px 9px)', awayFg:'#0b2341', border:'#0b2341'},
+  'Gold Coast SUNS': {abbr:'GCS', logo:'https://cdn11.bigcommerce.com/s-ta8doefavd/images/stencil/600x600/d/gold%20coast%20suns%20logo%20png__44356.original.png', homeBg:'#e31b23', homeFg:'#f6c400', awayBg:'#f6c400', awayFg:'#e31b23', border:'#e31b23'},
+  'Gold Coast Suns': {abbr:'GCS', logo:'https://cdn11.bigcommerce.com/s-ta8doefavd/images/stencil/600x600/d/gold%20coast%20suns%20logo%20png__44356.original.png', homeBg:'#e31b23', homeFg:'#f6c400', awayBg:'#f6c400', awayFg:'#e31b23', border:'#e31b23'},
+  'GWS GIANTS': {abbr:'GWS', logo:'https://savvysupporter.com.au/pub/media/magestore/bannerslider/images/g/w/gws_giants_logo_greater_western-sydney_giants_1.png', homeBg:'#f47920', homeFg:'#111', awayBg:'#fff', awayFg:'#f47920', border:'#f47920'},
+  'Greater Western Sydney Giants': {abbr:'GWS', logo:'https://savvysupporter.com.au/pub/media/magestore/bannerslider/images/g/w/gws_giants_logo_greater_western-sydney_giants_1.png', homeBg:'#f47920', homeFg:'#111', awayBg:'#fff', awayFg:'#f47920', border:'#f47920'},
+  'Hawthorn': {abbr:'HAW', logo:'https://membership.hawthornfc.com.au/images/brand/HFC-logo-A-OnWhite-RGB.png', homeBg:'repeating-linear-gradient(90deg,#4b2b20 0 7px,#f6c400 7px 14px)', homeFg:'#111', awayBg:'repeating-linear-gradient(90deg,#fff 0 7px,#4b2b20 7px 10px,#f6c400 10px 14px)', awayFg:'#4b2b20', border:'#4b2b20'},
+  'Melbourne': {abbr:'MEL', logo:'https://www.whatsportson.com/images/teams/aus-football/melbourne-demons.png', homeBg:'linear-gradient(#d71920 0 28%,#061a3a 29%)', homeFg:'#fff', awayBg:'#fff', awayFg:'#061a3a', border:'#061a3a'},
+  'North Melbourne': {abbr:'NM', logo:'https://tipping-comp.com.au/cdn/images/teams/north-melbourne-kangaroos.png', homeBg:'repeating-linear-gradient(90deg,#1769aa 0 7px,#fff 7px 14px)', homeFg:'#1769aa', awayBg:'#fff', awayFg:'#1769aa', border:'#1769aa'},
+  'Port Adelaide': {abbr:'PORT', logo:'https://i.logos-download.com/6711/1498-e7c29c51cb00a7d87549042e15065ced.svg/Port_Adelaide_Football_Club_Logo_2019.svg?dl=', homeBg:'linear-gradient(135deg,#111 0 62%,#00a0b0 63%)', homeFg:'#fff', awayBg:'#fff', awayFg:'#111', border:'#00a0b0'},
+  'Richmond': {abbr:'RICH', logo:'https://resources.richmondfc.com.au/photo-resources/2020/08/25/df0e3c1f-5696-4694-b6bf-ab28a77432fd/ClubLogoWhite.jpg?height=600&width=1064', homeBg:'linear-gradient(135deg,#111 0 42%,#f6c400 43% 57%,#111 58%)', homeFg:'#fff', awayBg:'#f6c400', awayFg:'#111', border:'#111'},
+  'St Kilda': {abbr:'STK', logo:'https://news.sportslogos.net/wp-content/uploads/2024/11/crest-blacl-background-20241119-AFL-australian-football-league-aussie-rules-st-kilda-football-club-saints-new-modernized-crest-logo.jpg', homeBg:'linear-gradient(90deg,#111 0 33%,#fff 33% 66%,#d71920 66%)', homeFg:'#111', awayBg:'#fff', awayFg:'#111', border:'#d71920'},
+  'Sydney Swans': {abbr:'SYD', logo:'https://assets-eu-01.kc-usercontent.com/676d8cad-dc93-0171-bad5-9a059635f262/fbf70dd4-da88-49fa-bef0-8ddbb1ebdd70/Sydney-Swans.png?auto=format&q=75&w=640', homeBg:'linear-gradient(#fff 0 45%,#d71920 46%)', homeFg:'#d71920', awayBg:'#fff', awayFg:'#d71920', border:'#d71920'},
+  'West Coast Eagles': {abbr:'WCE', logo:'https://www.statscrew.com/graphics/teams_full/ausfl_westcoast_eagles25.png', homeBg:'#003087', homeFg:'#f6c400', awayBg:'#f6c400', awayFg:'#003087', border:'#003087'},
+  'Western Bulldogs': {abbr:'WB', logo:'https://i.logos-download.com/6732/1503-og-fc551e6c9905562bc89b65e968755e87.png/Western_Bulldogs_Logo_2015-og.png', homeBg:'repeating-linear-gradient(to bottom,#0057b8 0 7px,#fff 7px 11px,#d71920 11px 15px)', homeFg:'#fff', awayBg:'#fff', awayFg:'#0057b8', border:'#0057b8'}
 };
 
 const JUMPER_2026 = {
@@ -339,7 +339,7 @@ const SYSTEM_ODDS_DEFAULTS={
 };
 const SYSTEM_STRATEGY_LABEL={conservative:'保守',balanced:'平衡',aggressive:'激进'};
 function systemAnchorCut(strategy){return strategy==='conservative'?.86:strategy==='balanced'?.83:.80}
-function defaultSystemFilterState(){return {strategy:'balanced',legCount:2,recommendedOnly:false,markets:new Set([...new Set(state.legs.map(x=>x.market))]),odds:JSON.parse(JSON.stringify(SYSTEM_ODDS_DEFAULTS))}}
+function defaultSystemFilterState(){return {strategy:'all',legCount:0,recommendedOnly:false,markets:new Set([...new Set(state.legs.map(x=>x.market))]),odds:JSON.parse(JSON.stringify(SYSTEM_ODDS_DEFAULTS))}}
 function renderSystemFilterUI(){
   const f=state.systemFilterActive||defaultSystemFilterState();
   $('#strategyFilter').value=f.strategy;$('#legCountFilter').value=String(f.legCount);$('#recommendedOnly').checked=!!f.recommendedOnly;
@@ -356,9 +356,35 @@ function readSystemFilters(){
 }
 function resetSystemFilters(render=true){state.systemFilterActive=defaultSystemFilterState();if($('#systemMarketFilters'))renderSystemFilterUI();if(render)renderMultis()}
 function systemLegRole(strategy,leg){return Number(leg.probability)>=systemAnchorCut(strategy)?'稳胆':'Value'}
+function multiStructureStats(m){
+  const cut=systemAnchorCut(m.strategy);const legs=m.legs||[];
+  const anchors=legs.filter(l=>Number(l.probability)>=cut).length;
+  const values=legs.filter(l=>Number(l.probability)<cut&&Number(l.probability)>=0.50).length;
+  return {anchors,values,valid:anchors>=1&&anchors<=2&&values>=1};
+}
+function canonicalMultiScore(m,range){
+  const st=multiStructureStats(m);const fair=Number(m.fair_odds||0),p=Number(m.combined_probability||0);
+  const mid=(Number(range[0])+Number(range[1]))/2,span=Math.max(.25,(Number(range[1])-Number(range[0]))/2);
+  const rangeFit=Math.max(0,1-Math.abs(fair-mid)/span);
+  const roleScore=st.valid?1:(st.anchors>=1&&st.values>=1?.65:.15);
+  const rec=m.recommended?.12:0;const rank=Math.max(0,.10-Math.max(0,Number(m.rank_in_group||1)-1)*.025);
+  return roleScore*.52+rangeFit*.18+Math.min(.15,p*.22)+rec+rank;
+}
+function pickCanonicalMulti(rows,strategy,count,f){
+  const range=f.odds[strategy][count];
+  const base=rows.filter(x=>x.strategy===strategy&&Number(x.leg_count)===count&&(!f.recommendedOnly||x.recommended)&&(x.legs||[]).every(l=>f.markets.has(l.market)));
+  if(!base.length)return null;
+  const inBand=base.filter(x=>Number(x.fair_odds)>=Number(range[0])&&Number(x.fair_odds)<=Number(range[1]));
+  const pool=inBand.length?inBand:base;
+  return [...pool].sort((a,b)=>canonicalMultiScore(b,range)-canonicalMultiScore(a,range)||Number(a.rank_in_group||99)-Number(b.rank_in_group||99)||Number(b.combined_probability)-Number(a.combined_probability))[0]||null;
+}
 function visibleMultiRows(){
-  const f=state.systemFilterActive||defaultSystemFilterState();const range=f.odds[f.strategy][f.legCount];
-  return state.multis.filter(x=>x.strategy===f.strategy&&Number(x.leg_count)===f.legCount&&(!f.recommendedOnly||x.recommended)&&(x.legs||[]).every(l=>f.markets.has(l.market))&&Number(x.fair_odds)>=Number(range[0])&&Number(x.fair_odds)<=Number(range[1]));
+  const f=state.systemFilterActive||defaultSystemFilterState();
+  const strategies=f.strategy==='all'?['conservative','balanced','aggressive']:[f.strategy];
+  const counts=f.legCount===0?[2,3,4,5]:[f.legCount];
+  const out=[];
+  counts.forEach(n=>strategies.forEach(st=>{const m=pickCanonicalMulti(state.multis,st,n,f);if(m)out.push(m)}));
+  return out;
 }
 async function rankVisibleMultis(){
   const seq=++state.systemRankSeq;
@@ -374,7 +400,7 @@ async function rankVisibleMultis(){
 function renderMultis(){
   if(!state.systemFilterActive)state.systemFilterActive=defaultSystemFilterState();
   if($('#systemMarketFilters')&&!$('#systemMarketFilters').children.length)renderSystemFilterUI();
-  const f=state.systemFilterActive,range=f.odds[f.strategy][f.legCount];const summary=$('#systemFilterSummary');if(summary)summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · ${f.legCount}串1</span><b>Fair ${Number(range[0]).toFixed(2)}–${Number(range[1]).toFixed(2)}</b><small>${f.markets.size} markets</small>`;
+  const f=state.systemFilterActive;const summary=$('#systemFilterSummary');if(summary){if(f.strategy==='all'&&f.legCount===0)summary.innerHTML=`<span>2–5串1 · 保守 / 平衡 / 激进</span><b>12 组默认推荐</b><small>${f.markets.size} markets</small>`;else if(f.strategy==='all')summary.innerHTML=`<span>${f.legCount}串1 · 全部策略</span><b>3 组</b><small>${f.markets.size} markets</small>`;else if(f.legCount===0)summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · 2–5串1</span><b>4 组</b><small>${f.markets.size} markets</small>`;else{const range=f.odds[f.strategy][f.legCount];summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · ${f.legCount}串1</span><b>Fair ${Number(range[0]).toFixed(2)}–${Number(range[1]).toFixed(2)}</b><small>${f.markets.size} markets</small>`}};
   let rows=visibleMultiRows();const host=$('#multiCards');host.innerHTML='';
   if(state.finalLock){const lock=document.createElement('div');lock.className='final-lock-banner';lock.innerHTML=`<strong>🔒 T-30 FINAL RECOMMENDATION LOCK</strong><span>${dt(state.finalLock.frozen_at)} · ${state.finalLock.recommendation_count} recommendations · SHA ${esc(String(state.finalLock.snapshot_sha256||'').slice(0,12))}…</span>`;host.appendChild(lock)}
   if(!rows.length){host.innerHTML='<div class="empty system-empty"><strong>当前筛选下没有组合</strong><span>系统不会为了凑赔率加入低质量腿。可放宽 Fair Odds 范围或勾选更多玩法后再确认。</span></div>';return}
@@ -387,9 +413,10 @@ function renderMultis(){
   rows.forEach(m=>{
     const vrank=state.systemMultiRanking.get(m.multi_id);
     const node=$('#multiTemplate').content.cloneNode(true);
-    node.querySelector('.multi-strategy').textContent=m.strategy;
-    node.querySelector('.multi-title').textContent=`${m.leg_count}串1 · #${m.rank_in_group}`;
+    node.querySelector('.multi-strategy').textContent=SYSTEM_STRATEGY_LABEL[m.strategy]||m.strategy;
+    node.querySelector('.multi-title').textContent=`${m.leg_count}串1 · ${SYSTEM_STRATEGY_LABEL[m.strategy]||m.strategy}`;
     const rb=node.querySelector('.multi-rec');rb.textContent=m.recommended?'RECOMMENDED':'OUT OF BAND';rb.className=`multi-rec badge ${m.recommended?'good':'warn'}`;
+    const structure=multiStructureStats(m);const roleBadge=document.createElement('span');roleBadge.className=`badge ${structure.valid?'good':'warn'}`;roleBadge.textContent=`${structure.anchors}稳胆 + ${structure.values} Value`;node.querySelector('.multi-top').appendChild(roleBadge);
     const st=state.multiStability.get(`${m.strategy}:${m.leg_count}:${m.rank_in_group}`);
     if(st){const sb=document.createElement('span');const reason=String(st.last_reason||'');sb.className=`badge ${reason.includes('replaced')||reason.includes('risk')||reason.includes('improvement')?'warn':'good'}`;sb.textContent=reason.includes('replaced')||reason.includes('risk')||reason.includes('improvement')?'REPLACED':'STABLE';sb.title=`${reason} · kept ${st.kept_count||0} · replaced ${st.replace_count||0}`;node.querySelector('.multi-top').appendChild(sb)}
     node.querySelector('.multi-legs').innerHTML=(m.legs||[]).map(l=>{const role=systemLegRole(m.strategy,l);return `<div class="multi-leg"><span class="multi-leg-main"><i class="leg-role ${role==='稳胆'?'anchor':'value'}">${role}</i><span>${esc(l.selection)}</span></span><strong>${pct(l.probability)}</strong></div>`}).join('');
