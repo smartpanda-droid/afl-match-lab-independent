@@ -338,7 +338,9 @@ const SYSTEM_ODDS_DEFAULTS={
   aggressive:{2:[2.40,4.00],3:[3.50,6.50],4:[5.00,9.00],5:[6.50,12.00]}
 };
 const SYSTEM_STRATEGY_LABEL={conservative:'保守',balanced:'平衡',aggressive:'激进'};
-function systemAnchorCut(strategy){return strategy==='conservative'?.86:strategy==='balanced'?.83:.80}
+function systemAnchorBand(strategy){return strategy==='conservative'?[.86,.93,.89]:strategy==='balanced'?[.84,.92,.87]:[.82,.91,.85]}
+function systemValueFloor(strategy,legCount=2){const base=strategy==='conservative'?.72:strategy==='balanced'?.69:.66;return Math.max(.50,base-.01*Math.max(0,Number(legCount||2)-2))}
+function systemAnchorCut(strategy){return systemAnchorBand(strategy)[0]}
 function defaultSystemFilterState(){return {strategy:'all',legCount:0,recommendedOnly:false,markets:new Set([...new Set(state.legs.map(x=>x.market))]),odds:JSON.parse(JSON.stringify(SYSTEM_ODDS_DEFAULTS))}}
 function renderSystemFilterUI(){
   const f=state.systemFilterActive||defaultSystemFilterState();
@@ -355,11 +357,11 @@ function readSystemFilters(){
   return base;
 }
 function resetSystemFilters(render=true){state.systemFilterActive=defaultSystemFilterState();if($('#systemMarketFilters'))renderSystemFilterUI();if(render)renderMultis()}
-function systemLegRole(strategy,leg){return Number(leg.probability)>=systemAnchorCut(strategy)?'稳胆':'Value'}
+function systemLegRole(strategy,leg){const p=Number(leg.probability),[lo,hi]=systemAnchorBand(strategy);return p>=lo&&p<=hi?'稳胆':'Value'}
 function multiStructureStats(m){
-  const cut=systemAnchorCut(m.strategy);const legs=m.legs||[];
-  const anchors=legs.filter(l=>Number(l.probability)>=cut).length;
-  const values=legs.filter(l=>Number(l.probability)<cut&&Number(l.probability)>=0.50).length;
+  const [lo,hi]=systemAnchorBand(m.strategy);const floor=systemValueFloor(m.strategy,m.leg_count);const legs=m.legs||[];
+  const anchors=legs.filter(l=>{const p=Number(l.probability);return p>=lo&&p<=hi}).length;
+  const values=legs.filter(l=>{const p=Number(l.probability);return p<lo&&p>=floor}).length;
   return {anchors,values,valid:anchors>=1&&anchors<=2&&values>=1};
 }
 function canonicalMultiScore(m,range){

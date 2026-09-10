@@ -1,3 +1,12 @@
+# v38 — Tradable Anchor / Higher-Quality Value Balance
+
+- System Multi no longer prioritizes 95%+ legs that often have no practical bookmaker threshold.
+- Conservative anchors: 86–93% (target ~89%); Value floor ~72%, target ~78%.
+- Balanced anchors: 84–92% (target ~87%); Value floor ~69%, target ~75%.
+- Aggressive anchors: 82–91% (target ~85%); Value floor ~66%, target ~72%.
+- 95%+ legs remain visible in Player Markets; they are excluded only from automatic System Multi construction.
+- Still uses 1–2 anchors plus at least one Value leg, with 12 canonical 2/3/4/5-leg × strategy recommendations.
+
 # AFL Match Lab v37 — 12 System Multi recommendations + sharp club marks
 
 - Default System Multi view now shows one canonical recommendation for every 2/3/4/5-leg × conservative/balanced/aggressive group (12 total when all groups are available).
