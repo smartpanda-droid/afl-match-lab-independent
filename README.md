@@ -1,3 +1,10 @@
+# AFL Match Lab v47 — Match Interaction Recovery
+
+- Match page loads a lightweight top-legs preview instead of all prediction legs.
+- Clicking a lineup player fetches only that player's official System thresholds, then opens the existing selector.
+- Context and match quote use live-first, local-cache fallback.
+- Full Player Markets remains lazy-loaded only on its tab.
+
 # AFL Match Lab v46 — Bootstrap Render Isolation
 
 - Match bootstrap no longer calls renderAll before API loading.

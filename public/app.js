@@ -5,7 +5,7 @@ if(CFG?.PARALLEL_TEST){
 }else{
   const b=document.getElementById('parallelTestBanner'); if(b)b.hidden=true;
 }
-const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, lineupBuilderFloatClosed:false, systemFilterActive:null, legsLoaded:false, recentLoaded:false, coreErrors:{}, loadSeq:0, legsSeq:0, recentSeq:0, view:'match' };
+const state = { matches:[], selected:null, legs:[], matchPreviewLegs:[], playerLegCache:new Map(), multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, lineupBuilderFloatClosed:false, systemFilterActive:null, legsLoaded:false, recentLoaded:false, coreErrors:{}, loadSeq:0, legsSeq:0, recentSeq:0, view:'match' };
 
 
 // 2026 finals branding + jumper numbers. Numbers verified against AFL official team squad pages.
@@ -274,7 +274,7 @@ async function loadSelected(){
   const matchId=state.selected, token=++state.loadSeq, id=encodeURIComponent(matchId);
   const cacheKey=`afl:selected-lite:${matchId}`;
   state.legsSeq++;state.recentSeq++;
-  state.legs=[];state.legsLoaded=false;state.recent5=new Map();state.recentLoaded=false;state.coreErrors={};state.context=null;state.matchQuote=null;state.multis=[];
+  state.legs=[];state.matchPreviewLegs=[];state.playerLegCache=new Map();state.legsLoaded=false;state.recent5=new Map();state.recentLoaded=false;state.coreErrors={};state.context=null;state.matchQuote=null;state.multis=[];
   const bundled=fallbackLineup(matchId);state.lineup=bundled||[];
   state.systemFilterActive=defaultSystemFilterState();loadBuilder();renderMatchCore();
   $('#healthBadge').className='badge warn';$('#healthBadge').textContent=bundled.length?'Loading Live…':'Loading…';
@@ -302,10 +302,16 @@ async function loadSelected(){
   // Non-critical Match modules load independently and are guarded by this match token.
   setTimeout(()=>{
     if(token!==state.loadSeq||state.selected!==matchId)return;
-    api('/rest/v1/rpc/afl_match_market_quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_match_id:matchId,p_line:null,p_total:null}),timeoutMs:5000,retries:0})
-      .then(r=>{if(token!==state.loadSeq||state.selected!==matchId)return;state.matchQuote=Array.isArray(r)?r[0]:r;renderMatchPrediction()}).catch(e=>console.warn('MATCH QUOTE load failed',e));
-    api(`/rest/v1/afl_api_match_context?select=*&match_id=eq.${id}`,{timeoutMs:5000,retries:0})
-      .then(rows=>{if(token!==state.loadSeq||state.selected!==matchId)return;state.context=(rows||[])[0]||null;renderTactics()}).catch(e=>console.warn('CONTEXT load failed',e));
+    const previewCacheKey=`afl:preview-legs:${matchId}`;const contextCacheKey=`afl:context:${matchId}`;const quoteCacheKey=`afl:match-quote:${matchId}`;
+    try{const q=JSON.parse(localStorage.getItem(quoteCacheKey)||'null');if(q&&!state.matchQuote){state.matchQuote=q;renderMatchPrediction()}}catch{}
+    try{const c=JSON.parse(localStorage.getItem(contextCacheKey)||'null');if(c&&!state.context){state.context=c;renderTactics()}}catch{}
+    try{const l=JSON.parse(localStorage.getItem(previewCacheKey)||'null');if(Array.isArray(l)&&l.length&&!state.matchPreviewLegs.length){state.matchPreviewLegs=l;renderMatch()}}catch{}
+    api('/rest/v1/rpc/afl_match_market_quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_match_id:matchId,p_line:null,p_total:null}),timeoutMs:4000,retries:1})
+      .then(r=>{if(token!==state.loadSeq||state.selected!==matchId)return;state.matchQuote=Array.isArray(r)?r[0]:r;try{localStorage.setItem(quoteCacheKey,JSON.stringify(state.matchQuote))}catch{};renderMatchPrediction()}).catch(e=>console.warn('MATCH QUOTE load failed',e));
+    api(`/rest/v1/afl_api_match_context?select=*&match_id=eq.${id}`,{timeoutMs:4000,retries:1})
+      .then(rows=>{if(token!==state.loadSeq||state.selected!==matchId)return;state.context=(rows||[])[0]||state.context||null;if(state.context)try{localStorage.setItem(contextCacheKey,JSON.stringify(state.context))}catch{};renderTactics()}).catch(e=>console.warn('CONTEXT load failed',e));
+    api(`/rest/v1/afl_api_prediction_legs?select=prediction_leg_id,match_id,prediction_run_id,player_id,player_name,team_name,market,threshold,selection,model_probability,fair_odds,sample_size,recent_hit_rate&match_id=eq.${id}&order=model_probability.desc&limit=160`,{timeoutMs:4000,retries:1})
+      .then(rows=>{if(token!==state.loadSeq||state.selected!==matchId)return;state.matchPreviewLegs=rows||[];if(state.matchPreviewLegs.length)try{localStorage.setItem(previewCacheKey,JSON.stringify(state.matchPreviewLegs))}catch{};renderMatch()}).catch(e=>console.warn('TOP LEGS preview load failed',e));
   },0);
 }
 
@@ -378,8 +384,9 @@ function renderMatch(){
   $('#lineupSummary').innerHTML=stat('Players',state.lineup.filter(x=>!x.emergency).length)+stat('Interchanges',bench)+stat('Emergencies',emerg);
   const src=$('#matchLineupSource');if(src){src.className=`lineup-source-note ${confirmed?'current':fallback?'fallback':'pending'}`;src.innerHTML=confirmed?'<strong>最新阵容</strong><span>已同步当前比赛阵容；后续数据更新将自动覆盖。</span>':fallback?'<strong>上一场阵容待入</strong><span>当前比赛最新阵容尚未发布，暂用两队上一场位置；最新阵容同步后会自动覆盖。</span>':'<strong>等待阵容</strong><span>尚未取得可用阵容。</span>';}
   const locked=!!state.finalLock||!!m.final_recommendation_locked;$('#modelBadge').className=`badge ${locked||m.prediction_is_final?'good':'warn'}`;$('#modelBadge').textContent=locked?'FINAL LOCKED':m.prediction_is_final?'T-30 FINAL':'PREVIEW';
-  $('#modelSummary').innerHTML=stat('Model',esc(m.model_version||'—'))+stat('Legs',state.legs.length)+stat('Multi',state.multis.filter(x=>x.recommended).length);
-  const topBalanced=balancedTopLegs(state.legs,10);
+  const matchLegSource=state.legsLoaded?state.legs:state.matchPreviewLegs;
+  $('#modelSummary').innerHTML=stat('Model',esc(m.model_version||'—'))+stat('Legs',state.legsLoaded?state.legs.length:(state.matchPreviewLegs.length?`${state.matchPreviewLegs.length}+`:'—'))+stat('Multi',state.multis.filter(x=>x.recommended).length);
+  const topBalanced=balancedTopLegs(matchLegSource,10);
   $('#topLegs').innerHTML=topBalanced.map(l=>`<div class="top-leg"><div class="p">${pct(l.model_probability)}</div><div class="sel">${esc(l.selection)}</div><div class="meta">Fair ${odds(l.fair_odds)} · Recent ${pct(l.recent_hit_rate)} · n=${l.sample_size??'—'}</div><button class="add-leg" data-leg-id="${l.prediction_leg_id}">+ Multi Lab</button></div>`).join('')||'<div class="empty">暂无符合概率/赔率平衡条件的单腿</div>';
   $$('#topLegs .add-leg').forEach(b=>b.addEventListener('click',()=>addLegById(b.dataset.legId)));
   renderMatchPrediction();
@@ -621,7 +628,7 @@ function renderMultis(){
 }
 
 function normalizeLeg(l){return {prediction_leg_id:l.prediction_leg_id,player_id:l.player_id||null,player_name:l.player_name||'比赛市场',team_name:l.team_name||null,market:l.market,threshold:Number(l.threshold),selection:l.selection,probability:Number(l.model_probability??l.probability),fair_odds:Number(l.fair_odds||0)}}
-function addLegById(id){const l=state.legs.find(x=>x.prediction_leg_id===id);if(!l)return;if(state.builder.some(x=>x.prediction_leg_id===id))return;state.builder.push(normalizeLeg(l));saveBuilder();switchView('multi-lab')}
+function addLegById(id){const l=state.legs.find(x=>x.prediction_leg_id===id)||state.matchPreviewLegs.find(x=>x.prediction_leg_id===id)||[...state.playerLegCache.values()].flat().find(x=>x.prediction_leg_id===id);if(!l)return;if(state.builder.some(x=>x.prediction_leg_id===id))return;state.builder.push(normalizeLeg(l));saveBuilder();switchView('multi-lab')}
 function sendMultiToBuilder(m){state.builder=[];(m.legs||[]).forEach(l=>{const full=state.legs.find(x=>x.prediction_leg_id===l.prediction_leg_id);state.builder.push(normalizeLeg(full||l))});saveBuilder();switchView('multi-lab')}
 function builderProbability(){return state.builder.reduce((a,l)=>a*Number(l.probability||0),1)}
 async function evaluateBuilder(){
@@ -709,7 +716,7 @@ function renderMatchFieldBoard(){
   host.innerHTML=`${filters}${legend}<div class="lineup-main-grid overlay-field-mode">${left}<div class="lineup-center overlay-lineup-center"><div class="afl-oval overlay-afl-field"><div class="field-surface" aria-hidden="true"></div><div class="oval-markings"><div class="boundary-inner"></div><div class="centre-square"></div><div class="centre-circle"></div><div class="centre-dot"></div><div class="arc arc-top"></div><div class="arc arc-bottom"></div><div class="goal-square goal-square-top"></div><div class="goal-square goal-square-bottom"></div><div class="goal-posts goal-posts-top"><i></i><i></i><i></i><i></i></div><div class="goal-posts goal-posts-bottom"><i></i><i></i><i></i><i></i></div></div><div class="position-roster overlay-position-roster ${state.fieldTeamFilter==='all'?'all-teams':'single-team'}">${centerRows}</div></div></div>${right}</div>${emergencies?`<div class="emergency-strip"><span>Emergencies</span>${emergencies}</div>`:''}`;
   bindTeamLogoImages(host);
   $$('#matchFieldTeams .lineup-team-filters button').forEach(b=>b.addEventListener('click',()=>{state.fieldTeamFilter=b.dataset.team;renderMatchFieldBoard()}));
-  $$('#matchFieldTeams .lineup-player-card[data-player-id], #matchFieldTeams .mini-player-dot[data-player-id]').forEach(b=>b.addEventListener('click',()=>{if(!String(b.dataset.playerId||'').startsWith('fallback:'))openPlayerOptionModal(b.dataset.playerId)}));
+  $$('#matchFieldTeams .lineup-player-card[data-player-id], #matchFieldTeams .mini-player-dot[data-player-id]').forEach(b=>b.addEventListener('click',()=>{if(!String(b.dataset.playerId||'').startsWith('fallback:'))openPlayerOptionModalAsync(b.dataset.playerId)}));
   bindLineupBuilderFloat();
 }
 
@@ -718,11 +725,11 @@ function renderField(){
   const teams=[...new Set(state.lineup.map(x=>x.team_name))];
   const markup=teams.map(team=>`<div class="field-team"><h3>${esc(team)}</h3>${state.lineup.filter(x=>x.team_name===team).map(p=>`<button class="field-player ${p.emergency?'emergency':p.bench?'bench':''}" data-player-id="${p.player_id}"><strong>${esc(p.player_name)}</strong><br><span>${esc(p.named_position||'')}</span></button>`).join('')}</div>`).join('')||'<div class="empty">暂无阵容</div>';
   const host=$('#fieldTeams');if(host)host.innerHTML=markup;
-  $$('#fieldTeams .field-player').forEach(b=>b.addEventListener('click',()=>openPlayerOptionModal(b.dataset.playerId)));
+  $$('#fieldTeams .field-player').forEach(b=>b.addEventListener('click',()=>openPlayerOptionModalAsync(b.dataset.playerId)));
 }
 
 const MARKET_MODAL_ORDER=['goals','kicks','disposals','marks','tackles','handballs','hitouts','clearances','fantasy_points'];
-function modalLegsForPlayer(playerId){return state.legs.filter(l=>l.player_id===playerId).sort((a,b)=>MARKET_MODAL_ORDER.indexOf(a.market)-MARKET_MODAL_ORDER.indexOf(b.market)||Number(a.threshold)-Number(b.threshold))}
+function modalLegsForPlayer(playerId){const src=state.legsLoaded?state.legs:(state.playerLegCache.get(playerId)||state.matchPreviewLegs);return src.filter(l=>l.player_id===playerId).sort((a,b)=>MARKET_MODAL_ORDER.indexOf(a.market)-MARKET_MODAL_ORDER.indexOf(b.market)||Number(a.threshold)-Number(b.threshold))}
 function builderNaiveSummary(){
   const probs=state.builder.map(x=>Number(x.probability??x.model_probability??x.calibrated_probability??x.raw_probability??0)).filter(x=>Number.isFinite(x)&&x>0&&x<=1);
   if(!probs.length)return {p:null,fair:null};
@@ -761,6 +768,32 @@ function probabilityBandLegs(playerId,min,max){
   return [...best.values()].sort((a,b)=>Number(b.model_probability)-Number(a.model_probability));
 }
 function closePlayerOptionModal(){document.querySelector('.player-option-modal')?.remove()}
+async function loadPlayerLegsForMatch(playerId){
+  if(!playerId||String(playerId).startsWith('fallback:'))return [];
+  if(state.legsLoaded)return state.legs.filter(l=>l.player_id===playerId);
+  if(state.playerLegCache.has(playerId))return state.playerLegCache.get(playerId)||[];
+  const matchId=state.selected, token=state.loadSeq;
+  const cached=state.matchPreviewLegs.filter(l=>l.player_id===playerId);
+  try{
+    const rows=await api(`/rest/v1/afl_api_prediction_legs?select=*&match_id=eq.${encodeURIComponent(matchId)}&player_id=eq.${encodeURIComponent(playerId)}&order=market.asc,threshold.asc`,{timeoutMs:4000,retries:1});
+    if(token!==state.loadSeq||state.selected!==matchId)return [];
+    const out=rows||[];state.playerLegCache.set(playerId,out);return out;
+  }catch(e){console.warn('PLAYER LEGS load failed',e);if(cached.length){state.playerLegCache.set(playerId,cached);return cached}throw e}
+}
+function showPlayerLegLoading(playerId){
+  closePlayerOptionModal();const p=state.lineup.find(x=>x.player_id===playerId);if(!p)return;
+  const overlay=document.createElement('div');overlay.className='player-option-modal player-option-loading';
+  overlay.innerHTML=`<div class="player-option-dialog"><div class="modal-head"><div><span class="eyebrow">PLAYER OPTIONS</span><h3>${esc(p.player_name)}</h3><small>${esc(p.team_name)} · ${esc(p.named_position||'')}</small></div><button class="modal-close" aria-label="Close">×</button></div><div class="player-options-loading">正在加载该球员的 System thresholds…</div></div>`;
+  document.body.appendChild(overlay);overlay.querySelector('.modal-close')?.addEventListener('click',closePlayerOptionModal);overlay.addEventListener('click',e=>{if(e.target===overlay)closePlayerOptionModal()});
+}
+async function openPlayerOptionModalAsync(playerId){
+  const p=state.lineup.find(x=>x.player_id===playerId);if(!p)return;
+  if(state.legsLoaded||state.playerLegCache.has(playerId)){openPlayerOptionModal(playerId);return}
+  showPlayerLegLoading(playerId);
+  try{const rows=await loadPlayerLegsForMatch(playerId);if(!rows.length){const el=document.querySelector('.player-options-loading');if(el)el.textContent='该球员暂无可用 System threshold。';return}openPlayerOptionModal(playerId)}
+  catch(e){const el=document.querySelector('.player-options-loading');if(el)el.textContent='暂时无法加载该球员玩法，请稍后重试。'}
+}
+
 function openPlayerOptionModal(playerId){
   closePlayerOptionModal();
   const legs=modalLegsForPlayer(playerId);const p=state.lineup.find(x=>x.player_id===playerId);if(!p)return;
