@@ -1,3 +1,11 @@
+# AFL Match Lab v43 — REST Gateway Fallback
+
+- Adds Authorization bearer header alongside apikey.
+- Automatically retries using the active legacy anon JWT if publishable-key gateway access fails.
+- Bundles a current 2026 upcoming-fixture bootstrap so the match selector does not become empty during a temporary REST gateway outage.
+- Keeps module-level recovery and lazy player-market loading from v42.
+- Fixes Player Markets tab lazy-load key (`players`).
+
 # v42 — Resilient Core Loading
 
 - Match page no longer waits for full prediction-leg payload.

@@ -52,22 +52,28 @@ const odds = v => v == null ? '—' : Number(v).toFixed(2);
 const dt = iso => new Intl.DateTimeFormat('en-AU',{dateStyle:'medium',timeStyle:'short',timeZone:'Australia/Melbourne'}).format(new Date(iso));
 
 async function api(path, options={}){
-  const headers={apikey:CFG.SUPABASE_PUBLISHABLE_KEY,...(options.headers||{})};
   const timeoutMs=Number(options.timeoutMs||12000);
   const retries=Number(options.retries??1);
+  const authModes=[
+    {name:'publishable',apikey:CFG.SUPABASE_PUBLISHABLE_KEY,authorization:CFG.SUPABASE_ANON_KEY||null},
+    ...(CFG.SUPABASE_ANON_KEY?[{name:'legacy-anon',apikey:CFG.SUPABASE_ANON_KEY,authorization:CFG.SUPABASE_ANON_KEY}]:[])
+  ];
   let lastErr;
-  for(let attempt=0;attempt<=retries;attempt++){
-    const ctl=new AbortController();
-    const timer=setTimeout(()=>ctl.abort(),timeoutMs);
-    try{
-      const {timeoutMs:_t,retries:_r,...fetchOptions}=options;
-      const r=await fetch(`${CFG.SUPABASE_URL}${path}`,{...fetchOptions,headers,signal:ctl.signal});
-      clearTimeout(timer);
-      if(!r.ok) throw new Error(`${r.status} ${await r.text()}`);
-      return r.status===204?null:r.json();
-    }catch(e){
-      clearTimeout(timer);lastErr=e;
-      if(attempt<retries) await new Promise(r=>setTimeout(r,450*(attempt+1)));
+  for(const auth of authModes){
+    for(let attempt=0;attempt<=retries;attempt++){
+      const ctl=new AbortController();
+      const timer=setTimeout(()=>ctl.abort(),timeoutMs);
+      try{
+        const {timeoutMs:_t,retries:_r,...fetchOptions}=options;
+        const headers={apikey:auth.apikey,...(auth.authorization?{Authorization:`Bearer ${auth.authorization}`}:{}) ,...(options.headers||{})};
+        const r=await fetch(`${CFG.SUPABASE_URL}${path}`,{...fetchOptions,headers,signal:ctl.signal,cache:'no-store'});
+        clearTimeout(timer);
+        if(!r.ok){const body=await r.text();throw new Error(`${auth.name} ${r.status} ${body||r.statusText}`)}
+        return r.status===204?null:r.json();
+      }catch(e){
+        clearTimeout(timer);lastErr=e;
+        if(attempt<retries) await new Promise(r=>setTimeout(r,500*(attempt+1)));
+      }
     }
   }
   throw lastErr;
@@ -170,17 +176,26 @@ function loadBuilder(){try{state.builder=JSON.parse(localStorage.getItem(storage
 function saveBuilder(){localStorage.setItem(storageKey(),JSON.stringify(state.builder));state.builderEval=null;updateBuilderCount();renderBuilder();evaluateBuilder().catch(showError)}
 function updateBuilderCount(){$('#builderCount').textContent=state.builder.length}
 
+const BOOTSTRAP_MATCHES_2026 = [
+  {match_id:'59712394-5931-4487-8d5c-b1e080206a53',external_id:'9023',season:2026,round_name:'Semi Finals',venue:'Optus Stadium',start_time:'2026-09-11T10:10:00Z',status:'scheduled',home_team_name:'Fremantle',away_team_name:'Geelong Cats',model_version:'baseline-v0.2',prediction_is_final:false,lineup_confirmed:false,used_fallback_lineup:true,final_recommendation_locked:false},
+  {match_id:'5f4b20e2-dad6-4ba8-b940-946577653eb2',external_id:'9030',season:2026,round_name:'Semi Finals',venue:'Gabba',start_time:'2026-09-12T09:35:00Z',status:'scheduled',home_team_name:'Brisbane Lions',away_team_name:'Adelaide Crows',model_version:'baseline-v0.2',prediction_is_final:false,lineup_confirmed:false,used_fallback_lineup:true,final_recommendation_locked:false},
+  {match_id:'a88e8b86-60ef-48dc-83c0-c0c60caa763c',external_id:'9027',season:2026,round_name:'Preliminary Finals',venue:'To Be Confirmed',start_time:'2026-09-14T02:00:00Z',status:'scheduled',home_team_name:'Hawthorn',away_team_name:'Winner of SF2',model_version:'baseline-v0.2',prediction_is_final:false,lineup_confirmed:false,used_fallback_lineup:true,final_recommendation_locked:false},
+  {match_id:'9657bd55-e29d-4076-8644-5cb9d3301bf4',external_id:'9026',season:2026,round_name:'Preliminary Finals',venue:'To Be Confirmed',start_time:'2026-09-14T02:00:00Z',status:'scheduled',home_team_name:'Sydney Swans',away_team_name:'Winner of SF1',model_version:'baseline-v0.2',prediction_is_final:false,lineup_confirmed:false,used_fallback_lineup:true,final_recommendation_locked:false},
+  {match_id:'2ebbe857-e694-4e3c-9fb1-ff91f93a19aa',external_id:'9028',season:2026,round_name:'Grand Final',venue:'MCG',start_time:'2026-09-26T04:30:00Z',status:'scheduled',home_team_name:'Winner of PF1',away_team_name:'Winner of PF2',model_version:null,prediction_is_final:null,lineup_confirmed:false,used_fallback_lineup:true,final_recommendation_locked:false}
+];
+
 async function loadMatches(){
-  let rows;
+  let rows, liveError=null;
   try{
-    rows=await api('/rest/v1/afl_api_matches?select=*&season=eq.2026&order=start_time.asc',{timeoutMs:10000,retries:1});
+    rows=await api('/rest/v1/afl_api_matches?select=*&season=eq.2026&order=start_time.asc',{timeoutMs:9000,retries:1});
     localStorage.setItem('afl:matches:2026',JSON.stringify({rows,savedAt:Date.now()}));
   }catch(e){
-    const cached=JSON.parse(localStorage.getItem('afl:matches:2026')||'null');
-    if(!cached?.rows?.length)throw e;rows=cached.rows;
-    $('#healthBadge').className='badge warn';$('#healthBadge').textContent='Cached Data';
+    liveError=e;
+    let cached=null;try{cached=JSON.parse(localStorage.getItem('afl:matches:2026')||'null')}catch{}
+    rows=cached?.rows?.length?cached.rows:BOOTSTRAP_MATCHES_2026;
+    $('#healthBadge').className='badge warn';$('#healthBadge').textContent=cached?.rows?.length?'Cached Matches':'Fixture Fallback';$('#healthBadge').title=`MATCHES: ${shortErr(e)}`;
   }
-  state.matches=rows;
+  state.matches=rows||[];
   const future=rows.filter(m=>['scheduled','live'].includes(m.status));
   $('#matchSelect').innerHTML=future.map(m=>`<option value="${m.match_id}">${esc(m.round_name)} · ${esc(m.home_team_name)} vs ${esc(m.away_team_name)} · ${dt(m.start_time)}</option>`).join('');
   if(!state.selected || !future.some(m=>m.match_id===state.selected)) state.selected=future[0]?.match_id||rows.at(-1)?.match_id||null;
@@ -695,15 +710,15 @@ function openPlayerOptionModal(playerId){
 
 function fieldAdd(playerId,market='best'){let legs=state.legs.filter(l=>l.player_id===playerId);if(market!=='best')legs=legs.filter(l=>l.market===market);legs.sort((a,b)=>Number(b.model_probability)-Number(a.model_probability));if(legs[0])addLegById(legs[0].prediction_leg_id)}
 
-function switchView(name){state.view=name;$$('.view').forEach(v=>v.classList.remove('active-view'));$(`#view-${name}`)?.classList.add('active-view');$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name));if(name==='player-markets'&&!state.legsLoaded){$('#healthBadge').className='badge warn';$('#healthBadge').textContent='Loading Player Markets…';loadLegsLazy().then(()=>{$('#healthBadge').className='badge good';$('#healthBadge').textContent='Player Markets Loaded'}).catch(()=>{})}if(name==='multi-lab'){renderBuilder();if(!state.legsLoaded)loadLegsLazy().catch(()=>{})}if(name==='validation')renderValidation();if(name==='shadow-live')renderShadowLive()}
+function switchView(name){state.view=name;$$('.view').forEach(v=>v.classList.remove('active-view'));$(`#view-${name}`)?.classList.add('active-view');$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name));if(name==='players'&&!state.legsLoaded){$('#healthBadge').className='badge warn';$('#healthBadge').textContent='Loading Player Markets…';loadLegsLazy().then(()=>{$('#healthBadge').className='badge good';$('#healthBadge').textContent='Player Markets Loaded'}).catch(()=>{})}if(name==='multi-lab'){renderBuilder();if(!state.legsLoaded)loadLegsLazy().catch(()=>{})}if(name==='validation')renderValidation();if(name==='shadow-live')renderShadowLive()}
 function showError(e){console.error(e);$('#healthBadge').className='badge bad';$('#healthBadge').textContent='API Error';$('#healthBadge').title=shortErr(e)}
 async function bootstrap(){
   $('#healthBadge').className='badge warn';$('#healthBadge').textContent='Connecting…';
   try{
     await loadMatches();
-    await loadSelected();
+    if(state.selected) await loadSelected();
     loadValidation().catch(e=>console.warn('Validation background load failed',e));
-  }catch(e){showError(e)}
+  }catch(e){showModuleError('BOOTSTRAP',e)}
 }
 
 $$('.tab').forEach(t=>t.addEventListener('click',()=>switchView(t.dataset.view)));$$('[data-go]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.go)));
