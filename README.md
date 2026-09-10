@@ -1,3 +1,9 @@
+## v27 overlay safe-area update
+
+- Safer end-zone insets to prevent oval-edge clipping.
+- Player option selection stays on Match page.
+- Closable in-line Multi Lab floating summary beside Interchanges.
+
 # AFL Match Lab Independent Web — v20 Parallel Test
 
 v20 parity update:

@@ -5,7 +5,7 @@ if(CFG?.PARALLEL_TEST){
 }else{
   const b=document.getElementById('parallelTestBanner'); if(b)b.hidden=true;
 }
-const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, view:'match' };
+const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, lineupBuilderFloatClosed:false, view:'match' };
 
 
 // 2026 finals branding + jumper numbers. Numbers verified against AFL official team squad pages.
@@ -438,11 +438,12 @@ function renderMatchFieldBoard(){
     centerRows=defs.map(([l,p])=>lineRow(t,i,l,p)).join('');
   }
   const left=`<aside class="lineup-side followers"><h3>Followers</h3>${teams.map((t,i)=>visible(i)?`<div class="side-team-block team-${i}">${followerCards(t,i)}</div>`:'').join('')}</aside>`;
-  const right=`<aside class="lineup-side interchanges"><h3>Interchanges</h3>${teams.map((t,i)=>visible(i)?`<div class="side-team-block team-${i}">${benchCards(t,i)}</div>`:'').join('')}</aside>`;
+  const right=`<aside class="lineup-side interchanges"><h3>Interchanges</h3>${teams.map((t,i)=>visible(i)?`<div class="side-team-block team-${i}">${benchCards(t,i)}</div>`:'').join('')}${builderFloatHtml()}</aside>`;
   const emergencies=teams.map((t,i)=>visible(i)?emergencyCards(t,i):'').join('');
   host.innerHTML=`${filters}${legend}<div class="lineup-main-grid overlay-field-mode">${left}<div class="lineup-center overlay-lineup-center"><div class="afl-oval overlay-afl-field"><div class="oval-markings"><div class="boundary-inner"></div><div class="centre-square"></div><div class="centre-circle"></div><div class="centre-dot"></div><div class="arc arc-top"></div><div class="arc arc-bottom"></div><div class="goal-square goal-square-top"></div><div class="goal-square goal-square-bottom"></div><div class="goal-posts goal-posts-top"><i></i><i></i><i></i><i></i></div><div class="goal-posts goal-posts-bottom"><i></i><i></i><i></i><i></i></div></div><div class="position-roster overlay-position-roster ${state.fieldTeamFilter==='all'?'all-teams':'single-team'}">${centerRows}</div></div></div>${right}</div>${emergencies?`<div class="emergency-strip"><span>Emergencies</span>${emergencies}</div>`:''}`;
   $$('#matchFieldTeams .lineup-team-filters button').forEach(b=>b.addEventListener('click',()=>{state.fieldTeamFilter=b.dataset.team;renderMatchFieldBoard()}));
   $$('#matchFieldTeams .lineup-player-card[data-player-id], #matchFieldTeams .mini-player-dot[data-player-id]').forEach(b=>b.addEventListener('click',()=>openPlayerOptionModal(b.dataset.playerId)));
+  bindLineupBuilderFloat();
 }
 
 function renderField(){
@@ -455,10 +456,31 @@ function renderField(){
 
 const MARKET_MODAL_ORDER=['goals','kicks','disposals','marks','tackles','handballs','hitouts','clearances','fantasy_points'];
 function modalLegsForPlayer(playerId){return state.legs.filter(l=>l.player_id===playerId).sort((a,b)=>MARKET_MODAL_ORDER.indexOf(a.market)-MARKET_MODAL_ORDER.indexOf(b.market)||Number(a.threshold)-Number(b.threshold))}
+function builderNaiveSummary(){
+  const probs=state.builder.map(x=>Number(x.model_probability||x.calibrated_probability||x.raw_probability||0)).filter(x=>x>0&&x<=1);
+  if(!probs.length)return {p:null,fair:null};
+  const p=probs.reduce((a,b)=>a*b,1);return {p,fair:p>0?1/p:null};
+}
+function builderFloatHtml(){
+  if(state.lineupBuilderFloatClosed||!state.builder.length)return '';
+  const sum=builderNaiveSummary();
+  const legs=state.builder.slice(-6).map((l,i)=>`<div class="lineup-float-leg"><span>${esc(l.selection||`${l.player_name||''} ${marketLabel(l.market)} ${l.threshold}+`)}</span><b>${pct(l.model_probability||l.calibrated_probability||l.raw_probability)}</b></div>`).join('');
+  const extra=state.builder.length>6?`<div class="lineup-float-more">+${state.builder.length-6} more</div>`:'';
+  return `<div class="lineup-builder-float" id="lineupBuilderFloat"><div class="lineup-float-head"><div><span class="eyebrow">MULTI LAB</span><strong>已加入 ${state.builder.length} 腿</strong></div><button type="button" class="lineup-float-close" aria-label="Close">×</button></div><div class="lineup-float-legs">${legs}${extra}</div><div class="lineup-float-summary"><span>粗略联合概率 <b>${sum.p==null?'—':pct(sum.p)}</b></span><span>Fair <b>${sum.fair==null?'—':odds(sum.fair)}</b></span></div><button type="button" class="lineup-float-open">打开 Multi Lab</button></div>`;
+}
+function bindLineupBuilderFloat(){
+  document.querySelector('#lineupBuilderFloat .lineup-float-close')?.addEventListener('click',()=>{state.lineupBuilderFloatClosed=true;document.querySelector('#lineupBuilderFloat')?.remove()});
+  document.querySelector('#lineupBuilderFloat .lineup-float-open')?.addEventListener('click',()=>switchView('multi-lab'));
+}
+function refreshLineupBuilderFloat(){
+  const host=document.querySelector('#matchFieldTeams .interchanges');if(!host)return;
+  host.querySelector('#lineupBuilderFloat')?.remove();
+  const html=builderFloatHtml();if(html)host.insertAdjacentHTML('beforeend',html);bindLineupBuilderFloat();
+}
 function addLegsToBuilder(legs){
-  const clean=(legs||[]).filter(Boolean);
-  clean.forEach(l=>{if(l.prediction_leg_id&&!state.builder.some(x=>x.prediction_leg_id===l.prediction_leg_id))state.builder.push(normalizeLeg(l))});
-  if(clean.length){saveBuilder();closePlayerOptionModal();switchView('multi-lab')}
+  const clean=(legs||[]).filter(Boolean);let added=0;
+  clean.forEach(l=>{if(l.prediction_leg_id&&!state.builder.some(x=>x.prediction_leg_id===l.prediction_leg_id)){state.builder.push(normalizeLeg(l));added++}});
+  if(clean.length){saveBuilder();closePlayerOptionModal();if(added){state.lineupBuilderFloatClosed=false;refreshLineupBuilderFloat()}}
 }
 function probabilityBandLegs(playerId,min,max){
   const eligible=modalLegsForPlayer(playerId).filter(l=>{const p=Number(l.model_probability);return p>=min&&p<(max>=1?1.00001:max)});
