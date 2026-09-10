@@ -10,10 +10,26 @@ const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent
 
 // 2026 finals branding + jumper numbers. Numbers verified against AFL official team squad pages.
 const TEAM_BRAND = {
+  'Adelaide Crows': {abbr:'ADEL', logo:'./assets/logos/adelaide-crows.svg', homeBg:'repeating-linear-gradient(to bottom,#071a3d 0 7px,#d71920 7px 12px,#f6c400 12px 17px)', homeFg:'#fff', awayBg:'repeating-linear-gradient(to bottom,#fff 0 8px,#d71920 8px 11px,#f6c400 11px 14px,#071a3d 14px 17px)', awayFg:'#071a3d', border:'#071a3d'},
+  'Brisbane Lions': {abbr:'BL', logo:'./assets/logos/brisbane-lions.svg', homeBg:'linear-gradient(135deg,#7b1635 0 60%,#f5c542 61% 72%,#1d4d8f 73%)', homeFg:'#fff', awayBg:'linear-gradient(135deg,#1d4d8f 0 58%,#f5c542 59% 71%,#7b1635 72%)', awayFg:'#fff', border:'#7b1635'},
+  'Carlton': {abbr:'CARL', logo:'./assets/logos/carlton.svg', homeBg:'#081f3d', homeFg:'#fff', awayBg:'#fff', awayFg:'#081f3d', border:'#081f3d'},
+  'Collingwood': {abbr:'COLL', logo:'./assets/logos/collingwood.svg', homeBg:'repeating-linear-gradient(90deg,#111 0 6px,#fff 6px 12px)', homeFg:'#111', awayBg:'repeating-linear-gradient(90deg,#fff 0 6px,#111 6px 12px)', awayFg:'#111', border:'#111'},
+  'Essendon': {abbr:'ESS', logo:'./assets/logos/essendon.svg', homeBg:'linear-gradient(135deg,#111 0 42%,#e31b23 43% 57%,#111 58%)', homeFg:'#fff', awayBg:'linear-gradient(135deg,#fff 0 42%,#e31b23 43% 57%,#fff 58%)', awayFg:'#111', border:'#e31b23'},
   'Fremantle': {abbr:'FRE', logo:'./assets/logos/fremantle.svg', homeBg:'linear-gradient(145deg,#2b0a3d 0 42%,#fff 43% 49%,#2b0a3d 50% 59%,#fff 60% 66%,#2b0a3d 67%)', homeFg:'#fff', awayBg:'linear-gradient(145deg,#fff 0 42%,#5b2c83 43% 49%,#fff 50% 59%,#5b2c83 60% 66%,#fff 67%)', awayFg:'#4b1f69', border:'#5b2c83'},
   'Geelong Cats': {abbr:'GEEL', logo:'./assets/logos/geelong-cats.svg', homeBg:'repeating-linear-gradient(to bottom,#0b2341 0 5px,#fff 5px 10px)', homeFg:'#0b2341', awayBg:'repeating-linear-gradient(to bottom,#fff 0 6px,#0b2341 6px 9px)', awayFg:'#0b2341', border:'#0b2341'},
-  'Brisbane Lions': {abbr:'BL', logo:'./assets/logos/brisbane-lions.svg', homeBg:'linear-gradient(135deg,#7b1635 0 60%,#f5c542 61% 72%,#1d4d8f 73%)', homeFg:'#fff', awayBg:'linear-gradient(135deg,#1d4d8f 0 58%,#f5c542 59% 71%,#7b1635 72%)', awayFg:'#fff', border:'#7b1635'},
-  'Adelaide Crows': {abbr:'ADEL', logo:'./assets/logos/adelaide-crows.svg', homeBg:'repeating-linear-gradient(to bottom,#071a3d 0 7px,#d71920 7px 12px,#f6c400 12px 17px)', homeFg:'#fff', awayBg:'repeating-linear-gradient(to bottom,#fff 0 8px,#d71920 8px 11px,#f6c400 11px 14px,#071a3d 14px 17px)', awayFg:'#071a3d', border:'#071a3d'}
+  'Gold Coast SUNS': {abbr:'GCS', logo:'./assets/logos/gold-coast-suns.svg', homeBg:'#e31b23', homeFg:'#f6c400', awayBg:'#f6c400', awayFg:'#e31b23', border:'#e31b23'},
+  'Gold Coast Suns': {abbr:'GCS', logo:'./assets/logos/gold-coast-suns.svg', homeBg:'#e31b23', homeFg:'#f6c400', awayBg:'#f6c400', awayFg:'#e31b23', border:'#e31b23'},
+  'GWS GIANTS': {abbr:'GWS', logo:'./assets/logos/gws-giants.svg', homeBg:'#f47920', homeFg:'#111', awayBg:'#fff', awayFg:'#f47920', border:'#f47920'},
+  'Greater Western Sydney Giants': {abbr:'GWS', logo:'./assets/logos/gws-giants.svg', homeBg:'#f47920', homeFg:'#111', awayBg:'#fff', awayFg:'#f47920', border:'#f47920'},
+  'Hawthorn': {abbr:'HAW', logo:'./assets/logos/hawthorn.svg', homeBg:'repeating-linear-gradient(90deg,#4b2b20 0 7px,#f6c400 7px 14px)', homeFg:'#111', awayBg:'repeating-linear-gradient(90deg,#fff 0 7px,#4b2b20 7px 10px,#f6c400 10px 14px)', awayFg:'#4b2b20', border:'#4b2b20'},
+  'Melbourne': {abbr:'MEL', logo:'./assets/logos/melbourne.svg', homeBg:'linear-gradient(#d71920 0 28%,#061a3a 29%)', homeFg:'#fff', awayBg:'#fff', awayFg:'#061a3a', border:'#061a3a'},
+  'North Melbourne': {abbr:'NM', logo:'./assets/logos/north-melbourne.svg', homeBg:'repeating-linear-gradient(90deg,#1769aa 0 7px,#fff 7px 14px)', homeFg:'#1769aa', awayBg:'#fff', awayFg:'#1769aa', border:'#1769aa'},
+  'Port Adelaide': {abbr:'PORT', logo:'./assets/logos/port-adelaide.svg', homeBg:'linear-gradient(135deg,#111 0 62%,#00a0b0 63%)', homeFg:'#fff', awayBg:'#fff', awayFg:'#111', border:'#00a0b0'},
+  'Richmond': {abbr:'RICH', logo:'./assets/logos/richmond.svg', homeBg:'linear-gradient(135deg,#111 0 42%,#f6c400 43% 57%,#111 58%)', homeFg:'#fff', awayBg:'#f6c400', awayFg:'#111', border:'#111'},
+  'St Kilda': {abbr:'STK', logo:'./assets/logos/st-kilda.svg', homeBg:'linear-gradient(90deg,#111 0 33%,#fff 33% 66%,#d71920 66%)', homeFg:'#111', awayBg:'#fff', awayFg:'#111', border:'#d71920'},
+  'Sydney Swans': {abbr:'SYD', logo:'./assets/logos/sydney-swans.svg', homeBg:'linear-gradient(#fff 0 45%,#d71920 46%)', homeFg:'#d71920', awayBg:'#fff', awayFg:'#d71920', border:'#d71920'},
+  'West Coast Eagles': {abbr:'WCE', logo:'./assets/logos/west-coast-eagles.svg', homeBg:'#003087', homeFg:'#f6c400', awayBg:'#f6c400', awayFg:'#003087', border:'#003087'},
+  'Western Bulldogs': {abbr:'WB', logo:'./assets/logos/western-bulldogs.svg', homeBg:'repeating-linear-gradient(to bottom,#0057b8 0 7px,#fff 7px 11px,#d71920 11px 15px)', homeFg:'#fff', awayBg:'#fff', awayFg:'#0057b8', border:'#0057b8'}
 };
 
 const JUMPER_2026 = {
