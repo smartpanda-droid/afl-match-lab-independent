@@ -991,6 +991,7 @@ function fieldAdd(playerId,market='best'){let legs=state.legs.filter(l=>l.player
 function switchView(name){
   if(!state.selected&&!['reviews','validation'].includes(name))name='reviews';
   $('.match-picker').hidden=name==='reviews';
+  $('.match-picker').style.display=name==='reviews'?'none':'';
   if(name==='reviews')loadReviews();
   state.view=name;$$('.view').forEach(v=>v.classList.remove('active-view'));$(`#view-${name}`)?.classList.add('active-view');$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name));
   if(name==='players')ensurePlayerMarketData().catch(e=>setModuleStatus('legs','error',e.message));
@@ -1027,7 +1028,7 @@ function reconcileMatchPicker(){
 function initReviewPage(){
   const tab=document.createElement('button');tab.className='tab';tab.dataset.view='reviews';tab.textContent='赛事回顾';$('.tabs').append(tab);
   const page=document.createElement('section');page.id='view-reviews';page.className='view';
-  page.innerHTML=`<section class="panel"><div class="section-head"><div><div class="eyebrow">MATCH REVIEW</div><h2>赛事回顾</h2></div><button id="reviewRefresh" class="ghost">刷新回顾</button></div>
+  page.innerHTML=`<style>#view-reviews .note{font-size:14px;line-height:1.6}#view-reviews .validation-table{font-size:14px}#view-reviews input,#view-reviews select{max-width:100%;min-width:0}#view-reviews .stats-grid .stat{padding:16px}</style><section class="panel"><div class="section-head"><div><div class="eyebrow">MATCH REVIEW</div><h2>赛事回顾</h2></div><button id="reviewRefresh" class="ghost">刷新回顾</button></div>
     <p class="note">开赛 10 分钟后移入本页。仅展示赛前封存预测；开赛 8 小时后自动获取赛果并验证。</p>
     <label for="reviewSelect">已下架赛事</label> <select id="reviewSelect" style="max-width:100%"></select><p id="reviewLoadStatus" role="status"></p></section>
     <section id="reviewSummary" class="panel"></section>
@@ -1084,7 +1085,7 @@ function renderReview(){
   const score=s.home_score!=null&&s.away_score!=null?`${s.home_score} – ${s.away_score}`:'等待最终比分';
   $('#reviewSummary').innerHTML=`<div class="section-head"><h2>${esc(r.home_team_name)} vs ${esc(r.away_team_name)}</h2><span class="badge ${r.status==='verified'?'good':'neutral'}">${r.status==='verified'?'已验证':'待验证'}</span></div>
     <p>${dt(r.start_time)} · ${score}</p><p class="note">${r.frozen_at?`封存时间：${dt(r.frozen_at)}`:'尚无可用的赛前封存记录；不会以赛后预测补填。'}</p>
-    <div class="stats-grid">${stat('单项命中率',s.hit_rate==null?'—':pct(s.hit_rate))}${stat('命中 / 已判定',`${s.hits||0} / ${(s.hits||0)+(s.misses||0)}`)}${stat('待验证',s.pending||0)}${stat('不计入 / 走盘',s.void||0)}${stat('串关命中率',s.multis?.hit_rate==null?'—':pct(s.multis.hit_rate))}${stat('串关命中 / 已判定',`${s.multis?.hits||0} / ${(s.multis?.hits||0)+(s.multis?.misses||0)}`)}</div>
+    <div class="stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">${stat('单项命中率',s.hit_rate==null?'—':pct(s.hit_rate))}${stat('命中 / 已判定',`${s.hits||0} / ${(s.hits||0)+(s.misses||0)}`)}${stat('待验证',s.pending||0)}${stat('不计入 / 走盘',s.void||0)}${stat('串关命中率',s.multis?.hit_rate==null?'—':pct(s.multis.hit_rate))}${stat('串关命中 / 已判定',`${s.multis?.hits||0} / ${(s.multis?.hits||0)+(s.multis?.misses||0)}`)}</div>
     ${r.frozen_at&&!s.match_markets_frozen?'<p class="note">该场历史封存不含比赛玩法，无法补做其胜负、大小球及让分验证。下一场起同步封存。</p>':''}
     ${d?.predicted_scores?`<p>封存预测比分：${esc(d.predicted_scores.predicted_home_score)} – ${esc(d.predicted_scores.predicted_away_score)}；实际比分：${score}</p>`:''}`;
   const market=$('#reviewMarket').value;
