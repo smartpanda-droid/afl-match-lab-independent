@@ -1,0 +1,11 @@
+/* Match Review display policy: keep match-level prediction validation and System Multi validation only.
+   Single-leg settlement data remains in the backend for calibration/audit, but is intentionally hidden from the review UI. */
+#view-reviews .panel:has(#reviewLegTable) {
+  display: none !important;
+}
+
+/* In the review summary, the first four cards are single-leg settlement metrics.
+   Keep only the System Multi hit-rate cards in the visible stats grid. */
+#reviewSummary .stats-grid .stat:nth-child(-n+4) {
+  display: none !important;
+}
