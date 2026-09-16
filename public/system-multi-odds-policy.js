@@ -66,7 +66,6 @@
     totals: dynamicOddsDefaults(),
   });
 
-  // Replace the former strategy-dependent probability bands with explicit fair-odds bands.
   systemAnchorBand = function () {
     return [ANCHOR_P_MIN, ANCHOR_P_MAX, ANCHOR_P_TARGET];
   };
@@ -104,7 +103,6 @@
     return !SYSTEM_MULTI_EXCLUDED_MARKETS.has(market) && f.markets.has(l.market) && systemTradableProbability(p);
   };
 
-  // Keep match-market candidates in exactly the same leg-odds bands as player markets.
   matchMarketCandidates = function (strategy = 'balanced', legCount = 2) {
     const q = state.matchQuote;
     if (!q) return [];
@@ -174,6 +172,43 @@
       markets: new Set(availableSystemMarkets()),
       odds: dynamicOddsDefaults(),
     };
+  };
+
+  function applyBandStatusLabels() {
+    if (typeof visibleMultiRows !== 'function') return;
+    const rows = visibleMultiRows();
+    const cards = [...document.querySelectorAll('#multiCards .multi-card')];
+    const f = state.systemFilterActive || defaultSystemFilterState();
+    cards.forEach((card, i) => {
+      const m = rows[i];
+      if (!m) return;
+      const badge = card.querySelector('.multi-rec');
+      if (!badge) return;
+      const range = f.odds?.[m.strategy]?.[Number(m.leg_count)] || strategyRange(m.strategy, m.leg_count);
+      const fair = Number(m.fair_odds);
+      let label = '区间内 · 非默认';
+      let cls = 'multi-rec badge neutral';
+      if (Number.isFinite(fair) && fair < Number(range[0])) {
+        label = '赔率偏低';
+        cls = 'multi-rec badge warn';
+      } else if (Number.isFinite(fair) && fair > Number(range[1])) {
+        label = '赔率偏高';
+        cls = 'multi-rec badge warn';
+      } else if (m.recommended) {
+        label = 'RECOMMENDED';
+        cls = 'multi-rec badge good';
+      }
+      badge.textContent = label;
+      badge.className = cls;
+      badge.title = `目标总赔率 ${Number(range[0]).toFixed(2)}–${Number(range[1]).toFixed(2)} · 当前 Fair Odds ${Number.isFinite(fair) ? fair.toFixed(2) : '—'}`;
+    });
+  }
+
+  const baseRenderMultis = renderMultis;
+  renderMultis = function (...args) {
+    const result = baseRenderMultis.apply(this, args);
+    applyBandStatusLabels();
+    return result;
   };
 
   const note = document.querySelector('.system-rule-note');
