@@ -1,0 +1,162 @@
+/* AFL Match Lab P2 v64 — five-entry IA, Multi workspace and mobile bottom navigation */
+:root{
+  --p2-nav-w:218px;
+  --p2-green:#075f49;
+  --p2-green-2:#0a7658;
+  --p2-ink:#173247;
+  --p2-muted:#708192;
+  --p2-line:#dce7e5;
+  --p2-bg:#ffffff;
+  --p2-soft:#f3f8f6;
+  --p2-shadow:0 16px 45px rgba(8,34,49,.14);
+}
+
+/* Legacy navigation remains in the DOM for app compatibility, but is no longer user-facing. */
+body.p2-nav-ready .tabs,
+body.p2-nav-ready #mobileMoreSheet,
+body.p2-nav-ready .sidebar-footer,
+body.p2-nav-ready .mobile-header-menu{display:none!important}
+
+.p2-primary-nav{
+  position:fixed;z-index:125;left:0;top:72px;bottom:0;width:var(--p2-nav-w);
+  padding:14px 10px 118px;display:flex;flex-direction:column;gap:5px;
+  border-right:1px solid var(--p2-line);background:rgba(255,255,255,.985);
+  overflow-y:auto;overflow-x:hidden
+}
+.p2-nav-button{
+  position:relative;width:100%;min-height:61px;padding:9px 10px;display:grid;
+  grid-template-columns:34px minmax(0,1fr);align-items:center;gap:9px;
+  border:0;border-radius:9px;background:transparent;color:var(--p2-ink);text-align:left;
+  cursor:pointer
+}
+.p2-nav-button:hover{background:#f1f7f5}
+.p2-nav-button.active{background:linear-gradient(135deg,#075e48,#004b39);color:#fff;box-shadow:0 6px 14px rgba(0,86,64,.18)}
+.p2-nav-icon{width:28px;height:28px;display:grid;place-items:center;color:#0b5745}
+.p2-nav-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.p2-nav-button.active .p2-nav-icon{color:#fff}
+.p2-nav-copy{min-width:0;display:grid;gap:2px}
+.p2-nav-copy strong{font-size:13px;line-height:1.1;color:inherit}
+.p2-nav-copy small{overflow:hidden;color:#718294;font-size:9px;line-height:1.25;text-overflow:ellipsis;white-space:nowrap}
+.p2-nav-button.active small{color:#d7eee6}
+.p2-nav-badge{
+  position:absolute;right:8px;top:7px;min-width:20px;height:20px;padding:0 6px;display:none;place-items:center;
+  border-radius:999px;background:#dceee7;color:#075f49;font-size:8px;font-weight:850
+}
+.p2-nav-badge.has-items{display:grid}.p2-nav-button.active .p2-nav-badge{background:rgba(255,255,255,.2);color:#fff}
+.p2-nav-footer{
+  position:absolute;left:20px;right:18px;bottom:22px;padding:6px 0 5px 14px;border-left:2px solid #d7a332;
+  color:#284052;font:italic 14px/1.2 Georgia,serif
+}
+.p2-nav-footer small{display:block;margin-top:8px;color:#82909d;font:normal 8px/1.35 Arial,sans-serif;letter-spacing:.04em}
+
+/* More is intentionally a secondary research / technical layer. */
+.p2-more-drawer{
+  position:fixed;z-index:190;left:calc(var(--p2-nav-w) + 10px);top:84px;width:min(370px,calc(100vw - var(--p2-nav-w) - 26px));
+  max-height:calc(100vh - 100px);padding:12px;display:none;overflow:auto;
+  border:1px solid var(--p2-line);border-radius:14px;background:rgba(255,255,255,.99);box-shadow:var(--p2-shadow);
+  backdrop-filter:blur(18px)
+}
+.p2-more-drawer.open{display:block}
+.p2-drawer-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:5px 5px 11px;border-bottom:1px solid #e8eeee}
+.p2-drawer-head h3{margin:1px 0 0;color:#173247;font-size:16px}.p2-drawer-head p{margin:3px 0 0;color:#748493;font-size:9px;line-height:1.45}
+.p2-drawer-close{width:31px;height:31px;padding:0;border:0;border-radius:8px;background:#eef4f2;color:#405a6b;font-size:18px;cursor:pointer}
+.p2-drawer-section{padding:11px 2px 3px}.p2-drawer-label{margin:0 4px 7px;color:#83909c;font-size:8px;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
+.p2-drawer-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.p2-drawer-item{
+  min-height:72px;padding:10px;display:grid;grid-template-columns:28px 1fr;grid-template-rows:auto auto;gap:1px 8px;
+  text-align:left;border:1px solid #e0e9e7;border-radius:9px;background:#f6faf8;color:#203b4e;cursor:pointer
+}
+.p2-drawer-item:hover,.p2-drawer-item.active{border-color:#b9d9ce;background:#edf8f4}
+.p2-drawer-item .p2-mini-icon{grid-row:1/-1;align-self:center;color:#087156}.p2-drawer-item .p2-mini-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.p2-drawer-item strong{align-self:end;font-size:10px}.p2-drawer-item small{color:#728392;font-size:8px;line-height:1.3}
+.p2-system-status{padding:10px;border:1px solid #e1e9e8;border-radius:9px;background:#fbfdfc}
+.p2-status-line{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.p2-status-line strong{font-size:10px;color:#2a4658}.p2-status-pill{padding:4px 7px;border-radius:999px;background:#edf3f2;color:#61756d;font-size:8px;font-weight:800}
+.p2-status-pill.good{background:#e2f6ec;color:#08734f}.p2-status-pill.warn{background:#fff3d9;color:#93661a}
+.p2-system-status p{margin:6px 0 0;color:#70818f;font-size:8px;line-height:1.4}
+.p2-system-refresh{margin-top:8px;width:100%;min-height:31px;border:1px solid #dce6e4;border-radius:7px;background:#fff;color:#385566;font-size:9px;font-weight:750;cursor:pointer}
+
+/* Multi becomes one primary workspace with two clear modes. */
+.p2-multi-switcher{
+  padding:7px;display:flex;justify-content:space-between;gap:10px;align-items:center;
+  border:1px solid #dce7e5;border-radius:11px;background:#f7faf9;box-shadow:0 3px 12px rgba(8,34,49,.03)
+}
+.p2-multi-switcher-copy{padding-left:5px;min-width:0}.p2-multi-switcher-copy strong{display:block;color:#1d394c;font-size:11px}.p2-multi-switcher-copy span{display:block;margin-top:2px;color:#718391;font-size:8px}
+.p2-multi-modes{display:flex;gap:5px;padding:3px;border-radius:9px;background:#e9f0ee}
+.p2-multi-mode{
+  min-height:32px;padding:6px 12px;border:0;border-radius:7px;background:transparent;color:#536b78;font-size:9px;font-weight:800;cursor:pointer
+}
+.p2-multi-mode.active{background:#fff;color:#075f49;box-shadow:0 2px 8px rgba(8,34,49,.08)}
+
+/* Matchday journey makes the intended order explicit without hiding deep research. */
+.p2-decision-flow{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;padding:7px;
+  border:1px solid #dde8e6;border-radius:11px;background:#f8fbfa
+}
+.p2-flow-step{
+  min-width:0;min-height:49px;padding:7px 9px;display:grid;grid-template-columns:24px minmax(0,1fr);align-items:center;gap:7px;
+  border:1px solid transparent;border-radius:8px;background:transparent;color:#526978;text-align:left;cursor:pointer
+}
+.p2-flow-step:hover{background:#fff}.p2-flow-step.active{border-color:#c5ded5;background:#fff;color:#075f49}
+.p2-flow-index{width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:#e4eeeb;color:#557167;font-size:8px;font-weight:850}
+.p2-flow-step.active .p2-flow-index{background:#087156;color:#fff}
+.p2-flow-copy{min-width:0}.p2-flow-copy strong{display:block;font-size:9px}.p2-flow-copy small{display:block;margin-top:1px;overflow:hidden;color:#7b8996;font-size:7px;text-overflow:ellipsis;white-space:nowrap}
+
+/* Secondary views should feel like research tools rather than equal top-level destinations. */
+body[data-p2-view="field"] #view-field,
+body[data-p2-view="tactics"] #view-tactics,
+body[data-p2-view="validation"] #view-validation,
+body[data-p2-view="shadow-live"] #view-shadow-live{position:relative}
+.p2-secondary-context{
+  display:flex;justify-content:space-between;gap:12px;align-items:center;padding:8px 11px;
+  border:1px solid #e0e8e7;border-radius:9px;background:#f8fbfa;color:#627583;font-size:9px
+}
+.p2-secondary-context strong{color:#294759;font-size:10px}.p2-secondary-back{border:0;background:transparent;color:#087156;font-size:9px;font-weight:800;cursor:pointer}
+
+@media(max-width:1120px) and (min-width:901px){
+  :root{--p2-nav-w:200px}
+  .p2-primary-nav{width:200px}
+}
+
+@media(max-width:900px){
+  :root{--p2-nav-w:0px}
+  body.p2-nav-ready .top-actions .mobile-header-menu{display:none!important}
+  .p2-primary-nav{
+    z-index:165;left:0;right:0;top:auto;bottom:0;width:auto;height:76px;padding:5px 8px max(7px,env(safe-area-inset-bottom));
+    display:grid;grid-template-columns:repeat(5,1fr);gap:1px;overflow:hidden;
+    border:0;border-top:1px solid var(--p2-line);background:rgba(255,255,255,.975);box-shadow:0 -5px 18px rgba(8,34,49,.07);backdrop-filter:blur(17px)
+  }
+  .p2-nav-button{
+    min-height:59px;padding:5px 1px;display:grid;grid-template-columns:1fr;grid-template-rows:29px 18px;gap:0;
+    place-items:center;text-align:center;border-radius:8px
+  }
+  .p2-nav-button:hover,.p2-nav-button.active{background:transparent;box-shadow:none}
+  .p2-nav-icon{width:auto;height:29px;color:#3d5668}.p2-nav-icon svg{width:22px;height:22px}
+  .p2-nav-copy{display:block}.p2-nav-copy strong{font-size:9px}.p2-nav-copy small{display:none}
+  .p2-nav-button.active,.p2-nav-button.active .p2-nav-icon{color:#087156}
+  .p2-nav-badge{right:14%;top:2px}
+  .p2-nav-footer{display:none}
+  body.p2-nav-ready main{padding-bottom:98px!important}
+
+  .p2-more-drawer{
+    z-index:210;left:9px;right:9px;top:auto;bottom:82px;width:auto;max-height:calc(100vh - 175px);
+    border-radius:15px
+  }
+  .p2-drawer-grid{grid-template-columns:1fr 1fr}
+
+  .p2-multi-switcher{align-items:stretch;flex-direction:column;padding:8px}
+  .p2-multi-switcher-copy{padding:2px 3px 1px}
+  .p2-multi-modes{display:grid;grid-template-columns:1fr 1fr}.p2-multi-mode{min-height:36px}
+
+  .p2-decision-flow{display:flex;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none}
+  .p2-decision-flow::-webkit-scrollbar{display:none}
+  .p2-flow-step{flex:0 0 140px;scroll-snap-align:start}
+
+  .p2-secondary-context{align-items:flex-start}.p2-secondary-context span{max-width:70%}
+}
+@media(max-width:430px){
+  .p2-primary-nav{padding-left:4px;padding-right:4px}
+  .p2-nav-copy strong{font-size:8.5px}
+  .p2-drawer-grid{grid-template-columns:1fr 1fr}
+  .p2-more-drawer{left:7px;right:7px}
+}
