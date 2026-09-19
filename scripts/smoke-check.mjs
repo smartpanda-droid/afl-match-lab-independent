@@ -6,6 +6,8 @@ const p0=fs.readFileSync('public/matchday-p0-v62.js','utf8');
 const p0css=fs.readFileSync('public/matchday-p0-v62.css','utf8');
 const p1=fs.readFileSync('public/decision-p1-v63.js','utf8');
 const p1css=fs.readFileSync('public/decision-p1-v63.css','utf8');
+const p2=fs.readFileSync('public/navigation-p2-v64.js','utf8');
+const p2css=fs.readFileSync('public/navigation-p2-v64.css','utf8');
 const checks=[];
 function check(name, ok, detail=''){checks.push({name,ok,detail});if(!ok)process.exitCode=1}
 check('Config has Supabase URL',/SUPABASE_URL:\s*"https:\/\//.test(cfg));
@@ -49,6 +51,16 @@ check('P1 empirical correlation UI exists',p1.includes('pair_details')&&p1.inclu
 check('P1 player WHY/RISK extension exists',p1.includes('ROLE × OPPOSITION / SCENARIO'));
 check('P1 System Multi correlation risk badge exists',p1.includes('CORR RISK '));
 check('P1 responsive styles exist',p1css.includes('@media(max-width:900px)')&&p1css.includes('.p1-scenario-wrap{overflow:auto}'));
+check('P2 navigation CSS is linked',html.includes('navigation-p2-v64.css'));
+check('P2 navigation JS is linked',html.includes('navigation-p2-v64.js'));
+check('P2 has five primary routes',['match','players','multi','reviews','more'].every(x=>p2.includes("route:'"+x+"'")));
+check('P2 keeps real Multi views',p2.includes("'system-multi'")&&p2.includes("'multi-lab'")&&p2.includes('System Picks'));
+check('P2 More keeps research and model ops',['field','tactics','validation','shadow-live'].every(x=>p2.includes("view:'"+x+"'")));
+check('P2 Matchday flow exists',['Read Match','Find Edges','Build Multi','Review'].every(x=>p2.includes(x)));
+check('P2 uses existing switchView',p2.includes("typeof window.switchView==='function'")&&p2.includes('window.switchView(view)'));
+check('P2 mobile bottom nav is five columns',p2css.includes('grid-template-columns:repeat(5,1fr)')&&p2css.includes('env(safe-area-inset-bottom)'));
+check('P2 hides legacy nav only after ready',p2css.includes('body.p2-nav-ready .tabs'));
+check('P2 does not mutate production probability',!/(model_probability\\s*=|\\.probability\\s*=|state\\.legs\\s*=|state\\.multis\\s*=)/.test(p2));
 const failed=checks.filter(x=>!x.ok);
-console.log(`AFL Match Lab v63 smoke check: ${checks.length-failed.length}/${checks.length} passed`);
+console.log(`AFL Match Lab v64 smoke check: ${checks.length-failed.length}/${checks.length} passed`);
 for(const c of checks) console.log(`${c.ok?'PASS':'FAIL'}  ${c.name}${c.detail?' — '+c.detail:''}`);
