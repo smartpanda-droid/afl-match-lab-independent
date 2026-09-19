@@ -691,10 +691,14 @@ function simulateSystemGroup(strategy,count,f,runs){
 }
 function runSystemSimulation(){
   if(!state.selected){state.systemSimulationRows=[];state.systemSimulationMeta=null;state.systemSimulationBusy=false;renderMultis(true);return}
-  const f=state.systemFilterActive||defaultSystemFilterState(),runs=systemSimulationRunCount(f),strategies=f.strategy==='all'?['conservative','balanced','aggressive']:[f.strategy],counts=f.legCount===0?[2,3,4,5]:[f.legCount];
-  state.systemSimulationBusy=true;renderMultis(true);
-  const rows=[];strategies.forEach(st=>counts.forEach(n=>{const m=simulateSystemGroup(st,n,f,runs);if(m)rows.push(m)}));
-  state.systemSimulationRows=rows;state.systemSimulationMeta={key:systemFilterSignature(f),runs,groups:rows.length,marketCount:f.markets.size,at:Date.now()};state.systemSimulationBusy=false;renderMultis(true);
+  const f=state.systemFilterActive||defaultSystemFilterState(),signature=systemFilterSignature(f),runs=systemSimulationRunCount(f),strategies=f.strategy==='all'?['conservative','balanced','aggressive']:[f.strategy],counts=f.legCount===0?[2,3,4,5]:[f.legCount];
+  state.systemSimulationBusy=true;state.systemSimulationRows=[];state.systemSimulationMeta=null;renderMultis(true);
+  clearTimeout(state.systemSimulationTimer);
+  state.systemSimulationTimer=setTimeout(()=>{
+    if(!state.selected||systemFilterSignature(state.systemFilterActive||defaultSystemFilterState())!==signature)return;
+    const rows=[];strategies.forEach(st=>counts.forEach(n=>{const m=simulateSystemGroup(st,n,f,runs);if(m)rows.push(m)}));
+    state.systemSimulationRows=rows;state.systemSimulationMeta={key:signature,runs,groups:rows.length,marketCount:f.markets.size,at:Date.now()};state.systemSimulationBusy=false;renderMultis(true);
+  },16);
 }
 function scheduleSystemSimulation(delay=180){
   if(!state.systemFilterActive)state.systemFilterActive=defaultSystemFilterState();
@@ -1118,7 +1122,15 @@ async function openPlayerOptionModal(playerId){
 
 function fieldAdd(playerId,market='best'){let legs=state.legs.filter(l=>l.player_id===playerId);if(market!=='best')legs=legs.filter(l=>l.market===market);legs.sort((a,b)=>Number(b.model_probability)-Number(a.model_probability));if(legs[0])addLegById(legs[0].prediction_leg_id)}
 
+function setSystemFilterMobile(open){
+  const panel=$('#systemFilterPanel'),backdrop=$('#systemFilterBackdrop');
+  if(!panel)return;
+  panel.classList.toggle('mobile-open',!!open);
+  backdrop?.classList.toggle('show',!!open);
+  document.body.classList.toggle('system-filter-open',!!open);
+}
 function switchView(name){
+  if(name!=='system-multi')setSystemFilterMobile(false);
   $('.match-picker').hidden=false;
   $('.match-picker').style.display='';
   if(name==='reviews')loadReviews();
@@ -1248,7 +1260,10 @@ initReviewPage();
 $$('.tab').forEach(t=>t.addEventListener('click',()=>switchView(t.dataset.view)));$$('[data-go]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.go)));
 $('#matchSelect').addEventListener('change',e=>{state.selected=e.target.value||null;state.systemMultiOdds={};state.systemMultiRanking=new Map();state.multiLabMarketPicker=null;state.multiLabMarketPickerMatch=null;state.multiLabTotalLine=null;state.multiLabHomeLine=null;state.multiLabAwayLine=null;if(state.selected)loadSelected().catch(showError);else renderMatch()});
 $('#playerSearch').addEventListener('input',renderPlayers);$('#marketFilter').addEventListener('change',renderPlayers);
-$('#systemFilterConfirm').addEventListener('click',()=>{state.systemFilterActive=readSystemFilters();runSystemSimulation()});$('#systemFilterReset').addEventListener('click',()=>resetSystemFilters(true));
+$('#systemFilterConfirm').addEventListener('click',()=>{state.systemFilterActive=readSystemFilters();runSystemSimulation();if(window.matchMedia('(max-width:760px)').matches)setSystemFilterMobile(false)});$('#systemFilterReset').addEventListener('click',()=>resetSystemFilters(true));
+$('#systemFilterMobileToggle')?.addEventListener('click',()=>setSystemFilterMobile(true));
+$('#systemFilterMobileClose')?.addEventListener('click',()=>setSystemFilterMobile(false));
+$('#systemFilterBackdrop')?.addEventListener('click',()=>setSystemFilterMobile(false));
 ['strategyFilter','legCountFilter','recommendedOnly','systemSimulationRuns'].forEach(id=>$('#'+id)?.addEventListener('change',()=>scheduleSystemSimulation(120)));
 $('#systemMarketFilters')?.addEventListener('change',()=>scheduleSystemSimulation(120));
 $('#systemOddsMatrix')?.addEventListener('input',()=>scheduleSystemSimulation(320));
