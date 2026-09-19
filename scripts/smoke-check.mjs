@@ -4,6 +4,8 @@ const html=fs.readFileSync('public/index.html','utf8');
 const cfg=fs.readFileSync('public/config.js','utf8');
 const p0=fs.readFileSync('public/matchday-p0-v62.js','utf8');
 const p0css=fs.readFileSync('public/matchday-p0-v62.css','utf8');
+const p1=fs.readFileSync('public/decision-p1-v63.js','utf8');
+const p1css=fs.readFileSync('public/decision-p1-v63.css','utf8');
 const checks=[];
 function check(name, ok, detail=''){checks.push({name,ok,detail});if(!ok)process.exitCode=1}
 check('Config has Supabase URL',/SUPABASE_URL:\s*"https:\/\//.test(cfg));
@@ -38,6 +40,15 @@ check('Weather is never falsely marked fresh',p0.includes('Weather feed not conn
 check('Player WHY / RISK evidence layer exists',p0.includes('WHAT CAN BREAK IT')&&p0.includes('whyRisk'));
 check('Review decision-result-learning layer exists',p0.includes('DECISION → RESULT → LEARNING')&&p0.includes('WHY WE MISSED · evidence-first'));
 check('P0 responsive styles exist',p0css.includes('@media(max-width:900px)')&&p0css.includes('.matchday-decision-grid'));
+check('P1 Role x Opposition CSS is linked',html.includes('decision-p1-v63.css'));
+check('P1 Decision JS is linked',html.includes('decision-p1-v63.js'));
+check('P1 uses existing role and opponent factors',p1.includes('role_factor')&&p1.includes('opponent_factor'));
+check('P1 scenario remains explain-only',p1.includes('HEURISTIC · NOT CALIBRATED')&&p1.includes('does not mutate production probabilities'));
+check('P1 scenario sensitivity exists',p1.includes('Scenario Stress Test')&&p1.includes('scenarioImpact'));
+check('P1 empirical correlation UI exists',p1.includes('pair_details')&&p1.includes('Independent P')&&p1.includes('Adjusted P'));
+check('P1 player WHY/RISK extension exists',p1.includes('ROLE × OPPOSITION / SCENARIO'));
+check('P1 System Multi correlation risk badge exists',p1.includes('CORR RISK '));
+check('P1 responsive styles exist',p1css.includes('@media(max-width:900px)')&&p1css.includes('.p1-scenario-wrap{overflow:auto}'));
 const failed=checks.filter(x=>!x.ok);
-console.log(`AFL Match Lab v62 smoke check: ${checks.length-failed.length}/${checks.length} passed`);
+console.log(`AFL Match Lab v63 smoke check: ${checks.length-failed.length}/${checks.length} passed`);
 for(const c of checks) console.log(`${c.ok?'PASS':'FAIL'}  ${c.name}${c.detail?' — '+c.detail:''}`);
