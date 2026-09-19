@@ -309,8 +309,41 @@ function balancedTopLegs(legs,limit=10){
   return out;
 }
 
+function pendingFixture(){
+  return state.matches.find(m=>!['final','cancelled'].includes(m.status)&&!Number.isFinite(Date.parse(m.start_time)))||null;
+}
+function renderMatchRail(m){
+  const alerts=$('#matchAlerts'),info=$('#matchKeyInfo');if(!alerts||!info)return;
+  if(!m){
+    const p=pendingFixture();
+    alerts.innerHTML=`<div class="match-alert pending"><i></i><div><strong>下一场赛程待确认</strong><span>${esc(p?.round_name||'Upcoming Match')} 的时间及对阵尚未由数据源确认。</span></div></div><div class="match-alert"><i></i><div><strong>模型待命</strong><span>赛程确认后将自动生成胜率、比分、球员市场与组合。</span></div></div><div class="match-alert"><i></i><div><strong>历史赛事已归档</strong><span>开赛 10 分钟后的比赛可在 Review 查看。</span></div></div>`;
+    info.innerHTML=`<div><span>轮次</span><strong>${esc(p?.round_name||'待公布')}</strong></div><div><span>对阵</span><strong>${esc(p?`${p.home_team_name} vs ${p.away_team_name}`:'待公布')}</strong></div><div><span>开赛</span><strong>等待官方确认</strong></div><div><span>数据状态</span><strong>准备中</strong></div>`;
+    return;
+  }
+  const lineup=m.lineup_confirmed?'阵容已确认':m.used_fallback_lineup?'暂用上一场阵容':'阵容待发布';
+  const freshness=m.prediction_is_final?'T-30 最终模型':'赛前预览模型';
+  alerts.innerHTML=`<div class="match-alert ${m.lineup_confirmed?'good':'pending'}"><i></i><div><strong>${lineup}</strong><span>${m.lineup_confirmed?'最新比赛阵容已经同步。':'官方阵容发布后会自动更新。'}</span></div></div><div class="match-alert good"><i></i><div><strong>${freshness}</strong><span>模型数据随赛前同步任务持续更新。</span></div></div><div class="match-alert"><i></i><div><strong>赛程有效</strong><span>比赛将在开赛 10 分钟后自动移入 Review。</span></div></div>`;
+  info.innerHTML=`<div><span>场地</span><strong>${esc(m.venue||'TBC')}</strong></div><div><span>开赛</span><strong>${dt(m.start_time)}</strong></div><div><span>轮次</span><strong>${esc(m.round_name||'—')}</strong></div><div><span>状态</span><strong>${esc(m.status||'scheduled')}</strong></div>`;
+}
+function renderNoUpcomingMatch(){
+  const p=pendingFixture(),home=p?.home_team_name||'Teams TBC',away=p?.away_team_name||'Teams TBC';
+  document.body.classList.add('no-upcoming-match');
+  $('#matchSummary').innerHTML=`<div class="match-team home"><div class="team-name">${esc(home)}</div><div class="match-meta">HOME · 待确认</div><div class="pending-team-mark">?</div></div><div class="match-mid pending-match-mid"><div class="eyebrow">${esc(p?.round_name||'NEXT MATCH')}</div><span class="badge warn">FIXTURE PENDING</span><strong>未来比赛分析</strong><div class="match-meta">赛程确认后自动载入</div></div><div class="match-team away"><div class="team-name">${esc(away)}</div><div class="match-meta">AWAY · 待确认</div><div class="pending-team-mark">?</div></div>`;
+  $('#matchPrediction').innerHTML=`<div class="pending-analysis"><div><span class="eyebrow">NEXT MATCH MODEL</span><h2>等待下一场比赛正式确认</h2><p>数据源目前只提供了 ${esc(p?.round_name||'下一轮')} 占位赛程，还没有可靠的开赛时间或最终对阵。确认后，本页会自动显示预测胜率、比分、让分、总分及球员机会。</p></div><div class="pending-analysis-steps"><span><b>1</b>赛程确认</span><span><b>2</b>阵容同步</span><span><b>3</b>模型发布</span></div></div>`;
+  $('#lineupBadge').className='badge neutral';$('#lineupBadge').textContent='PENDING';
+  $('#lineupSummary').innerHTML=stat('Players','—')+stat('Interchanges','—')+stat('Emergencies','—');
+  $('#matchLineupSource').className='lineup-source-note pending';$('#matchLineupSource').innerHTML='<strong>等待未来赛事</strong><span>最终对阵确认后自动同步双方阵容。</span>';
+  $('#matchFieldTacticalSummary').innerHTML='<p class="note">赛程确认后生成战术 context。</p>';
+  $('#matchFieldTeams').innerHTML='<div class="empty">未来比赛的阵容尚未发布</div>';
+  $('#modelBadge').className='badge neutral';$('#modelBadge').textContent='STANDBY';
+  $('#modelSummary').innerHTML=stat('Model','待赛程')+stat('Legs','—')+stat('Multi','—');
+  $('#topLegs').innerHTML='<div class="empty future-empty"><strong>球员机会等待生成</strong><span>确认对阵、阵容及赛前数据后自动更新。</span></div>';
+  $('#recentForm').innerHTML='<div class="empty future-empty"><strong>近期表现等待对阵</strong><span>球队确认后将显示双方最近 5 场赛前数据。</span></div>';
+  renderMatchRail(null);
+}
 function renderMatch(){
-  const m=state.matches.find(x=>x.match_id===state.selected);if(!m)return;
+  const m=state.matches.find(x=>x.match_id===state.selected);if(!m){renderNoUpcomingMatch();return}
+  document.body.classList.remove('no-upcoming-match');
   $('#matchSummary').innerHTML=`<div class="match-team home"><div class="team-name">${esc(m.home_team_name)}</div><div class="match-meta">HOME</div><div class="match-team-logo">${teamLogoHtml(m.home_team_name,'team-logo-large')}</div></div><div class="match-mid"><div class="eyebrow">${esc(m.round_name)} · ${esc(m.venue||'TBC')}</div><strong>${dt(m.start_time)}</strong><div class="match-meta">${esc(m.status)}</div></div><div class="match-team away"><div class="team-name">${esc(m.away_team_name)}</div><div class="match-meta">AWAY</div><div class="match-team-logo">${teamLogoHtml(m.away_team_name,'team-logo-large')}</div></div>`;
   bindTeamLogoImages($('#matchSummary'));
   const confirmed=!!m.lineup_confirmed,fallback=!!m.used_fallback_lineup;
@@ -325,6 +358,7 @@ function renderMatch(){
   $$('#topLegs .add-leg').forEach(b=>b.addEventListener('click',()=>addLegById(b.dataset.legId)));
   renderMatchPrediction();
   renderRecentForm();
+  renderMatchRail(m);
 }
 
 
@@ -347,7 +381,7 @@ function teamRecentForm(teamName,currentStart,limit=5){
 }
 function renderRecentForm(){
   const host=$('#recentForm');if(!host)return;
-  const m=state.matches.find(x=>x.match_id===state.selected);if(!m){host.innerHTML='';return}
+  const m=state.matches.find(x=>x.match_id===state.selected);if(!m){host.innerHTML='<div class="empty future-empty"><strong>近期表现等待对阵</strong><span>球队确认后将显示双方最近 5 场赛前数据。</span></div>';return}
   const teams=[m.home_team_name,m.away_team_name];
   host.innerHTML=teams.map(team=>{
     const rows=teamRecentForm(team,m.start_time,5);
@@ -443,7 +477,7 @@ function renderPlayers(){
     }).join('');
     return `<article class="player-card"><div class="player-card-head"><div><h3>${esc(first.player_name)}</h3><div class="match-meta">${esc(first.team_name||'')} ${first.bench?'· Bench':''}</div>${riskLine}</div><span class="badge ${badgeClass}">${esc(badge)}</span></div>${rows}</article>`;
   });
-  $('#playerCards').innerHTML=cards.join('')||'<div class="empty">没有符合条件的球员</div>';
+  $('#playerCards').innerHTML=cards.join('')||(state.selected?'<div class="empty">没有符合条件的球员</div>':'<div class="empty future-empty"><strong>球员市场等待未来赛事</strong><span>对阵和阵容确认后，所有可用球员玩法会显示在这里。</span></div>');
   $$('#playerCards .threshold-input').forEach(inp=>inp.addEventListener('change',()=>{const v=Math.max(1,Math.round(Number(inp.value)||1));quotePlayerThreshold(inp.dataset.player,inp.dataset.market,v)}));
   $$('#playerCards .threshold-step').forEach(btn=>btn.addEventListener('click',()=>{const key=playerThresholdKey(btn.dataset.player,btn.dataset.market);const current=Number(state.playerThresholds[key]||btn.closest('.threshold-stepper').querySelector('.threshold-input').value||1);quotePlayerThreshold(btn.dataset.player,btn.dataset.market,Math.max(1,current+Number(btn.dataset.delta)))}));
   $$('#playerCards .add-leg').forEach(b=>b.addEventListener('click',()=>{
@@ -665,7 +699,7 @@ function renderMultis(force=false){
   const f=state.systemFilterActive;const summary=$('#systemFilterSummary');if(summary){if(f.strategy==='all'&&f.legCount===0)summary.innerHTML=`<span>2–5串1 · 保守 / 平衡 / 激进</span><b>12 组固定推荐</b><small>${f.markets.size} markets</small>`;else if(f.strategy==='all')summary.innerHTML=`<span>${f.legCount}串1 · 全部策略</span><b>3 组</b><small>${f.markets.size} markets</small>`;else if(f.legCount===0)summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · 2–5串1</span><b>4 组</b><small>${f.markets.size} markets</small>`;else{const range=f.odds[f.strategy][f.legCount];summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · ${f.legCount}串1</span><b>Fair ${Number(range[0]).toFixed(2)}–${Number(range[1]).toFixed(2)}</b><small>${f.markets.size} markets</small>`}};
   let rows=visibleMultiRows();const host=$('#multiCards');host.innerHTML='';
   if(state.finalLock){const lock=document.createElement('div');lock.className='final-lock-banner';lock.innerHTML=`<strong>🔒 T-30 FINAL RECOMMENDATION LOCK</strong><span>${dt(state.finalLock.frozen_at)} · ${state.finalLock.recommendation_count} recommendations · SHA ${esc(String(state.finalLock.snapshot_sha256||'').slice(0,12))}…</span>`;host.appendChild(lock)}
-  if(!rows.length){host.innerHTML='<div class="empty system-empty"><strong>当前筛选下没有足够可用腿</strong><span>默认模式固定输出 12 组；只有当前比赛连最基本的可用腿数量都不足时才会缺组。</span></div>';return}
+  if(!rows.length){host.innerHTML=state.selected?'<div class="empty system-empty"><strong>当前筛选下没有足够可用腿</strong><span>默认模式固定输出 12 组；只有当前比赛连最基本的可用腿数量都不足时才会缺组。</span></div>':'<div class="empty system-empty"><strong>系统组合等待未来赛事</strong><span>下一场比赛与球员市场确认后，将自动生成保守、平衡与激进组合。</span></div>';return}
   const ranked=rows.filter(m=>state.systemMultiRanking.has(m.multi_id));
   if(ranked.length>=2)rows=[...rows].sort((a,b)=>{
     const ra=state.systemMultiRanking.get(a.multi_id)?.value_aware_rank??999;
@@ -989,9 +1023,8 @@ async function openPlayerOptionModal(playerId){
 function fieldAdd(playerId,market='best'){let legs=state.legs.filter(l=>l.player_id===playerId);if(market!=='best')legs=legs.filter(l=>l.market===market);legs.sort((a,b)=>Number(b.model_probability)-Number(a.model_probability));if(legs[0])addLegById(legs[0].prediction_leg_id)}
 
 function switchView(name){
-  if(!state.selected&&!['reviews','validation'].includes(name))name='reviews';
-  $('.match-picker').hidden=name==='reviews';
-  $('.match-picker').style.display=name==='reviews'?'none':'';
+  $('.match-picker').hidden=false;
+  $('.match-picker').style.display='';
   if(name==='reviews')loadReviews();
   state.view=name;$$('.view').forEach(v=>v.classList.remove('active-view'));$(`#view-${name}`)?.classList.add('active-view');$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name));
   if(name==='players')ensurePlayerMarketData().catch(e=>setModuleStatus('legs','error',e.message));
@@ -1004,7 +1037,8 @@ function showError(e){console.error(e);setModuleStatus('action','error',e?.messa
 async function bootstrap(){
   state.moduleStatus={};updateHealthBadge();
   await loadMatches();
-  if(!state.selected){switchView('reviews');return}
+  switchView('match');
+  if(!state.selected){resetSelectedState();loadBuilder();renderMatch();renderPlayerControls();renderPlayers();renderMultis();renderBuilder();renderField();renderTactics();return}
   await loadSelected();
 }
 
@@ -1016,9 +1050,10 @@ function activeMatches(now=Date.now()) {
 }
 function reconcileMatchPicker(){
   const matches=activeMatches(), previous=state.selected;
-  const signature=matches.map(m=>m.match_id).join('|');
+  const pending=pendingFixture();
+  const signature=matches.map(m=>m.match_id).join('|')+`|pending:${pending?.match_id||''}`;
   if(state.matchPickerSignature!==signature){
-    $('#matchSelect').innerHTML=matches.length?matches.map((m,i)=>`<option value="${esc(m.match_id)}">${i===0?'下一场 · ':''}${esc(m.home_team_name)} vs ${esc(m.away_team_name)} · ${dt(m.start_time)}</option>`).join(''):'<option value="">暂无待赛赛事</option>';
+    $('#matchSelect').innerHTML=matches.length?matches.map((m,i)=>`<option value="${esc(m.match_id)}">${i===0?'下一场 · ':''}${esc(m.home_team_name)} vs ${esc(m.away_team_name)} · ${dt(m.start_time)}</option>`).join(''):pending?`<option value="">下一场 · ${esc(pending.round_name||'未来赛事')} · 赛程待确认</option>`:'<option value="">下一场赛事待公布</option>';
     state.matchPickerSignature=signature;
   }
   if(!matches.some(m=>m.match_id===state.selected))state.selected=matches[0]?.match_id||null;
@@ -1108,14 +1143,14 @@ function archiveClockTick(){
     ++state.loadSeq;resetSelectedState();state.systemMultiOdds={};state.systemMultiRanking=new Map();
     state.multiLabMarketPicker=null;state.multiLabMarketPickerMatch=null;
     if(state.selected)loadSelected().then(()=>{if(state.view==='players')ensurePlayerMarketData()}).catch(showError);
-    else switchView('reviews');
+    else{loadBuilder();renderMatch();renderPlayerControls();renderPlayers();renderMultis();renderBuilder();renderField();renderTactics()}
     if(state.view==='reviews')loadReviews(true);
   }
 }
 
 initReviewPage();
 $$('.tab').forEach(t=>t.addEventListener('click',()=>switchView(t.dataset.view)));$$('[data-go]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.go)));
-$('#matchSelect').addEventListener('change',e=>{state.selected=e.target.value;state.systemMultiOdds={};state.systemMultiRanking=new Map();state.multiLabMarketPicker=null;state.multiLabMarketPickerMatch=null;state.multiLabTotalLine=null;state.multiLabHomeLine=null;state.multiLabAwayLine=null;loadSelected().catch(showError)});
+$('#matchSelect').addEventListener('change',e=>{state.selected=e.target.value||null;state.systemMultiOdds={};state.systemMultiRanking=new Map();state.multiLabMarketPicker=null;state.multiLabMarketPickerMatch=null;state.multiLabTotalLine=null;state.multiLabHomeLine=null;state.multiLabAwayLine=null;if(state.selected)loadSelected().catch(showError);else renderMatch()});
 $('#playerSearch').addEventListener('input',renderPlayers);$('#marketFilter').addEventListener('change',renderPlayers);
 $('#systemFilterConfirm').addEventListener('click',()=>{state.systemFilterActive=readSystemFilters();renderMultis()});$('#systemFilterReset').addEventListener('click',()=>resetSystemFilters(true));
 $('#clearBuilder').addEventListener('click',()=>{state.builder=[];saveBuilder()});

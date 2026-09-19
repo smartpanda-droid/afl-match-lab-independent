@@ -8,7 +8,7 @@
   <meta name="description" content="Independent AFL Match Lab" />
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./review-overrides.css" />
-  <link rel="stylesheet" href="./premium-ui-v60.css?v=20260919-2" />
+  <link rel="stylesheet" href="./premium-ui-v60.css?v=20260919-3" />
 </head>
 <body>
   <div id="parallelTestBanner" class="parallel-test-banner" role="status"><strong>PARALLEL TEST</strong><span>Independent Web · Shadow / validation only · Existing Site remains production reference</span></div>
@@ -44,12 +44,18 @@
     </section>
 
     <section id="view-match" class="view active-view">
+      <div class="match-dashboard-shell">
+      <div class="match-dashboard-main">
       <section id="matchSummary" class="panel match-summary"></section>
       <section id="matchPrediction" class="panel"></section>
       <section class="cockpit-highlight-strip" aria-label="Matchday cockpit highlights">
         <article id="cockpitBestEdge" class="cockpit-highlight"></article>
         <article id="cockpitRisk" class="cockpit-highlight risk"></article>
         <article id="cockpitShape" class="cockpit-highlight shape"></article>
+      </section>
+      <section class="panel top-edges-panel">
+        <div class="section-head"><div><div class="eyebrow">TOP PLAYER EDGES</div><h2>重点球员机会</h2></div><button class="ghost small" data-go="players">查看全部</button></div>
+        <div id="topLegs" class="top-leg-grid"></div>
       </section>
       <section class="panel recent-form-panel">
         <div class="section-head"><div><div class="eyebrow">RECENT FORM</div><h2>近期表现</h2></div><span class="badge neutral">LAST 5 · PRE-MATCH ONLY</span></div>
@@ -86,10 +92,23 @@
           <div id="tacticalPreview" class="tactical-preview"></div>
         </article>
       </section>
-      <section class="panel">
-        <div class="section-head"><div><div class="eyebrow">TOP EDGES</div><h2>概率 / 赔率平衡单腿</h2></div><button class="ghost small" data-go="players">查看全部</button></div>
-        <div id="topLegs" class="top-leg-grid"></div>
-      </section>
+      </div>
+      <aside class="match-dashboard-rail" aria-label="比赛资讯">
+        <section class="panel match-rail-panel">
+          <div class="section-head"><div><div class="eyebrow">MATCH ALERTS</div><h2>比赛提醒</h2></div><span class="badge neutral">LIVE</span></div>
+          <div id="matchAlerts" class="match-alert-list"></div>
+        </section>
+        <section class="panel match-rail-panel">
+          <div class="section-head"><div><div class="eyebrow">KEY MATCH INFO</div><h2>比赛信息</h2></div></div>
+          <div id="matchKeyInfo" class="match-key-info"></div>
+        </section>
+        <section class="match-insight-card" aria-label="AFL Match Lab">
+          <strong>AFL Match Lab</strong>
+          <span>Deeper insight.<br>Sharper decisions.</span>
+          <small>ANALYSE · MODEL · BETTER OUTCOMES</small>
+        </section>
+      </aside>
+      </div>
     </section>
 
     <section id="view-players" class="view">
@@ -250,6 +269,6 @@
     </article>
   </template>
 
-  <script src="./config.js"></script><script src="./app.js"></script><script src="./premium-ui-v60.js?v=20260919-2"></script>
+  <script src="./config.js"></script><script src="./app.js"></script><script src="./premium-ui-v60.js?v=20260919-3"></script>
 </body>
 </html>

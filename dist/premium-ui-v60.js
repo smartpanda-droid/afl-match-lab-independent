@@ -1,4 +1,4 @@
-/* AFL Match Lab v60 — approved visual system and responsive navigation. */
+/* AFL Match Lab v61 — approved visual system and responsive navigation. */
 (function(){
   const icons={
     logo:'<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="24" width="7" height="12" rx="1.5" fill="currentColor"/><rect x="15" y="15" width="7" height="21" rx="1.5" fill="currentColor"/><rect x="27" y="5" width="7" height="31" rx="1.5" fill="currentColor"/></svg>',

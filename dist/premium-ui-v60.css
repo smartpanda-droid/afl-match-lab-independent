@@ -1,4 +1,4 @@
-/* AFL Match Lab v60 — design-system replacement
+/* AFL Match Lab v61 — design-system replacement
    Visual and responsive layer only. Model and Supabase behaviour are unchanged. */
 @font-face{
   font-family:"AFL Inter";
@@ -127,6 +127,24 @@ main>.match-picker:not(.topbar .match-picker){min-height:58px}
 .empty{border:1px dashed #d3dfe1;border-radius:10px;background:#f8fbfb}
 
 /* Matchday cockpit */
+.match-dashboard-shell{display:grid;grid-template-columns:minmax(0,1fr) 284px;gap:14px;align-items:start}
+.match-dashboard-main{min-width:0;display:grid;gap:14px}
+.match-dashboard-rail{display:grid;gap:14px;position:sticky;top:92px}
+.match-rail-panel{padding:16px!important}
+.match-rail-panel .section-head{margin-bottom:8px!important;padding-bottom:10px;border-bottom:1px solid #edf1f2}
+.match-rail-panel .section-head h2{font-size:16px!important}
+.match-alert-list{display:grid}
+.match-alert{display:grid;grid-template-columns:10px minmax(0,1fr);gap:10px;padding:12px 0;border-bottom:1px solid #edf1f2}
+.match-alert:last-child{border-bottom:0;padding-bottom:2px}
+.match-alert i{width:9px;height:9px;margin-top:4px;border-radius:50%;background:#2586b6;box-shadow:0 0 0 4px #e7f3f8}
+.match-alert.good i{background:#12aa70;box-shadow:0 0 0 4px #e3f7ef}
+.match-alert.pending i{background:#c28a24;box-shadow:0 0 0 4px #fff3d8}
+.match-alert div{display:grid;gap:3px}.match-alert strong{font-size:12px}.match-alert span{color:var(--aml-muted);font-size:10px;line-height:1.45}
+.match-key-info{display:grid}
+.match-key-info>div{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid #edf1f2;font-size:11px}
+.match-key-info>div:last-child{border-bottom:0;padding-bottom:1px}.match-key-info span{color:var(--aml-muted)}.match-key-info strong{text-align:right;font-size:11px}
+.match-insight-card{min-height:158px;padding:20px;display:flex;flex-direction:column;border-radius:11px;color:#fff;background:radial-gradient(circle at 80% 15%,#157359 0,transparent 34%),linear-gradient(145deg,#064c3b,#042d2a);box-shadow:var(--aml-shadow)}
+.match-insight-card strong{color:#fff;font-size:12px}.match-insight-card span{margin-top:14px;color:#fff;font:23px/1.06 Georgia,serif}.match-insight-card small{margin-top:auto;color:#b7d8cc;font-size:8px;letter-spacing:.13em}
 #matchSummary{
   position:relative;overflow:hidden;padding:19px 24px!important;
   background:linear-gradient(135deg,#fff 0%,#fff 67%,#f2faf7 100%)!important
@@ -161,6 +179,16 @@ main>.match-picker:not(.topbar .match-picker){min-height:58px}
 .cockpit-highlight .mini-meta{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
 .cockpit-highlight .mini-meta span{padding:3px 7px;border-radius:999px;background:#e8f5f0;color:#366455;font-size:8px}
 .cockpit-highlight.risk .mini-meta span{background:#fff1cf;color:#835e16}
+.top-edges-panel .top-leg-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.top-edges-panel .top-leg{display:grid;grid-template-columns:62px minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center;column-gap:10px}
+.top-edges-panel .top-leg .p{grid-row:1/-1}.top-edges-panel .top-leg .sel{margin:0}.top-edges-panel .top-leg .meta{grid-column:2}.top-edges-panel .top-leg .add-leg{grid-column:3;grid-row:1/-1}
+.pending-team-mark{width:72px;height:72px;margin-top:8px;display:grid;place-items:center;border:1px dashed #a8bab7;border-radius:50%;background:#edf4f2;color:#77908a;font-size:26px;font-weight:800}
+.pending-match-mid{display:grid;justify-items:center;gap:8px}.pending-match-mid>strong{font-size:20px!important}
+.pending-analysis{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:center;padding:5px 4px}
+.pending-analysis h2{margin:0 0 7px;font-size:20px}.pending-analysis p{max-width:720px;margin:0;color:var(--aml-muted);font-size:12px;line-height:1.6}
+.pending-analysis-steps{display:flex;gap:8px}.pending-analysis-steps span{min-width:88px;padding:11px 10px;display:grid;justify-items:center;gap:5px;border:1px solid #dce8e4;border-radius:9px;background:#f5faf8;color:#49645c;font-size:9px;font-weight:750}
+.pending-analysis-steps b{width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:#dff1e9;color:var(--aml-green);font-size:11px}
+.future-empty{grid-column:1/-1;display:grid;gap:5px}.future-empty strong{font-size:12px}.future-empty span{font-size:10px;color:var(--aml-muted)}
 
 /* Evidence cards */
 .recent-form-panel,.match-lineup-panel{background:#fff!important}
@@ -234,6 +262,10 @@ main>.match-picker:not(.topbar .match-picker){min-height:58px}
   .topbar .match-picker{max-width:410px}.tab{grid-template-columns:30px 1fr}.tab .nav-copy strong{font-size:12px}
 }
 
+@media(max-width:1280px) and (min-width:901px){
+  .match-dashboard-shell{grid-template-columns:minmax(0,1fr) 250px}.top-edges-panel .top-leg-grid{grid-template-columns:1fr}
+}
+
 /* Mobile layout mirrors the approved four-tab concept. */
 @media(max-width:900px){
   body{font-size:14px;background:#f5f8f9!important}
@@ -298,15 +330,18 @@ main>.match-picker:not(.topbar .match-picker){min-height:58px}
   .sidebar-footer{display:none}
   main{margin:0!important;padding:10px 10px 92px!important;gap:10px!important}
   .view{gap:10px!important}.panel{padding:13px!important;border-radius:11px!important;box-shadow:0 4px 15px rgba(8,34,49,.045)!important}
+  .match-dashboard-shell,.match-dashboard-main{display:grid;grid-template-columns:1fr;gap:10px}.match-dashboard-rail{position:static;grid-template-columns:1fr;gap:10px}.match-insight-card{display:none}
   .section-head{align-items:flex-start!important;gap:10px!important;margin-bottom:11px!important}.section-head h2{font-size:17px!important}
   #matchSummary{padding:13px 8px!important;grid-template-columns:1fr auto 1fr!important;gap:7px!important}
   .match-team{min-width:0}.team-name{font-size:14px!important;line-height:1.15}.match-mid{font-size:9px}.match-mid strong{font-size:11px!important}
   .match-team-logo{height:56px!important}.match-team-logo .team-logo-large{width:54px!important;height:54px!important}
   #matchPrediction{padding:9px!important}.match-pred-grid{grid-template-columns:1fr!important;gap:8px!important}.prediction-card{padding:10px!important}.score-pair b{font-size:23px!important}
+  .pending-analysis{grid-template-columns:1fr;gap:13px}.pending-analysis h2{font-size:17px}.pending-analysis-steps{display:grid;grid-template-columns:repeat(3,1fr)}.pending-analysis-steps span{min-width:0;padding:9px 5px}
+  .pending-team-mark{width:54px;height:54px;font-size:20px}.pending-match-mid>strong{font-size:13px!important}
   .cockpit-highlight-strip{grid-template-columns:1fr!important;gap:8px}.cockpit-highlight{min-height:100px}.cockpit-highlight::before{height:38px}.cockpit-highlight .kicker{top:9px}
   .cockpit-highlight .hero-metric{font-size:22px}.cockpit-highlight h3{font-size:14px}.cockpit-highlight .mini-meta{display:none}
   .grid.two,.team-style-grid,.synergy-grid,.recent-form-grid{grid-template-columns:1fr!important}
-  .top-leg-grid{grid-template-columns:1fr!important}.top-leg{padding:11px!important}
+  .top-leg-grid{grid-template-columns:1fr!important}.top-leg{padding:11px!important}.top-edges-panel .top-leg{grid-template-columns:52px minmax(0,1fr) auto}
   .controls-head{align-items:stretch!important}.controls{width:100%!important;display:grid!important;grid-template-columns:1fr 115px!important}.controls input,.controls select{min-width:0!important;width:100%!important}
   #playerSearch{min-width:0!important;padding-left:35px!important}
   .player-card-head{padding:11px!important}.player-market-row{padding:9px 11px!important;grid-template-columns:minmax(0,1fr) 58px 66px!important;gap:7px!important}
