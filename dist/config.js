@@ -7,3 +7,10 @@ window.AFL_CONFIG = Object.freeze({
   SITE_ROLE: "independent-shadow",
   LEGACY_SITE_ROLE: "production-reference"
 });
+
+window.addEventListener("load", () => {
+  const script = document.createElement("script");
+  script.src = "./system-multi-odds-policy.js?v=20260916-1";
+  script.async = false;
+  document.body.appendChild(script);
+});

@@ -7,12 +7,13 @@
   <title>AFL Match Lab</title>
   <meta name="description" content="Independent AFL Match Lab" />
   <link rel="stylesheet" href="./styles.css" />
-  <link rel="stylesheet" href="./review-overrides.css" />\n  <link rel="stylesheet" href="./premium-ui-v59.css?v=20260919-1" />
+  <link rel="stylesheet" href="./review-overrides.css" />
+  <link rel="stylesheet" href="./premium-ui-v60.css?v=20260919-2" />
 </head>
 <body>
   <div id="parallelTestBanner" class="parallel-test-banner" role="status"><strong>PARALLEL TEST</strong><span>Independent Web · Shadow / validation only · Existing Site remains production reference</span></div>
   <header class="topbar">
-    <div class="brand"><span class="brand-mark">AFL</span><div><div class="eyebrow">MATCH LAB · INDEPENDENT</div><h1>AFL Match Lab</h1></div></div>
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span><div><h1>AFL Match Lab</h1><div class="brand-subtitle">DATA DRIVES BETTER DECISIONS</div></div></div>
     <div class="top-actions"><div id="healthBadge" class="badge neutral">Connecting…</div><button id="refreshBtn" class="ghost">刷新</button></div>
   </header>
 
@@ -25,7 +26,16 @@
     <button class="tab" data-view="tactics">战术 / SCENARIO</button>
     <button class="tab" data-view="validation">VALIDATION</button>
     <button class="tab" data-view="shadow-live">SHADOW LIVE</button>
-    <button id="mobileMoreTrigger" class="mobile-more-trigger" type="button">More</button>\n  </nav>\n  <div id="mobileMoreSheet" class="mobile-more-sheet" aria-label="More navigation">\n    <button type="button" data-mobile-view="field"><strong>球场阵容</strong><small>Lineup & roles</small></button>\n    <button type="button" data-mobile-view="tactics"><strong>战术 / Scenario</strong><small>Match context</small></button>\n    <button type="button" data-mobile-view="validation"><strong>Validation</strong><small>Model tracking</small></button>\n    <button type="button" data-mobile-view="shadow-live"><strong>Shadow Live</strong><small>Live observation</small></button>\n  </div>
+    <button id="mobileMoreTrigger" class="mobile-more-trigger" type="button">More</button>
+  </nav>
+  <div id="mobileMoreSheet" class="mobile-more-sheet" aria-label="More navigation">
+    <button type="button" data-mobile-view="multi-lab"><strong>Multi Lab</strong><small>Build & optimise</small></button>
+    <button type="button" data-mobile-view="reviews"><strong>赛事回顾</strong><small>Results & analytics</small></button>
+    <button type="button" data-mobile-view="field"><strong>球场阵容</strong><small>Lineup & roles</small></button>
+    <button type="button" data-mobile-view="tactics"><strong>战术 / Scenario</strong><small>Match context</small></button>
+    <button type="button" data-mobile-view="validation"><strong>Validation</strong><small>Model tracking</small></button>
+    <button type="button" data-mobile-view="shadow-live"><strong>Shadow Live</strong><small>Live observation</small></button>
+  </div>
 
   <main>
     <section class="panel match-picker">
@@ -35,7 +45,12 @@
 
     <section id="view-match" class="view active-view">
       <section id="matchSummary" class="panel match-summary"></section>
-      <section id="matchPrediction" class="panel"></section>\n      <section class="cockpit-highlight-strip" aria-label="Matchday cockpit highlights">\n        <article id="cockpitBestEdge" class="cockpit-highlight"></article>\n        <article id="cockpitRisk" class="cockpit-highlight risk"></article>\n        <article id="cockpitShape" class="cockpit-highlight shape"></article>\n      </section>
+      <section id="matchPrediction" class="panel"></section>
+      <section class="cockpit-highlight-strip" aria-label="Matchday cockpit highlights">
+        <article id="cockpitBestEdge" class="cockpit-highlight"></article>
+        <article id="cockpitRisk" class="cockpit-highlight risk"></article>
+        <article id="cockpitShape" class="cockpit-highlight shape"></article>
+      </section>
       <section class="panel recent-form-panel">
         <div class="section-head"><div><div class="eyebrow">RECENT FORM</div><h2>近期表现</h2></div><span class="badge neutral">LAST 5 · PRE-MATCH ONLY</span></div>
         <div id="recentForm" class="recent-form-grid"></div>
@@ -235,6 +250,6 @@
     </article>
   </template>
 
-  <script src="./config.js"></script><script src="./app.js"></script><script src="./premium-ui-v59.js?v=20260919-1"></script>
+  <script src="./config.js"></script><script src="./app.js"></script><script src="./premium-ui-v60.js?v=20260919-2"></script>
 </body>
 </html>

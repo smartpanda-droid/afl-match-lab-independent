@@ -196,10 +196,7 @@ async function loadMatches(){
     setModuleStatus('matches',rows===BOOTSTRAP_MATCHES?'cache':'cache',e.message);
   }
   state.matches=rows||[];
-  const future=state.matches.filter(m=>['scheduled','live'].includes(m.status));
-  $('#matchSelect').innerHTML=future.map(m=>`<option value="${m.match_id}">${esc(m.round_name)} · ${esc(m.home_team_name)} vs ${esc(m.away_team_name)} · ${dt(m.start_time)}</option>`).join('');
-  if(!state.selected || !future.some(m=>m.match_id===state.selected)) state.selected=future[0]?.match_id||state.matches.at(-1)?.match_id||null;
-  $('#matchSelect').value=state.selected||'';
+  reconcileMatchPicker();
 }
 function resetSelectedState(){
   state.legs=[];state.topLegs=[];state.multis=[];state.lineup=[];state.recent5=new Map();state.availability=new Map();state.context=null;state.multiStability=new Map();state.finalLock=null;state.shadowObs=[];state.matchQuote=null;state.fullLegsMatch=null;state.validationLoaded=false;state.shadowLoaded=false;state.systemFilterActive=null;
@@ -402,11 +399,12 @@ function selectedPlayerLeg(options){
   return sorted[0];
 }
 async function quotePlayerThreshold(playerId,market,threshold){
+  const matchId=state.selected;
   const key=playerThresholdKey(playerId,market), seq=(state.playerQuoteSeq.get(key)||0)+1; state.playerQuoteSeq.set(key,seq);
   state.playerThresholds[key]=threshold;
   try{
-    const r=await api('/rest/v1/rpc/afl_player_market_quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_match_id:state.selected,p_player_id:playerId,p_market:market,p_threshold:threshold})});
-    if(state.playerQuoteSeq.get(key)!==seq)return; const q=Array.isArray(r)?r[0]:r; if(q)state.playerManualQuotes.set(key,q); renderPlayers();
+    const r=await api('/rest/v1/rpc/afl_player_market_quote',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_match_id:matchId,p_player_id:playerId,p_market:market,p_threshold:threshold})});
+    if(state.selected!==matchId||state.playerQuoteSeq.get(key)!==seq)return; const q=Array.isArray(r)?r[0]:r; if(q&&Number(q.threshold)===Number(threshold))state.playerManualQuotes.set(key,q);else state.playerManualQuotes.delete(key); renderPlayers();
   }catch(e){showError(e)}
 }
 function renderPlayerControls(){
@@ -441,14 +439,20 @@ function renderPlayers(){
       const ctxClass=cf>1.015?'ctx-up':cf<0.985?'ctx-down':'ctx-flat';
       const key=playerThresholdKey(pid,m);
       const chosen=Number(state.playerThresholds[key]??l.threshold);
-      return `<div class="player-market-row player-market-option" data-player="${pid}" data-market="${esc(m)}"><div class="market-select-wrap threshold-stepper"><span>${esc(marketLabel(m))}</span><button type="button" class="threshold-step" data-player="${pid}" data-market="${esc(m)}" data-delta="-1">−</button><input class="threshold-input" data-player="${pid}" data-market="${esc(m)}" data-key="${esc(key)}" type="number" min="1" step="1" value="${chosen}"><button type="button" class="threshold-step" data-player="${pid}" data-market="${esc(m)}" data-delta="1">+</button><em>+</em></div><span class="prob ${probClass(l.model_probability)}">${pct(l.model_probability)}</span><span class="fair-odds">Fair ${odds(l.fair_odds)}</span><div class="context-line ${ctxClass}"><span>${esc((l.opponent_tier||'mid').toUpperCase())} OPP · ${esc((l.venue_role||'—').toUpperCase())}${l.is_final?' · FINALS':''}</span><span>CTX ×${cf.toFixed(3)} · O ${of.toFixed(3)} / V ${vf.toFixed(3)} / F ${ff.toFixed(3)}</span><span>n ${l.opponent_samples??0}/${l.venue_samples??0}/${l.finals_samples??0} · 2025 Finals ${l.prior_finals_samples??0} (w ${Number(l.prior_finals_weight||0).toFixed(3)})</span><span class="role-line ${Number(l.role_factor||1)>1.01?'ctx-up':Number(l.role_factor||1)<0.99?'ctx-down':'ctx-flat'}">ROLE ${esc((l.role_label||'stable').replaceAll('_',' ').toUpperCase())} · ×${Number(l.role_factor||1).toFixed(3)} · conf ${Math.round(Number(l.role_confidence||0)*100)}% · n ${l.role_samples??0}</span></div>${renderRecent(l)}<button class="add-leg" ${l.prediction_leg_id?`data-leg-id="${l.prediction_leg_id}"`:'disabled title="Custom threshold will be enabled in Multi Lab parity step"'}>${l.prediction_leg_id?'+ Multi Lab':'Custom quote'}</button></div>`;
+      return `<div class="player-market-row player-market-option" data-player="${pid}" data-market="${esc(m)}"><div class="market-select-wrap threshold-stepper"><span>${esc(marketLabel(m))}</span><button type="button" class="threshold-step" data-player="${pid}" data-market="${esc(m)}" data-delta="-1">−</button><input class="threshold-input" data-player="${pid}" data-market="${esc(m)}" data-key="${esc(key)}" type="number" min="1" step="1" value="${chosen}"><button type="button" class="threshold-step" data-player="${pid}" data-market="${esc(m)}" data-delta="1">+</button><em>+</em></div><span class="prob ${probClass(l.model_probability)}">${pct(l.model_probability)}</span><span class="fair-odds">Fair ${odds(l.fair_odds)}</span><div class="context-line ${ctxClass}"><span>${esc((l.opponent_tier||'mid').toUpperCase())} OPP · ${esc((l.venue_role||'—').toUpperCase())}${l.is_final?' · FINALS':''}</span><span>CTX ×${cf.toFixed(3)} · O ${of.toFixed(3)} / V ${vf.toFixed(3)} / F ${ff.toFixed(3)}</span><span>n ${l.opponent_samples??0}/${l.venue_samples??0}/${l.finals_samples??0} · 2025 Finals ${l.prior_finals_samples??0} (w ${Number(l.prior_finals_weight||0).toFixed(3)})</span><span class="role-line ${Number(l.role_factor||1)>1.01?'ctx-up':Number(l.role_factor||1)<0.99?'ctx-down':'ctx-flat'}">ROLE ${esc((l.role_label||'stable').replaceAll('_',' ').toUpperCase())} · ×${Number(l.role_factor||1).toFixed(3)} · conf ${Math.round(Number(l.role_confidence||0)*100)}% · n ${l.role_samples??0}</span></div>${renderRecent(l)}<button class="add-leg" data-player="${pid}" data-market="${esc(m)}" ${Number(l.threshold)===chosen&&Number(l.model_probability)>0&&Number(l.model_probability)<=1?'':'disabled'}>${Number(l.threshold)!==chosen?'等待报价':l.prediction_leg_id?'+ Multi Lab':'+ Multi Lab · Custom quote'}</button></div>`;
     }).join('');
     return `<article class="player-card"><div class="player-card-head"><div><h3>${esc(first.player_name)}</h3><div class="match-meta">${esc(first.team_name||'')} ${first.bench?'· Bench':''}</div>${riskLine}</div><span class="badge ${badgeClass}">${esc(badge)}</span></div>${rows}</article>`;
   });
   $('#playerCards').innerHTML=cards.join('')||'<div class="empty">没有符合条件的球员</div>';
   $$('#playerCards .threshold-input').forEach(inp=>inp.addEventListener('change',()=>{const v=Math.max(1,Math.round(Number(inp.value)||1));quotePlayerThreshold(inp.dataset.player,inp.dataset.market,v)}));
   $$('#playerCards .threshold-step').forEach(btn=>btn.addEventListener('click',()=>{const key=playerThresholdKey(btn.dataset.player,btn.dataset.market);const current=Number(state.playerThresholds[key]||btn.closest('.threshold-stepper').querySelector('.threshold-input').value||1);quotePlayerThreshold(btn.dataset.player,btn.dataset.market,Math.max(1,current+Number(btn.dataset.delta)))}));
-  $$('#playerCards .add-leg[data-leg-id]').forEach(b=>b.addEventListener('click',()=>addLegById(b.dataset.legId)));
+  $$('#playerCards .add-leg').forEach(b=>b.addEventListener('click',()=>{
+    const options=state.legs.filter(l=>l.player_id===b.dataset.player&&l.market===b.dataset.market);
+    if(!options.length)return;
+    const leg=selectedPlayerLeg(options),wanted=Number(state.playerThresholds[playerThresholdKey(b.dataset.player,b.dataset.market)]||leg.threshold);
+    if(Number(leg.threshold)!==wanted)return;
+    if(leg.prediction_leg_id)addLegById(leg.prediction_leg_id);else addCustomQuoteToBuilder(leg);
+  }));
 }
 
 async function valueResult(prob,actual,resultEl){
@@ -632,19 +636,30 @@ function visibleMultiRows(){
   strategies.forEach(st=>counts.forEach(n=>{const m=pickCanonicalMulti(state.multis,st,n,f);if(m)out.push(m)}));
   return out;
 }
-async function rankVisibleMultis(){
+async function rankVisibleMultis(reorder=false){
   const seq=++state.systemRankSeq;const rows=visibleMultiRows();
   const entered=rows.map((m,i)=>({m,i,actual:Number(state.systemMultiOdds[m.multi_id]||0)})).filter(x=>x.actual>1);
-  if(!entered.length){state.systemMultiRanking=new Map();renderMultis();return}
+  if(!entered.length){state.systemMultiRanking=new Map();updateMultiValueResults();if(reorder)renderMultis(true);return}
   const ps=entered.map(x=>Number(x.m.combined_probability||0)),minp=Math.min(...ps),maxp=Math.max(...ps),span=Math.max(.000001,maxp-minp);
   const scored=entered.map(x=>{const p=Number(x.m.combined_probability||0),ev=(p*x.actual-1)*100,quality=(p-minp)/span,valueNorm=Math.max(0,Math.min(1,(ev+20)/40)),score=.80*quality+.20*valueNorm;return {...x,p,ev,quality,valueNorm,score}});
   const byQuality=[...scored].sort((a,b)=>b.quality-a.quality||b.p-a.p);byQuality.forEach((x,i)=>x.quality_rank=i+1);
   const byValue=[...scored].sort((a,b)=>b.score-a.score||b.ev-a.ev||b.p-a.p);byValue.forEach((x,i)=>x.value_aware_rank=i+1);
   if(seq!==state.systemRankSeq)return;
   state.systemMultiRanking=new Map(scored.map(x=>[x.m.multi_id,{multi_id:x.m.multi_id,actual_odds:x.actual,value_pct:x.ev,value_label:x.ev>=8?'strong_value':x.ev>=3?'value':x.ev>-3?'fair':'poor_value',quality_rank:x.quality_rank,value_aware_rank:x.value_aware_rank,value_aware_score:x.score}]));
-  renderMultis();
+  updateMultiValueResults();
+  if(reorder)renderMultis(true);
 }
-function renderMultis(){
+function updateMultiValueResults(){
+  $$('#multiCards .value-result[data-multi-id]').forEach(result=>{
+    const rank=state.systemMultiRanking.get(result.dataset.multiId);
+    result.className='value-result';
+    result.textContent='';
+    if(rank){const vp=Number(rank.value_pct);result.classList.add(vp>=0?'good':'bad');result.textContent=`${String(rank.value_label||'').replaceAll('_',' ')} · EV ${vp>=0?'+':''}${vp.toFixed(2)}% · Value Rank #${rank.value_aware_rank}`;}
+  });
+}
+function renderMultis(force=false){
+  if(!force && document.activeElement?.matches('#multiCards .actual-odds')){state.multisRenderPending=true;return;}
+  state.multisRenderPending=false;
   if(!state.systemFilterActive)state.systemFilterActive=defaultSystemFilterState();
   if($('#systemMarketFilters')&&!$('#systemMarketFilters').children.length)renderSystemFilterUI();
   const f=state.systemFilterActive;const summary=$('#systemFilterSummary');if(summary){if(f.strategy==='all'&&f.legCount===0)summary.innerHTML=`<span>2–5串1 · 保守 / 平衡 / 激进</span><b>12 组固定推荐</b><small>${f.markets.size} markets</small>`;else if(f.strategy==='all')summary.innerHTML=`<span>${f.legCount}串1 · 全部策略</span><b>3 组</b><small>${f.markets.size} markets</small>`;else if(f.legCount===0)summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · 2–5串1</span><b>4 组</b><small>${f.markets.size} markets</small>`;else{const range=f.odds[f.strategy][f.legCount];summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · ${f.legCount}串1</span><b>Fair ${Number(range[0]).toFixed(2)}–${Number(range[1]).toFixed(2)}</b><small>${f.markets.size} markets</small>`}};
@@ -671,9 +686,11 @@ function renderMultis(){
     node.querySelector('.send-builder').addEventListener('click',()=>sendMultiToBuilder(m));
     const input=node.querySelector('.actual-odds'),result=node.querySelector('.value-result');
     input.value=state.systemMultiOdds[m.multi_id]||'';
+    result.dataset.multiId=m.multi_id;
+    input.addEventListener('blur',()=>setTimeout(()=>{if(state.multisRenderPending)renderMultis()},0));
     if(vrank){const vp=Number(vrank.value_pct);result.className=`value-result ${vp>=0?'good':'bad'}`;result.textContent=`${String(vrank.value_label||'').replaceAll('_',' ')} · EV ${vp>=0?'+':''}${vp.toFixed(2)}% · Value Rank #${vrank.value_aware_rank}`}
     input.addEventListener('input',()=>{state.systemMultiOdds[m.multi_id]=input.value;clearTimeout(window.__systemMultiRankTimer);window.__systemMultiRankTimer=setTimeout(()=>rankVisibleMultis().catch(showError),300)});
-    node.querySelector('.value-btn').addEventListener('click',()=>{state.systemMultiOdds[m.multi_id]=input.value;const actual=Number(input.value);if(!(actual>1)){result.className='value-result bad';result.textContent='请输入大于 1.00 的实际赔率';return}rankVisibleMultis().catch(showError)});
+    node.querySelector('.value-btn').addEventListener('click',()=>{state.systemMultiOdds[m.multi_id]=input.value;const actual=Number(input.value);if(!(actual>1)){result.className='value-result bad';result.textContent='请输入大于 1.00 的实际赔率';return}clearTimeout(window.__systemMultiRankTimer);rankVisibleMultis(true).catch(showError)});
     host.appendChild(node)
   })
 }
@@ -799,7 +816,16 @@ function renderMultiLabMatchMarkets(){
   host.querySelectorAll('[data-ml-line]').forEach(b=>b.addEventListener('click',()=>{const side=b.dataset.mlLine;const value=side==='home'?state.multiLabHomeLine:state.multiLabAwayLine;quoteAndAddMultiLabMarket('HANDICAP',side,value).catch(showError)}));
 }
 
-function normalizeLeg(l){return {prediction_leg_id:l.prediction_leg_id,player_id:l.player_id||null,player_name:l.player_name||'比赛市场',team_name:l.team_name||null,market:l.market,threshold:Number(l.threshold),selection:l.selection,probability:Number(l.model_probability??l.probability),fair_odds:Number(l.fair_odds||0)}}
+function normalizeLeg(l){return {manual_quote:!!l.manual_quote,match_id:l.match_id||state.selected,model_method:l.model_method||null,prediction_leg_id:l.prediction_leg_id,player_id:l.player_id||null,player_name:l.player_name||'比赛市场',team_name:l.team_name||null,market:l.market,threshold:Number(l.threshold),selection:l.selection,probability:Number(l.model_probability??l.probability),fair_odds:Number(l.fair_odds||0)}}
+function addCustomQuoteToBuilder(quote){
+  const p=Number(quote.model_probability);
+  if(!quote.manual_quote||!quote.player_id||!quote.market||!Number.isFinite(Number(quote.threshold))||!(p>0&&p<=1)||quote.match_id!==state.selected)return;
+  const id=`custom:${state.selected}:${quote.player_id}:${quote.market}:${Number(quote.threshold)}`;
+  if(state.builder.some(l=>l.prediction_leg_id===id)){switchView('multi-lab');return;}
+  const selection=`${quote.player_name} ${marketLabel(quote.market)} ${Number(quote.threshold)}+`;
+  state.builder.push(normalizeLeg({...quote,prediction_leg_id:id,selection,fair_odds:1/p}));
+  saveBuilder();switchView('multi-lab');
+}
 function addLegById(id){const l=state.legs.find(x=>x.prediction_leg_id===id)||state.topLegs.find(x=>x.prediction_leg_id===id);if(!l)return;if(state.builder.some(x=>x.prediction_leg_id===id))return;state.builder.push(normalizeLeg(l));saveBuilder();switchView('multi-lab')}
 function sendMultiToBuilder(m){state.builder=[];(m.legs||[]).forEach(l=>{const full=state.legs.find(x=>x.prediction_leg_id===l.prediction_leg_id);state.builder.push(normalizeLeg(full||l))});saveBuilder();switchView('multi-lab')}
 function builderProbability(){return state.builder.reduce((a,l)=>a*Number(l.probability||0),1)}
@@ -808,9 +834,9 @@ async function evaluateBuilder(){
   if(state.builder.length<2){state.builderEval=null;renderBuilder();return}
   const actual=Number($('#builderActualOdds')?.value||0);
   let result;
-  if(state.builder.some(l=>String(l.prediction_leg_id||'').startsWith('match:'))){
+  if(state.builder.some(l=>l.manual_quote||/^(match|custom):/.test(String(l.prediction_leg_id||'')))){
     const probs=state.builder.map(l=>Number(l.probability)).filter(p=>p>0&&p<=1),naive=probs.reduce((a,b)=>a*b,1),minp=Math.min(...probs),dep=.95,joint=Math.min(minp,Math.max(.0001,naive*dep));
-    result={status:'ok',joint_probability:joint,fair_odds:1/joint,dependency_factor:dep,dependent_pairs:1,empirical_pairs:0,pair_details:[],actual_odds:actual>1?actual:null,value_pct:actual>1?(joint*actual-1)*100:null,value_label:actual>1?(joint*actual-1>=.08?'strong_value':joint*actual-1>=.03?'value':joint*actual-1>-.03?'fair':'poor_value'):null,method:'match_market_proxy_v0.1'};
+    result={status:'ok',joint_probability:joint,fair_odds:1/joint,dependency_factor:dep,dependent_pairs:1,empirical_pairs:0,pair_details:[],actual_odds:actual>1?actual:null,value_pct:actual>1?(joint*actual-1)*100:null,value_label:actual>1?(joint*actual-1>=.08?'strong_value':joint*actual-1>=.03?'value':joint*actual-1>-.03?'fair':'poor_value'):null,method:'manual_quote_dependency_proxy_v0.2'};
   }else result=await api('/rest/v1/rpc/afl_multi_lab_evaluate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({p_leg_ids:state.builder.map(l=>l.prediction_leg_id),p_actual_odds:actual>1?actual:null})});
   if(seq!==state.builderEvalSeq)return;
   state.builderEval=result;renderBuilder();
@@ -823,7 +849,7 @@ function renderBuilder(){
   $('#builderSummary').innerHTML=stat('Legs',state.builder.length)+stat('Naive P',state.builder.length?pct(naive):'—')+stat('Model P',state.builder.length>=2?(ok?pct(joint):'计算中…'):'—')+stat('Fair Odds',state.builder.length>=2?(ok?odds(ev.fair_odds):'—'):'—');
   const dep=$('#builderDependencyDetails');
   if(dep){
-    if(ok){const pairs=ev.pair_details||[];dep.innerHTML=`<div class="dependency-head"><strong>Dependency ×${Number(ev.dependency_factor||1).toFixed(3)}</strong><span>${ev.empirical_pairs??0}/${ev.dependent_pairs??0} empirical pairs</span></div>${pairs.length?pairs.map(x=>`<div class="dependency-row"><span>${esc(x.player_a)} ${esc(String(x.market_a).replaceAll('_',' '))} ↔ ${esc(x.player_b)} ${esc(String(x.market_b).replaceAll('_',' '))}</span><b>×${Number(x.factor).toFixed(3)}</b><small>n=${x.sample_size??'fallback'}</small></div>`).join(''):'<div class="match-meta">组合腿之间没有同球员/同队依赖，按独立处理。</div>'}`}
+    if(ok){const pairs=ev.pair_details||[];dep.innerHTML=`<div class="dependency-head"><strong>Dependency ×${Number(ev.dependency_factor||1).toFixed(3)}</strong><span>${ev.empirical_pairs??0}/${ev.dependent_pairs??0} empirical pairs</span></div>${pairs.length?pairs.map(x=>`<div class="dependency-row"><span>${esc(x.player_a)} ${esc(String(x.market_a).replaceAll('_',' '))} ↔ ${esc(x.player_b)} ${esc(String(x.market_b).replaceAll('_',' '))}</span><b>×${Number(x.factor).toFixed(3)}</b><small>n=${x.sample_size??'fallback'}</small></div>`).join(''):ev.method?.includes('proxy')?'<div class="match-meta">含自定义或比赛报价：相关性暂用 ×0.95 近似，联合概率为估算。</div>':'<div class="match-meta">组合腿之间没有同球员/同队依赖，按独立处理。</div>'}`}
     else dep.innerHTML=state.builder.length>=2?'<div class="match-meta">正在计算 empirical dependency…</div>':'';
   }
   const vr=$('#builderValueResult');
@@ -963,6 +989,10 @@ async function openPlayerOptionModal(playerId){
 function fieldAdd(playerId,market='best'){let legs=state.legs.filter(l=>l.player_id===playerId);if(market!=='best')legs=legs.filter(l=>l.market===market);legs.sort((a,b)=>Number(b.model_probability)-Number(a.model_probability));if(legs[0])addLegById(legs[0].prediction_leg_id)}
 
 function switchView(name){
+  if(!state.selected&&!['reviews','validation'].includes(name))name='reviews';
+  $('.match-picker').hidden=name==='reviews';
+  $('.match-picker').style.display=name==='reviews'?'none':'';
+  if(name==='reviews')loadReviews();
   state.view=name;$$('.view').forEach(v=>v.classList.remove('active-view'));$(`#view-${name}`)?.classList.add('active-view');$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name));
   if(name==='players')ensurePlayerMarketData().catch(e=>setModuleStatus('legs','error',e.message));
   if(name==='multi-lab'){renderBuilder();loadMultiLabMatchMarkets().catch(e=>setModuleStatus('multi_lab_markets','error',e.message))}
@@ -974,11 +1004,116 @@ function showError(e){console.error(e);setModuleStatus('action','error',e?.messa
 async function bootstrap(){
   state.moduleStatus={};updateHealthBadge();
   await loadMatches();
-  if(!state.selected)return;
+  if(!state.selected){switchView('reviews');return}
   await loadSelected();
 }
 
 
+// Archive is a time boundary, independent of delayed provider status updates.
+function activeMatches(now=Date.now()) {
+  return state.matches.filter(m=>!['final','cancelled'].includes(m.status)&&Number.isFinite(Date.parse(m.start_time))&&now<Date.parse(m.start_time)+600000)
+    .sort((a,b)=>(Date.parse(a.start_time)<now)-(Date.parse(b.start_time)<now)||Date.parse(a.start_time)-Date.parse(b.start_time));
+}
+function reconcileMatchPicker(){
+  const matches=activeMatches(), previous=state.selected;
+  const signature=matches.map(m=>m.match_id).join('|');
+  if(state.matchPickerSignature!==signature){
+    $('#matchSelect').innerHTML=matches.length?matches.map((m,i)=>`<option value="${esc(m.match_id)}">${i===0?'下一场 · ':''}${esc(m.home_team_name)} vs ${esc(m.away_team_name)} · ${dt(m.start_time)}</option>`).join(''):'<option value="">暂无待赛赛事</option>';
+    state.matchPickerSignature=signature;
+  }
+  if(!matches.some(m=>m.match_id===state.selected))state.selected=matches[0]?.match_id||null;
+  $('#matchSelect').value=state.selected||'';
+  return previous!==state.selected;
+}
+function initReviewPage(){
+  const tab=document.createElement('button');tab.className='tab';tab.dataset.view='reviews';tab.textContent='赛事回顾';$('.tabs').append(tab);
+  const page=document.createElement('section');page.id='view-reviews';page.className='view';
+  page.innerHTML=`<style>#view-reviews .note{font-size:14px;line-height:1.6}#view-reviews .validation-table{font-size:14px}#view-reviews input,#view-reviews select{max-width:100%;min-width:0}#view-reviews .stats-grid .stat{padding:16px}</style><section class="panel"><div class="section-head"><div><div class="eyebrow">MATCH REVIEW</div><h2>赛事回顾</h2></div><button id="reviewRefresh" class="ghost">刷新回顾</button></div>
+    <p class="note">开赛 10 分钟后移入本页。仅展示赛前封存预测；开赛 8 小时后自动获取赛果并验证。</p>
+    <label for="reviewSelect">已下架赛事</label> <select id="reviewSelect" style="max-width:100%"></select><p id="reviewLoadStatus" role="status"></p></section>
+    <section id="reviewSummary" class="panel"></section>
+    <section class="panel"><div class="section-head"><h2>全部封存预测与实际</h2></div>
+    <p class="note">命中率 = 命中 ÷（命中 + 未命中）。待验证、未出场及走盘不计入分母；不同门槛分别计数，因此该比例不代表未来投注胜率。</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap"><input id="reviewSearch" type="search" placeholder="搜索球员或预测选项" aria-label="搜索回顾预测"><select id="reviewMarket" aria-label="筛选回顾玩法"><option value="">全部玩法</option></select></div>
+    <div id="reviewLegTable" style="overflow:auto;max-height:650px;margin-top:16px"></div>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:16px"><button id="reviewPrev" class="ghost">上一页</button><span id="reviewPageLabel"></span><button id="reviewNext" class="ghost">下一页</button></div></section>
+    <section class="panel"><h2>封存串关最终对比</h2><div id="reviewMultiTable" style="overflow:auto"></div></section>`;
+  $('main').append(page);state.reviewRows=[];state.reviewSelected=null;state.reviewDetail=null;state.reviewPage=0;
+  $('#reviewRefresh').addEventListener('click',()=>loadReviews(true));
+  $('#reviewSelect').addEventListener('change',e=>{state.reviewSelected=e.target.value;state.reviewDetail=null;state.reviewPage=0;loadReviewDetail()});
+  $('#reviewSearch').addEventListener('input',()=>{state.reviewPage=0;renderReviewLegs()});
+  $('#reviewMarket').addEventListener('change',()=>{state.reviewPage=0;renderReviewLegs()});
+  $('#reviewPrev').addEventListener('click',()=>{state.reviewPage=Math.max(0,state.reviewPage-1);renderReviewLegs()});
+  $('#reviewNext').addEventListener('click',()=>{state.reviewPage++;renderReviewLegs()});
+}
+const reviewResultLabels={hit:'命中',miss:'未命中',pending:'待验证',void:'不计入',push:'走盘'};
+function reviewBadge(result){return `<span class="badge ${result==='hit'?'good':result==='miss'?'bad':'neutral'}">${reviewResultLabels[result]||'待验证'}</span>`}
+async function loadReviews(force=false){
+  if(state.reviewLoading)return;state.reviewLoading=true;
+  try{
+    const rows=await api('/rest/v1/afl_api_match_reviews?select=match_id,start_time,home_team_name,away_team_name,frozen_at,status,summary,updated_at&order=start_time.desc',{},10000);
+    state.reviewRows=rows||[];
+    // An archive can arrive up to one scheduler minute after the local time boundary.
+    const ids=new Set(state.reviewRows.map(r=>r.match_id));
+    state.matches.filter(m=>Date.now()>=Date.parse(m.start_time)+600000&&!ids.has(m.match_id)&&m.start_time>='2026-09-09').forEach(m=>state.reviewRows.push({...m,status:'pending',summary:{},localPending:true}));
+    state.reviewRows.sort((a,b)=>Date.parse(b.start_time)-Date.parse(a.start_time));
+    const old=state.reviewSelected;
+    if(!state.reviewRows.some(r=>r.match_id===old))state.reviewSelected=state.reviewRows[0]?.match_id||null;
+    $('#reviewSelect').innerHTML=state.reviewRows.map(r=>`<option value="${esc(r.match_id)}">${esc(r.home_team_name)} vs ${esc(r.away_team_name)} · ${dt(r.start_time)} · ${r.status==='verified'?'已验证':'待验证'}</option>`).join('')||'<option>暂无已下架赛事</option>';
+    $('#reviewSelect').value=state.reviewSelected||'';
+    const row=state.reviewRows.find(r=>r.match_id===state.reviewSelected);
+    $('#reviewLoadStatus').textContent=state.reviewRows.length?'回顾数据已同步；停留在本页时每分钟检查结果。':'比赛下架后会自动出现在这里。';
+    if(force||old!==state.reviewSelected||state.reviewDetailUpdated!==row?.updated_at)await loadReviewDetail();
+  }catch(e){$('#reviewLoadStatus').textContent=`回顾暂时无法更新：${e.message}。请重试。`}
+  finally{state.reviewLoading=false}
+}
+async function loadReviewDetail(){
+  const id=state.reviewSelected,row=state.reviewRows.find(r=>r.match_id===id);
+  const seq=state.reviewSeq=(state.reviewSeq||0)+1;
+  if(!id||row?.localPending){state.reviewDetail=null;renderReview();return}
+  try{
+    $('#reviewLoadStatus').textContent='正在读取封存记录…';
+    const rows=await api(`/rest/v1/afl_api_match_reviews?select=detail,updated_at&match_id=eq.${encodeURIComponent(id)}`,{},15000);
+    if(seq!==state.reviewSeq||id!==state.reviewSelected)return;
+    state.reviewDetail=rows?.[0]?.detail||null;state.reviewDetailUpdated=rows?.[0]?.updated_at;
+    renderReview();$('#reviewLoadStatus').textContent='已读取赛前封存记录；结果每分钟自动检查。';
+  }catch(e){if(id===state.reviewSelected){state.reviewDetail=null;renderReview();$('#reviewLoadStatus').textContent=`封存内容读取失败：${e.message}`}}
+}
+function renderReview(){
+  const r=state.reviewRows.find(r=>r.match_id===state.reviewSelected),s=r?.summary||{},d=state.reviewDetail;
+  if(!r){$('#reviewSummary').innerHTML='<div class="empty">暂无赛事回顾</div>';renderReviewLegs();$('#reviewMultiTable').innerHTML='';return}
+  const score=s.home_score!=null&&s.away_score!=null?`${s.home_score} – ${s.away_score}`:'等待最终比分';
+  $('#reviewSummary').innerHTML=`<div class="section-head"><h2>${esc(r.home_team_name)} vs ${esc(r.away_team_name)}</h2><span class="badge ${r.status==='verified'?'good':'neutral'}">${r.status==='verified'?'已验证':'待验证'}</span></div>
+    <p>${dt(r.start_time)} · ${score}</p><p class="note">${r.frozen_at?`封存时间：${dt(r.frozen_at)}`:'尚无可用的赛前封存记录；不会以赛后预测补填。'}</p>
+    <div class="stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">${stat('单项命中率',s.hit_rate==null?'—':pct(s.hit_rate))}${stat('命中 / 已判定',`${s.hits||0} / ${(s.hits||0)+(s.misses||0)}`)}${stat('待验证',s.pending||0)}${stat('不计入 / 走盘',s.void||0)}${stat('串关命中率',s.multis?.hit_rate==null?'—':pct(s.multis.hit_rate))}${stat('串关命中 / 已判定',`${s.multis?.hits||0} / ${(s.multis?.hits||0)+(s.multis?.misses||0)}`)}</div>
+    ${r.frozen_at&&!s.match_markets_frozen?'<p class="note">该场历史封存不含比赛玩法，无法补做其胜负、大小球及让分验证。下一场起同步封存。</p>':''}
+    ${d?.predicted_scores?`<p>封存预测比分：${esc(d.predicted_scores.predicted_home_score)} – ${esc(d.predicted_scores.predicted_away_score)}；实际比分：${score}</p>`:''}`;
+  const market=$('#reviewMarket').value;
+  $('#reviewMarket').innerHTML='<option value="">全部玩法</option>'+[...new Set((d?.legs||[]).map(l=>l.market))].sort().map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('');
+  $('#reviewMarket').value=market;renderReviewLegs();
+  const multis=d?.multis||[];
+  $('#reviewMultiTable').innerHTML=multis.length?`<table class="validation-table"><thead><tr><th>策略 / 串数</th><th>封存概率</th><th>最终结果</th><th>逐腿对比</th></tr></thead><tbody>${multis.map(m=>`<tr><td>${esc(m.strategy)} · ${m.leg_count} 串 1 · #${m.rank}</td><td>${pct(m.probability)}</td><td>${reviewBadge(m.result)}</td><td>${m.legs.map(l=>`${esc(l.selection)}：${l.actual_value==null?'—':l.actual_value} ${reviewBadge(l.result)}`).join('<br>')}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">暂无封存串关</div>';
+}
+function renderReviewLegs(){
+  const q=$('#reviewSearch').value.trim().toLowerCase(),market=$('#reviewMarket').value;
+  const legs=(state.reviewDetail?.legs||[]).filter(l=>(!market||l.market===market)&&(!q||`${l.player_name||''} ${l.selection||''}`.toLowerCase().includes(q)));
+  const pages=Math.max(1,Math.ceil(legs.length/100));state.reviewPage=Math.min(state.reviewPage,pages-1);
+  $('#reviewLegTable').innerHTML=legs.length?`<table class="validation-table"><thead><tr><th>封存预测</th><th>模型概率</th><th>公平赔率</th><th>实际数值</th><th>结果</th></tr></thead><tbody>${legs.slice(state.reviewPage*100,(state.reviewPage+1)*100).map(l=>`<tr><td>${esc(l.selection)}</td><td>${l.probability==null?'—':pct(l.probability)}</td><td>${l.fair_odds??'—'}</td><td>${l.actual_value==null?'—':l.actual_value}</td><td>${reviewBadge(l.result)}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">暂无符合条件的封存预测</div>';
+  $('#reviewPageLabel').textContent=`${state.reviewPage+1} / ${pages} · ${legs.length} 项`;
+  $('#reviewPrev').disabled=state.reviewPage===0;$('#reviewNext').disabled=state.reviewPage>=pages-1;
+}
+function archiveClockTick(){
+  const changed=reconcileMatchPicker();
+  if(changed){
+    ++state.loadSeq;resetSelectedState();state.systemMultiOdds={};state.systemMultiRanking=new Map();
+    state.multiLabMarketPicker=null;state.multiLabMarketPickerMatch=null;
+    if(state.selected)loadSelected().then(()=>{if(state.view==='players')ensurePlayerMarketData()}).catch(showError);
+    else switchView('reviews');
+    if(state.view==='reviews')loadReviews(true);
+  }
+}
+
+initReviewPage();
 $$('.tab').forEach(t=>t.addEventListener('click',()=>switchView(t.dataset.view)));$$('[data-go]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.go)));
 $('#matchSelect').addEventListener('change',e=>{state.selected=e.target.value;state.systemMultiOdds={};state.systemMultiRanking=new Map();state.multiLabMarketPicker=null;state.multiLabMarketPickerMatch=null;state.multiLabTotalLine=null;state.multiLabHomeLine=null;state.multiLabAwayLine=null;loadSelected().catch(showError)});
 $('#playerSearch').addEventListener('input',renderPlayers);$('#marketFilter').addEventListener('change',renderPlayers);
@@ -988,3 +1123,6 @@ let builderOddsTimer;$('#builderActualOdds').addEventListener('input',()=>{clear
 $('#builderValueBtn').addEventListener('click',()=>evaluateBuilder().catch(showError));
 $('#refreshBtn').addEventListener('click',bootstrap);
 bootstrap();
+setInterval(()=>{if(!document.hidden)archiveClockTick()},10000);
+setInterval(()=>{if(!document.hidden&&state.view==='reviews')loadReviews()},60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){archiveClockTick();if(state.view==='reviews')loadReviews()}});
