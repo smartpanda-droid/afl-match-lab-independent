@@ -8,6 +8,8 @@ const p1=fs.readFileSync('public/decision-p1-v63.js','utf8');
 const p1css=fs.readFileSync('public/decision-p1-v63.css','utf8');
 const p2=fs.readFileSync('public/navigation-p2-v64.js','utf8');
 const p2css=fs.readFileSync('public/navigation-p2-v64.css','utf8');
+const p0c=fs.readFileSync('public/p0-completion-v65.js','utf8');
+const p0ccss=fs.readFileSync('public/p0-completion-v65.css','utf8');
 const checks=[];
 function check(name, ok, detail=''){checks.push({name,ok,detail});if(!ok)process.exitCode=1}
 check('Config has Supabase URL',/SUPABASE_URL:\s*"https:\/\//.test(cfg));
@@ -61,6 +63,15 @@ check('P2 uses existing switchView',p2.includes("typeof window.switchView==='fun
 check('P2 mobile bottom nav is five columns',p2css.includes('grid-template-columns:repeat(5,1fr)')&&p2css.includes('env(safe-area-inset-bottom)'));
 check('P2 hides legacy nav only after ready',p2css.includes('body.p2-nav-ready .tabs'));
 check('P2 does not mutate production probability',!/(model_probability\\s*=|\\.probability\\s*=|state\\.legs\\s*=|state\\.multis\\s*=)/.test(p2));
+check('P0 completion CSS is linked',html.includes('p0-completion-v65.css'));
+check('P0 completion JS is linked after P2',html.includes('p0-completion-v65.js')&&html.indexOf('navigation-p2-v64.js')<html.indexOf('p0-completion-v65.js'));
+check('P0 late change uses backend observations',p0c.includes('afl_api_shadow_observations')&&p0c.includes('lineup_changed')&&p0c.includes('prediction_changed'));
+check('P0 exact delta snapshot exists',p0c.includes('decision-snapshot')&&p0c.includes('compareSnapshots'));
+check('P0 source and load freshness are separate',p0c.includes('SOURCE vs LOAD')&&p0c.includes('Source time unavailable'));
+check('P0 weather is connected but model-safe',p0c.includes('api.open-meteo.com/v1/forecast')&&p0c.includes('INFO ONLY · NOT IN MODEL'));
+check('P0 review has explicit player and multi KPIs',p0c.includes('Player markets')&&p0c.includes('System multis'));
+check('P0 completion does not mutate production probability',!/(model_probability\\s*=|\\.probability\\s*=|state\\.legs\\s*=|state\\.multis\\s*=)/.test(p0c));
+check('P0 completion responsive styles exist',p0ccss.includes('@media(max-width:900px)'));
 const failed=checks.filter(x=>!x.ok);
-console.log(`AFL Match Lab v64 smoke check: ${checks.length-failed.length}/${checks.length} passed`);
+console.log(`AFL Match Lab v65 smoke check: ${checks.length-failed.length}/${checks.length} passed`);
 for(const c of checks) console.log(`${c.ok?'PASS':'FAIL'}  ${c.name}${c.detail?' — '+c.detail:''}`);
