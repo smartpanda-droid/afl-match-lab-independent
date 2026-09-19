@@ -5,17 +5,17 @@
   const P2='P2 v64';
   const $p2=s=>document.querySelector(s), $$p2=s=>[...document.querySelectorAll(s)];
   const icons={
-    match:'<path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/>',
-    players:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-    multi:'<path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/>',
-    review:'<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>',
-    more:'<circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.5" fill="currentColor" stroke="none"/>',
-    field:'<rect x="3" y="4" width="18" height="16" rx="8"/><path d="M12 4v16M3 12h18"/><circle cx="12" cy="12" r="2.5"/>',
-    tactics:'<circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 6h4a4 4 0 0 1 4 4 4 4 0 0 1-4 4H8"/><path d="m10 11-3 3 3 3"/>',
-    validation:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>',
-    shadow:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>'
+    match:'<rect x="3.5" y="5" width="17" height="14" rx="4"/><path d="M12 5v14"/><path d="M3.5 12h17"/><circle cx="12" cy="12" r="2.3"/>',
+    players:'<circle cx="9" cy="8" r="3"/><path d="M3.5 19c.4-3.2 2.4-5 5.5-5s5.1 1.8 5.5 5"/><circle cx="17" cy="9" r="2.3"/><path d="M15.5 14.5c2.8-.4 4.5 1 5 3.5"/>',
+    multi:'<path d="M6 6h12"/><path d="M6 12h12"/><path d="M6 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/><path d="m16.5 4.5 1.5 1.5-1.5 1.5"/><path d="m16.5 10.5 1.5 1.5-1.5 1.5"/><path d="m16.5 16.5 1.5 1.5-1.5 1.5"/>',
+    review:'<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3L4.5 9"/><path d="M4.5 4.5V9H9"/><path d="M12 8v4.2l2.8 1.8"/>',
+    more:'<path d="M6 12h.01M12 12h.01M18 12h.01"/>',
+    field:'<rect x="3.5" y="5" width="17" height="14" rx="7"/><path d="M12 5v14M3.5 12h17"/><circle cx="12" cy="12" r="2.2"/>',
+    tactics:'<circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 6h4a4 4 0 0 1 4 4v1"/><path d="M16 13v1a4 4 0 0 1-4 4H8"/><path d="m10 15-3 3 3 3"/>',
+    validation:'<path d="M12 3 19 6v5c0 4.8-2.8 8-7 10-4.2-2-7-5.2-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/>',
+    shadow:'<path d="M3 12s3.2-5.5 9-5.5S21 12 21 12s-3.2 5.5-9 5.5S3 12 3 12Z"/><circle cx="12" cy="12" r="2.5"/>'
   };
-  const svg=name=>'<svg viewBox="0 0 24 24" aria-hidden="true">'+(icons[name]||icons.more)+'</svg>';
+  const svg=name=>'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'+(icons[name]||icons.more)+'</svg>';
   const primary=[
     {route:'match',label:'MATCH',sub:'Matchday Cockpit',icon:'match'},
     {route:'players',label:'PLAYERS',sub:'Player markets',icon:'players'},
