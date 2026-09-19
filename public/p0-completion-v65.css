@@ -1,0 +1,81 @@
+/* AFL Match Lab P0 Completion v65
+   Completes Late Change, source-vs-load freshness, display-only weather and Review learning KPIs. */
+
+.p0c-late-change{
+  margin:0;padding:10px 12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;
+  border:1px solid #dbe7e5;border-left:4px solid #6e8290;border-radius:10px;background:#f8fbfa
+}
+.p0c-late-change.good{border-left-color:#0b7a59;background:#f1faf6}
+.p0c-late-change.warn{border-left-color:#c48723;background:#fff9eb}
+.p0c-late-change.bad{border-left-color:#bd3f4d;background:#fff3f4}
+.p0c-late-icon{
+  width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#e7efed;color:#536c78;font-size:15px;font-weight:900
+}
+.p0c-late-change.good .p0c-late-icon{background:#dff3ea;color:#087553}
+.p0c-late-change.warn .p0c-late-icon{background:#ffedc5;color:#94661a}
+.p0c-late-change.bad .p0c-late-icon{background:#ffe2e6;color:#ae3344}
+.p0c-late-main{min-width:0}
+.p0c-late-head{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.p0c-late-head strong{color:#203d50;font-size:11px}
+.p0c-late-head span{padding:3px 6px;border-radius:999px;background:#eaf0ef;color:#617681;font-size:7px;font-weight:850;letter-spacing:.04em}
+.p0c-late-change.good .p0c-late-head span{background:#dff3ea;color:#087553}
+.p0c-late-change.warn .p0c-late-head span{background:#ffedc5;color:#906116}
+.p0c-late-change.bad .p0c-late-head span{background:#ffe2e6;color:#a93242}
+.p0c-late-main p{margin:3px 0 0;color:#667a89;font-size:9px;line-height:1.45}
+.p0c-late-meta{display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.p0c-late-meta span{padding:5px 7px;border-radius:7px;background:#fff;border:1px solid #e2e9e8;color:#536b79;font-size:8px;white-space:nowrap}
+.p0c-late-details{grid-column:1/-1;border-top:1px solid #e5eceb;padding-top:8px}
+.p0c-late-details summary{cursor:pointer;color:#526a79;font-size:8px;font-weight:800}
+.p0c-delta-grid{margin-top:7px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.p0c-delta-item{padding:7px 8px;border-radius:8px;background:#fff;border:1px solid #e3eae9}
+.p0c-delta-item strong{display:block;color:#294759;font-size:8px}
+.p0c-delta-item span{display:block;margin-top:2px;color:#71818e;font-size:8px;line-height:1.4}
+
+/* Accurate freshness deliberately separates source time from browser load time. */
+#p0FreshnessPanel.p0c-freshness-ready .p0-freshness-list{display:grid;gap:6px}
+.p0c-fresh-row{
+  padding:7px 8px;display:grid;grid-template-columns:minmax(84px,.7fr) minmax(0,1.3fr);gap:8px;
+  border:1px solid #e4ebea;border-radius:8px;background:#fbfdfc
+}
+.p0c-fresh-row>span{align-self:center;color:#4d6574;font-size:8px;font-weight:800}
+.p0c-fresh-values{min-width:0;display:grid;gap:2px;text-align:right}
+.p0c-fresh-values strong{font-size:8px;color:#2c4a5b}
+.p0c-fresh-values strong.good{color:#087354}.p0c-fresh-values strong.warn{color:#91651a}.p0c-fresh-values strong.bad{color:#ae3444}
+.p0c-fresh-values small{color:#87939c;font-size:7px;line-height:1.35}
+.p0c-fresh-note{margin-top:8px;color:#788995;font-size:7px;line-height:1.45}
+
+/* Weather is observational only until model validation. */
+.p0c-weather-card{
+  padding:9px;border:1px solid #dde8e6;border-radius:9px;background:linear-gradient(135deg,#f8fbfc,#f3f8f6)
+}
+.p0c-weather-head{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.p0c-weather-head strong{color:#29485a;font-size:9px}.p0c-weather-head span{padding:3px 6px;border-radius:999px;background:#edf3f2;color:#667a87;font-size:7px;font-weight:800}
+.p0c-weather-grid{margin-top:7px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.p0c-weather-metric{padding:6px;border-radius:7px;background:#fff}
+.p0c-weather-metric span{display:block;color:#82909a;font-size:6.5px;text-transform:uppercase;letter-spacing:.045em}
+.p0c-weather-metric b{display:block;margin-top:2px;color:#2d495b;font-size:9px}
+.p0c-weather-foot{margin-top:6px;color:#7c8b96;font-size:7px;line-height:1.4}
+.p0c-weather-foot a{color:#087156;text-decoration:none;font-weight:750}
+
+/* Review completion adds explicit player/multi learning KPIs. */
+.p0c-review-kpis{
+  margin-top:9px;padding-top:9px;border-top:1px solid #e3e9e9;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px
+}
+.p0c-review-kpi{padding:8px;border:1px solid #e2e9e8;border-radius:8px;background:#fbfdfc}
+.p0c-review-kpi span{display:block;color:#7b8a96;font-size:7px;text-transform:uppercase;letter-spacing:.045em}
+.p0c-review-kpi b{display:block;margin-top:2px;color:#294759;font-size:11px}
+.p0c-review-kpi small{display:block;margin-top:2px;color:#82909a;font-size:7px}
+
+@media(max-width:900px){
+  .p0c-late-change{grid-template-columns:auto minmax(0,1fr)}
+  .p0c-late-meta{grid-column:1/-1;justify-content:flex-start}
+  .p0c-delta-grid{grid-template-columns:1fr}
+  .p0c-weather-grid{grid-template-columns:1fr 1fr}
+  .p0c-review-kpis{grid-template-columns:1fr 1fr}
+}
+@media(max-width:430px){
+  .p0c-late-change{padding:9px}
+  .p0c-late-icon{width:30px;height:30px}
+  .p0c-fresh-row{grid-template-columns:1fr}
+  .p0c-fresh-values{text-align:left}
+}
