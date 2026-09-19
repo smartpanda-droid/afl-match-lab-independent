@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="./p0-completion-v65.css?v=20260920-1" />
   <link rel="stylesheet" href="./ui-qa-v66.css?v=20260920-1" />
   <link rel="stylesheet" href="./system-multi-v71.css?v=20260920-1" />
+  <link rel="stylesheet" href="./player-markets-v72.css?v=20260920-1" />
 </head>
 <body>
   <div id="parallelTestBanner" class="parallel-test-banner" role="status"><strong>PARALLEL TEST</strong><span>Independent Web · Shadow / validation only · Existing Site remains production reference</span></div>
@@ -116,12 +117,39 @@
     </section>
 
     <section id="view-players" class="view">
-      <section class="panel">
-        <div class="section-head controls-head">
-          <div><div class="eyebrow">PLAYER MARKETS</div><h2>球员市场</h2></div>
-          <div class="controls"><input id="playerSearch" type="search" placeholder="搜索球员"/><select id="marketFilter"><option value="">全部玩法</option></select></div>
-        </div>
-        <div id="playerCards" class="player-card-list"></div>
+      <section class="player-markets-workspace">
+        <header class="panel player-markets-hero">
+          <div>
+            <div class="eyebrow">PLAYER MARKET DESK</div>
+            <h1>Player Markets</h1>
+            <p>先找球员，再看玩法与阈值。概率、最近 5 场和风险信息优先显示；模型 Context / Role 收进详情，方便比赛日前快速判断。</p>
+          </div>
+          <div class="player-market-hero-flow" aria-label="Player market workflow">
+            <span><b>1</b><strong>找球员</strong><small>Search</small></span>
+            <span><b>2</b><strong>选阈值</strong><small>Threshold</small></span>
+            <span><b>3</b><strong>加 Multi</strong><small>Build</small></span>
+          </div>
+        </header>
+
+        <section class="panel player-market-toolbar">
+          <div class="player-market-toolbar-title">
+            <div class="eyebrow">MARKET BOARD</div>
+            <h2>球员市场</h2>
+            <div id="playerMarketSummary" class="player-market-summary">等待数据</div>
+          </div>
+          <div class="player-market-controls">
+            <label class="player-search-box">
+              <span>球员</span>
+              <input id="playerSearch" type="search" placeholder="搜索球员姓名" autocomplete="off"/>
+            </label>
+            <label class="player-market-select">
+              <span>玩法</span>
+              <select id="marketFilter"><option value="">全部玩法</option></select>
+            </label>
+          </div>
+        </section>
+
+        <div id="playerCards" class="player-card-list player-market-board"></div>
       </section>
     </section>
 
