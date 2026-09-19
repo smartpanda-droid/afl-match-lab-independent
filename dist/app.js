@@ -450,35 +450,107 @@ function renderPlayerControls(){
 function marketValue(game,market){return market==='fantasy_points'?game.fantasy_points:game[market]}
 function renderRecent(leg){
   const games=state.recent5.get(leg.player_id)||[];
-  return `<div class="recent-block"><div class="recent-caption">最近 5 场 · ${esc(marketLabel(leg.market))} ${esc(leg.threshold)}+</div><div class="recent-strip">${games.map(g=>{const v=marketValue(g,leg.market);const ok=v!=null&&Number(v)>=Number(leg.threshold);return `<span class="recent-cell ${v==null?'na':ok?'hit':'miss'}" title="${esc(g.round_name)} vs ${esc(g.opponent)}">${v??'—'}</span>`}).join('')||'<span class="recent-cell na">—</span>'}</div></div>`;
+  const threshold=Number(leg.threshold);
+  const cells=games.slice(-5).map((g,i)=>{
+    const v=marketValue(g,leg.market),ok=v!=null&&Number(v)>=threshold;
+    const label=g.round_name?String(g.round_name).replace(/^Round\s*/i,'R'):String(i+1);
+    return `<span class="recent-cell ${v==null?'na':ok?'hit':'miss'}" title="${esc(g.round_name||'')} ${g.opponent?`vs ${esc(g.opponent)}`:''}"><small>${esc(label)}</small><b>${v??'—'}</b></span>`;
+  }).join('');
+  return `<div class="recent-block"><div class="recent-caption"><span>最近 5 场</span><strong>${esc(marketLabel(leg.market))} ${esc(leg.threshold)}+</strong></div><div class="recent-strip">${cells||'<span class="recent-cell na"><small>—</small><b>—</b></span>'}</div></div>`;
 }
 function renderPlayers(){
-  const s=$('#playerSearch').value.trim().toLowerCase(), market=$('#marketFilter').value;
+  const searchEl=$('#playerSearch'),marketEl=$('#marketFilter');
+  const s=(searchEl?.value||'').trim().toLowerCase(), market=marketEl?.value||'';
   const filtered=state.legs.filter(l=>(!s||l.player_name?.toLowerCase().includes(s))&&(!market||l.market===market));
   const byPlayer=new Map();
   filtered.forEach(l=>{
     if(!byPlayer.has(l.player_id))byPlayer.set(l.player_id,[]);
     byPlayer.get(l.player_id).push(l);
   });
+  const summary=$('#playerMarketSummary');
+  if(summary){
+    const marketCount=new Set(filtered.map(l=>l.market)).size;
+    summary.textContent=state.selected?`${byPlayer.size} 球员 · ${marketCount} 玩法 · ${filtered.length} 条候选`:'等待未来赛事';
+  }
+
   const cards=[...byPlayer.entries()].slice(0,80).map(([pid,allLegs])=>{
     const first=allLegs[0];
-    const av=state.availability.get(pid);const risk=av&&av.status!=='normal';
+    const av=state.availability.get(pid),risk=av&&av.status!=='normal';
     const badge=risk?(av.explicit_injury?'INJURY RECOVERY':av.status.toUpperCase()):(first.bench?'BENCH':'ACTIVE');
     const badgeClass=risk?(av.risk_level==='severe'||av.risk_level==='high'?'bad':'warn'):(first.bench?'warn':'neutral');
-    const riskLine=av&&risk?`<div class="risk-line"><strong>${esc(badge)}</strong> · TOG ${av.latest_tog??'—'}% vs baseline ${av.baseline_tog??'—'}% · factor ${Number(av.probability_factor||1).toFixed(2)}${av.injury_type?` · ${esc(av.injury_type)}`:''}${av.expected_return?` · ${esc(av.expected_return)}`:''}</div>`:'';
+    const number=jumperNumber(first.team_name,first.player_name);
+    const riskLine=av&&risk?`<div class="risk-line player-risk-strip"><strong>${esc(badge)}</strong><span>TOG ${av.latest_tog??'—'}% / baseline ${av.baseline_tog??'—'}%</span><span>Prob ×${Number(av.probability_factor||1).toFixed(2)}</span>${av.injury_type?`<span>${esc(av.injury_type)}</span>`:''}${av.expected_return?`<span>${esc(av.expected_return)}</span>`:''}</div>`:'';
+
     const byMarket=new Map();
     allLegs.forEach(l=>{if(!byMarket.has(l.market))byMarket.set(l.market,[]);byMarket.get(l.market).push(l)});
-    const rows=[...byMarket.entries()].sort((a,b)=>marketLabel(a[0]).localeCompare(marketLabel(b[0]))).map(([m,opts])=>{
+    const marketGroups=[...byMarket.entries()].sort((a,b)=>marketLabel(a[0]).localeCompare(marketLabel(b[0])));
+    const rows=marketGroups.map(([m,opts])=>{
       const l=selectedPlayerLeg(opts); if(!l)return '';
       const cf=Number(l.context_factor||1),of=Number(l.opponent_factor||1),vf=Number(l.venue_factor||1),ff=Number(l.finals_factor||1);
       const ctxClass=cf>1.015?'ctx-up':cf<0.985?'ctx-down':'ctx-flat';
       const key=playerThresholdKey(pid,m);
       const chosen=Number(state.playerThresholds[key]??l.threshold);
-      return `<div class="player-market-row player-market-option" data-player="${pid}" data-market="${esc(m)}"><div class="market-select-wrap threshold-stepper"><span>${esc(marketLabel(m))}</span><button type="button" class="threshold-step" data-player="${pid}" data-market="${esc(m)}" data-delta="-1">−</button><input class="threshold-input" data-player="${pid}" data-market="${esc(m)}" data-key="${esc(key)}" type="number" min="1" step="1" value="${chosen}"><button type="button" class="threshold-step" data-player="${pid}" data-market="${esc(m)}" data-delta="1">+</button><em>+</em></div><span class="prob ${probClass(l.model_probability)}">${pct(l.model_probability)}</span><span class="fair-odds">Fair ${odds(l.fair_odds)}</span><div class="context-line ${ctxClass}"><span>${esc((l.opponent_tier||'mid').toUpperCase())} OPP · ${esc((l.venue_role||'—').toUpperCase())}${l.is_final?' · FINALS':''}</span><span>CTX ×${cf.toFixed(3)} · O ${of.toFixed(3)} / V ${vf.toFixed(3)} / F ${ff.toFixed(3)}</span><span>n ${l.opponent_samples??0}/${l.venue_samples??0}/${l.finals_samples??0} · 2025 Finals ${l.prior_finals_samples??0} (w ${Number(l.prior_finals_weight||0).toFixed(3)})</span><span class="role-line ${Number(l.role_factor||1)>1.01?'ctx-up':Number(l.role_factor||1)<0.99?'ctx-down':'ctx-flat'}">ROLE ${esc((l.role_label||'stable').replaceAll('_',' ').toUpperCase())} · ×${Number(l.role_factor||1).toFixed(3)} · conf ${Math.round(Number(l.role_confidence||0)*100)}% · n ${l.role_samples??0}</span></div>${renderRecent(l)}<button class="add-leg" data-player="${pid}" data-market="${esc(m)}" ${Number(l.threshold)===chosen&&Number(l.model_probability)>0&&Number(l.model_probability)<=1?'':'disabled'}>${Number(l.threshold)!==chosen?'等待报价':l.prediction_leg_id?'+ Multi Lab':'+ Multi Lab · Custom quote'}</button></div>`;
+      const quoteReady=Number(l.threshold)===chosen&&Number(l.model_probability)>0&&Number(l.model_probability)<=1;
+      const roleFactor=Number(l.role_factor||1);
+      const roleClass=roleFactor>1.01?'ctx-up':roleFactor<0.99?'ctx-down':'ctx-flat';
+      const buttonLabel=Number(l.threshold)!==chosen?'等待报价':l.prediction_leg_id?'加入 Multi Lab':'加入 Multi Lab · Custom';
+      return `<article class="player-market-row player-market-option" data-player="${pid}" data-market="${esc(m)}">
+        <div class="player-market-row-head">
+          <div class="player-market-primary">
+            <span class="player-market-label">${esc(marketLabel(m))}</span>
+            <div class="market-select-wrap threshold-stepper" aria-label="${esc(marketLabel(m))} threshold">
+              <button type="button" class="threshold-step" data-player="${pid}" data-market="${esc(m)}" data-delta="-1" aria-label="降低 threshold">−</button>
+              <input class="threshold-input" data-player="${pid}" data-market="${esc(m)}" data-key="${esc(key)}" type="number" min="1" step="1" value="${chosen}">
+              <span class="threshold-plus">+</span>
+              <button type="button" class="threshold-step" data-player="${pid}" data-market="${esc(m)}" data-delta="1" aria-label="提高 threshold">+</button>
+            </div>
+          </div>
+          <div class="player-market-price">
+            <small>MODEL P</small>
+            <strong class="prob ${probClass(l.model_probability)}">${pct(l.model_probability)}</strong>
+            <span>Fair ${odds(l.fair_odds)}</span>
+          </div>
+        </div>
+
+        ${renderRecent(l)}
+
+        <div class="player-market-footer">
+          <details class="player-context-details">
+            <summary><span>模型上下文</span><b class="${ctxClass}">CTX ×${cf.toFixed(3)}</b></summary>
+            <div class="context-line ${ctxClass}">
+              <span><b>Opponent</b> ${esc((l.opponent_tier||'mid').toUpperCase())} · O ×${of.toFixed(3)} · n ${l.opponent_samples??0}</span>
+              <span><b>Venue</b> ${esc((l.venue_role||'—').toUpperCase())} · V ×${vf.toFixed(3)} · n ${l.venue_samples??0}</span>
+              <span><b>Finals</b> ${l.is_final?'YES':'NO'} · F ×${ff.toFixed(3)} · n ${l.finals_samples??0}</span>
+              <span class="role-line ${roleClass}"><b>Role</b> ${esc((l.role_label||'stable').replaceAll('_',' ').toUpperCase())} · ×${roleFactor.toFixed(3)} · conf ${Math.round(Number(l.role_confidence||0)*100)}% · n ${l.role_samples??0}</span>
+              <span><b>2025 Finals prior</b> n ${l.prior_finals_samples??0} · weight ${Number(l.prior_finals_weight||0).toFixed(3)}</span>
+            </div>
+          </details>
+          <button class="add-leg" data-player="${pid}" data-market="${esc(m)}" ${quoteReady?'':'disabled'}>${buttonLabel}</button>
+        </div>
+      </article>`;
     }).join('');
-    return `<article class="player-card"><div class="player-card-head"><div><h3>${esc(first.player_name)}</h3><div class="match-meta">${esc(first.team_name||'')} ${first.bench?'· Bench':''}</div>${riskLine}</div><span class="badge ${badgeClass}">${esc(badge)}</span></div>${rows}</article>`;
+
+    return `<article class="player-card">
+      <div class="player-card-head">
+        <div class="player-card-identity">
+          <div class="player-jersey">${number?esc(number):esc((first.player_name||'?').trim().charAt(0))}</div>
+          <div class="player-card-name">
+            <h3>${esc(first.player_name)}</h3>
+            <div class="match-meta">${esc(first.team_name||'')}${first.bench?' · Bench':''}</div>
+          </div>
+        </div>
+        <div class="player-card-status">
+          <span class="player-market-count">${marketGroups.length} markets</span>
+          <span class="badge ${badgeClass}">${esc(badge)}</span>
+        </div>
+      </div>
+      ${riskLine}
+      <div class="player-market-grid">${rows}</div>
+    </article>`;
   });
-  $('#playerCards').innerHTML=cards.join('')||(state.selected?'<div class="empty">没有符合条件的球员</div>':'<div class="empty future-empty"><strong>球员市场等待未来赛事</strong><span>对阵和阵容确认后，所有可用球员玩法会显示在这里。</span></div>');
+
+  $('#playerCards').innerHTML=cards.join('')||(state.selected?'<div class="empty player-market-empty"><strong>没有符合条件的球员</strong><span>试试清除搜索或切换到“全部玩法”。</span></div>':'<div class="empty future-empty"><strong>球员市场等待未来赛事</strong><span>对阵和阵容确认后，所有可用球员玩法会显示在这里。</span></div>');
+
   $$('#playerCards .threshold-input').forEach(inp=>inp.addEventListener('change',()=>{const v=Math.max(1,Math.round(Number(inp.value)||1));quotePlayerThreshold(inp.dataset.player,inp.dataset.market,v)}));
   $$('#playerCards .threshold-step').forEach(btn=>btn.addEventListener('click',()=>{const key=playerThresholdKey(btn.dataset.player,btn.dataset.market);const current=Number(state.playerThresholds[key]||btn.closest('.threshold-stepper').querySelector('.threshold-input').value||1);quotePlayerThreshold(btn.dataset.player,btn.dataset.market,Math.max(1,current+Number(btn.dataset.delta)))}));
   $$('#playerCards .add-leg').forEach(b=>b.addEventListener('click',()=>{
