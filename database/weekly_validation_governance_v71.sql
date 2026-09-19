@@ -193,7 +193,7 @@ begin
     'passed',v_passed,'candidate_only',true
   );
 end;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION afl.run_market_module_weight_search()
@@ -391,7 +391,7 @@ begin
     'passed_markets',v_passed_markets,'candidate_only',true
   );
 end;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION afl.weekly_validation_tick()
@@ -494,7 +494,7 @@ begin
     )
   );
 end;
-$function$
+$function$;
 
 
 revoke all on function afl.run_module_weight_search()
