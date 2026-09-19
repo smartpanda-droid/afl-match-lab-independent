@@ -657,12 +657,15 @@ function systemSimulatedMulti(strategy,count,range,legs,iteration){
   const key=legs.map(systemCandidateKey).sort().join('||');
   return {multi_id:`sim:${strategy}:${count}:${systemHash32(key).toString(16)}`,base_multi_id:null,strategy,leg_count:count,legs:legs.map(x=>({...x,probability:systemCandidateProbability(x)})),combined_probability:joint,fair_odds:fair,correlation_penalty:dep,recommended:st.valid&&fair>=Number(range[0])&&fair<=Number(range[1]),rank_in_group:1,monte_carlo_search:true,simulation_iteration:iteration,simulation_score:score};
 }
-function systemSampleCombo(strategy,count,f,rng){
+function systemSimulationPool(strategy,count,f){
   let pool=systemRepairCandidates(strategy,count,f);
   if(f.recommendedOnly){
     const recommendedIds=new Set(state.multis.filter(x=>x.recommended).flatMap(x=>(x.legs||[]).map(systemCandidateKey)));
     const narrowed=pool.filter(x=>recommendedIds.has(systemCandidateKey(x)));if(narrowed.length>=count)pool=narrowed;
   }
+  return pool;
+}
+function systemSampleCombo(pool,strategy,count,rng){
   if(pool.length<count)return null;
   const [alo,ahi]=systemAnchorBand(strategy),floor=systemValueFloor(strategy,count);
   const anchors=pool.filter(x=>{const p=systemCandidateProbability(x);return p>=alo&&p<=ahi});
@@ -674,10 +677,11 @@ function systemSampleCombo(strategy,count,f,rng){
   return selected.length===count?selected:null;
 }
 function simulateSystemGroup(strategy,count,f,runs){
-  const range=f.odds[strategy][count],sig=systemFilterSignature(f),rng=systemRng(systemHash32(`${sig}|${strategy}|${count}`));
+  const range=f.odds[strategy][count],sig=systemFilterSignature(f),rng=systemRng(systemHash32(`${sig}|${strategy}|${count}`)),pool=systemSimulationPool(strategy,count,f);
+  if(pool.length<count)return buildBestAvailableMulti(strategy,count,f,range);
   let best=null,unique=0;const seen=new Set();
   for(let i=0;i<runs;i++){
-    const legs=systemSampleCombo(strategy,count,f,rng);if(!legs)continue;
+    const legs=systemSampleCombo(pool,strategy,count,rng);if(!legs)continue;
     const key=legs.map(systemCandidateKey).sort().join('||');if(!seen.has(key)){seen.add(key);unique++}
     const m=systemSimulatedMulti(strategy,count,range,legs,i+1);if(!m)continue;
     if(!best||Number(m.simulation_score)>Number(best.simulation_score)||(m.simulation_score===best.simulation_score&&m.combined_probability>best.combined_probability))best=m;
