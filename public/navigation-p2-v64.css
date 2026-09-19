@@ -179,3 +179,44 @@ body[data-p2-view="shadow-live"] #view-shadow-live{position:relative}
   }
   .p2-nav-button[data-p2-route="more"] .p2-nav-icon svg{stroke-width:3.2!important}
 }
+
+/* v65.2 mobile bottom-nav isolation.
+   Premium v60 has a global button background !important; P2 must explicitly win. */
+@media(max-width:900px){
+  body.p2-nav-ready #p2PrimaryNav{
+    background:rgba(255,255,255,.98)!important;
+    border-top:1px solid var(--p2-line)!important;
+  }
+  body.p2-nav-ready #p2PrimaryNav .p2-nav-button,
+  body.p2-nav-ready #p2PrimaryNav .p2-nav-button:hover,
+  body.p2-nav-ready #p2PrimaryNav .p2-nav-button:focus,
+  body.p2-nav-ready #p2PrimaryNav .p2-nav-button:active{
+    background:transparent!important;
+    color:#536b79!important;
+    border:0!important;
+    box-shadow:none!important;
+    filter:none!important;
+    -webkit-filter:none!important;
+    outline-offset:0;
+  }
+  body.p2-nav-ready #p2PrimaryNav .p2-nav-button .p2-nav-icon{
+    color:#536b79!important;
+  }
+  body.p2-nav-ready #p2PrimaryNav .p2-nav-button .p2-nav-copy strong{
+    color:#536b79!important;
+  }
+  body.p2-nav-ready #p2PrimaryNav .p2-nav-button.active,
+  body.p2-nav-ready #p2PrimaryNav .p2-nav-button.active:hover,
+  body.p2-nav-ready #p2PrimaryNav .p2-nav-button.active:focus{
+    background:#e7f5ef!important;
+    color:#087156!important;
+  }
+  body.p2-nav-ready #p2PrimaryNav .p2-nav-button.active .p2-nav-icon,
+  body.p2-nav-ready #p2PrimaryNav .p2-nav-button.active .p2-nav-copy strong{
+    color:#087156!important;
+  }
+  body.p2-nav-ready #p2PrimaryNav .p2-nav-button:focus-visible{
+    outline:2px solid rgba(8,113,86,.22)!important;
+    outline-offset:-2px!important;
+  }
+}
