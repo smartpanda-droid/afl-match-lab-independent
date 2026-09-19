@@ -835,3 +835,20 @@ $function$
 -- Existing afl.event_driven_tick() in production calls afl.v21_validation_tick()
 -- once per master tick. No additional pg_cron job is created.
 -- See database/database_health_hardening_v67.sql for the master scheduler body.
+
+
+-- V2.1 foreign-key covering indexes added after Supabase Advisor review.
+create index if not exists idx_v21_legs_match
+  on afl.v21_validation_legs(match_id);
+create index if not exists idx_v21_legs_player
+  on afl.v21_validation_legs(player_id);
+create index if not exists idx_v21_legs_prediction_leg
+  on afl.v21_validation_legs(prediction_leg_id);
+create index if not exists idx_v21_legs_team
+  on afl.v21_validation_legs(team_id);
+create index if not exists idx_v21_snapshots_model_version
+  on afl.v21_validation_snapshots(model_version_id);
+create index if not exists idx_v21_snapshots_source_final
+  on afl.v21_validation_snapshots(source_final_snapshot_id);
+create index if not exists idx_v21_snapshots_workflow_event
+  on afl.v21_validation_snapshots(workflow_event_id);
