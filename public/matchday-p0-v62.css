@@ -1,0 +1,116 @@
+/* AFL Match Lab P0 v62 — Matchday Cockpit, Confidence Layer, Freshness and Review */
+:root{
+  --p0-green:#087154;
+  --p0-green-soft:#e8f5f0;
+  --p0-amber:#b77913;
+  --p0-amber-soft:#fff4dc;
+  --p0-red:#b73542;
+  --p0-red-soft:#ffedf0;
+  --p0-ink:#142f43;
+  --p0-muted:#607487;
+  --p0-line:#dde8e6;
+}
+.matchday-status-strip{
+  display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 12px;
+  border:1px solid var(--p0-line);border-radius:10px;background:#f8fbfa;
+}
+.matchday-status-chip{
+  min-height:28px;display:inline-flex;align-items:center;gap:7px;padding:5px 9px;
+  border-radius:999px;background:#edf3f2;color:#50665f;font-size:10px;font-weight:700
+}
+.matchday-status-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:#78908a}
+.matchday-status-chip.good{background:var(--p0-green-soft);color:#08724f}.matchday-status-chip.good::before{background:#12a66e}
+.matchday-status-chip.warn{background:var(--p0-amber-soft);color:#8e6419}.matchday-status-chip.warn::before{background:#c38a25}
+.matchday-status-chip.bad{background:var(--p0-red-soft);color:#9c2d3b}.matchday-status-chip.bad::before{background:#d64957}
+.matchday-status-chip.neutral{background:#eef3f5;color:#637587}.matchday-status-chip.neutral::before{background:#8293a1}
+
+.matchday-decision-band{
+  position:relative;overflow:hidden;padding:16px 18px;border:1px solid #cfe1dc;border-radius:12px;
+  background:linear-gradient(135deg,#ffffff 0%,#f4faf7 72%,#edf8f3 100%);
+  box-shadow:0 8px 24px rgba(8,34,49,.055)
+}
+.matchday-decision-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:13px}
+.matchday-decision-head h2{margin:1px 0 0;color:var(--p0-ink);font-size:18px}
+.matchday-decision-head p{margin:2px 0 0;color:var(--p0-muted);font-size:10px}
+.matchday-decision-grid{display:grid;grid-template-columns:1.22fr 1fr 1fr 1fr 1fr 1fr;gap:8px}
+.matchday-kpi{
+  min-width:0;padding:11px 12px;border:1px solid #e1ebe8;border-radius:9px;background:rgba(255,255,255,.9)
+}
+.matchday-kpi span{display:block;margin-bottom:5px;color:#718394;font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.matchday-kpi strong{display:block;overflow:hidden;color:var(--p0-ink);font-size:16px;line-height:1.15;text-overflow:ellipsis;white-space:nowrap}
+.matchday-kpi small{display:block;margin-top:4px;color:var(--p0-muted);font-size:9px;line-height:1.25}
+.matchday-kpi.primary{border-color:#b7dccc;background:#f1faf6}.matchday-kpi.primary strong{color:var(--p0-green);font-size:18px}
+.confidence-pill{
+  display:inline-flex!important;width:max-content;align-items:center;gap:6px;margin:0!important;padding:5px 8px;border-radius:999px;
+  font-size:9px!important;font-weight:850!important;line-height:1!important;letter-spacing:.04em
+}
+.confidence-pill.high{background:var(--p0-green-soft);color:#08724f}
+.confidence-pill.medium{background:var(--p0-amber-soft);color:#8c6216}
+.confidence-pill.low{background:var(--p0-red-soft);color:#9e2e3d}
+.confidence-pill.neutral{background:#eef3f5;color:#66798a}
+.confidence-explainer{position:relative;margin-top:8px}
+.confidence-explainer>summary{cursor:pointer;list-style:none;color:#527064;font-size:9px;font-weight:750}
+.confidence-explainer>summary::-webkit-details-marker{display:none}
+.confidence-explainer[open]>summary{margin-bottom:7px}
+.confidence-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.confidence-grid>div{padding:7px 8px;border-radius:7px;background:#f5f8f8}
+.confidence-grid span{display:block;margin:0 0 2px!important;color:#7a8a96!important;font-size:7px!important;text-transform:uppercase}
+.confidence-grid b{color:#2b4558;font-size:9px}
+
+.p0-confidence-inline{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px}
+.p0-top-explain{grid-column:2/4;margin-top:4px}
+.p0-top-explain summary,.p0-market-explain summary{cursor:pointer;color:#587165;font-size:9px;font-weight:750}
+.p0-explain-body{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}
+.p0-explain-col{padding:8px 9px;border-radius:8px;background:#f5f8f8}
+.p0-explain-col.risk{background:#fff8e9}
+.p0-explain-col strong{display:block;margin-bottom:4px;color:#263f52;font-size:8px;letter-spacing:.06em}
+.p0-explain-col span{display:block;color:#617486;font-size:9px;line-height:1.45}
+.p0-market-explain{grid-column:1/-1;margin-top:2px}
+.player-market-row.p0-confidence-ready{grid-auto-rows:auto}
+
+.p0-freshness-panel{margin-top:14px}
+.p0-freshness-list{display:grid}
+.p0-freshness-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #edf1f2}
+.p0-freshness-row:last-child{border-bottom:0}
+.p0-freshness-row span{color:var(--p0-muted);font-size:9px}.p0-freshness-row strong{color:#334c5f;font-size:9px;text-align:right}
+.p0-freshness-row strong.good{color:#08724f}.p0-freshness-row strong.warn{color:#936719}.p0-freshness-row strong.bad{color:#a22d3d}
+
+.cockpit-highlight .p0-confidence-inline{margin-top:7px}
+.cockpit-highlight .confidence-pill{font-size:8px!important}
+.cockpit-highlight .p0-explain-mini{margin-top:5px;color:#536a7b;font-size:8px;line-height:1.35}
+
+#view-reviews.p0-review-ready{display:grid;gap:14px}
+.p0-review-hero{margin-top:14px;padding-top:14px;border-top:1px solid #e5ecee}
+.p0-review-flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.p0-review-outcome{padding:12px;border:1px solid #e1e9eb;border-radius:9px;background:#fbfdfd}
+.p0-review-outcome span{display:block;color:#748596;font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.p0-review-outcome strong{display:block;margin-top:5px;color:#1d374a;font-size:14px;line-height:1.25}
+.p0-review-outcome small{display:block;margin-top:5px;color:#66798a;font-size:9px}
+.p0-review-diagnostic{margin-top:12px;padding:13px 14px;border:1px solid #efdcae;border-radius:9px;background:#fffaf0}
+.p0-review-diagnostic h3{margin:0 0 4px;color:#674a12;font-size:13px}
+.p0-review-diagnostic>p{margin:0 0 9px;color:#866622;font-size:9px;line-height:1.5}
+.p0-miss-list{display:grid;gap:7px}
+.p0-miss-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:9px 10px;border-radius:8px;background:#fff}
+.p0-miss-item strong{color:#273f51;font-size:10px}.p0-miss-item span{color:#6b7c8a;font-size:9px;line-height:1.4}
+.p0-miss-item b{align-self:center;color:#aa3341;font-size:9px}
+
+@media(max-width:1280px) and (min-width:901px){
+  .matchday-decision-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:900px){
+  .matchday-status-strip{padding:8px 9px;gap:6px;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+  .matchday-status-strip::-webkit-scrollbar{display:none}.matchday-status-chip{flex:0 0 auto}
+  .matchday-decision-band{padding:13px 12px}
+  .matchday-decision-head{margin-bottom:10px}.matchday-decision-head h2{font-size:16px}
+  .matchday-decision-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .matchday-kpi{padding:10px}.matchday-kpi strong{font-size:14px}.matchday-kpi.primary strong{font-size:16px}
+  .confidence-grid,.p0-explain-body{grid-template-columns:1fr}
+  .p0-top-explain{grid-column:1/-1}
+  .p0-review-flow{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .p0-miss-item{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+  .matchday-decision-grid{grid-template-columns:1fr 1fr}
+  .matchday-kpi:nth-child(1),.matchday-kpi:nth-child(2){grid-column:auto}
+  .p0-review-flow{grid-template-columns:1fr 1fr}
+}
