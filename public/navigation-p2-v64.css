@@ -31,8 +31,14 @@ body.p2-nav-ready .mobile-header-menu{display:none!important}
 }
 .p2-nav-button:hover{background:#f1f7f5}
 .p2-nav-button.active{background:linear-gradient(135deg,#075e48,#004b39);color:#fff;box-shadow:0 6px 14px rgba(0,86,64,.18)}
-.p2-nav-icon{width:28px;height:28px;display:grid;place-items:center;color:#0b5745}
-.p2-nav-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.p2-nav-icon{width:28px;height:28px;display:grid;place-items:center;color:#0b5745;line-height:0}
+.p2-nav-icon svg{
+  display:block!important;width:24px!important;height:24px!important;min-width:24px;min-height:24px;
+  flex:none;overflow:visible;fill:none!important;stroke:currentColor!important;
+  stroke-width:1.9!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+  transform:none!important;filter:none!important
+}
+.p2-nav-icon svg *{vector-effect:non-scaling-stroke}
 .p2-nav-button.active .p2-nav-icon{color:#fff}
 .p2-nav-copy{min-width:0;display:grid;gap:2px}
 .p2-nav-copy strong{font-size:13px;line-height:1.1;color:inherit}
@@ -127,11 +133,12 @@ body[data-p2-view="shadow-live"] #view-shadow-live{position:relative}
     border:0;border-top:1px solid var(--p2-line);background:rgba(255,255,255,.975);box-shadow:0 -5px 18px rgba(8,34,49,.07);backdrop-filter:blur(17px)
   }
   .p2-nav-button{
-    min-height:59px;padding:5px 1px;display:grid;grid-template-columns:1fr;grid-template-rows:29px 18px;gap:0;
-    place-items:center;text-align:center;border-radius:8px
+    min-width:0;min-height:59px;padding:4px 1px 5px;display:grid;grid-template-columns:1fr;grid-template-rows:31px 18px;gap:0;
+    place-items:center;text-align:center;border-radius:8px;overflow:visible
   }
   .p2-nav-button:hover,.p2-nav-button.active{background:transparent;box-shadow:none}
-  .p2-nav-icon{width:auto;height:29px;color:#3d5668}.p2-nav-icon svg{width:22px;height:22px}
+  .p2-nav-icon{width:30px!important;height:30px!important;color:#3d5668;line-height:0}
+  .p2-nav-icon svg{width:24px!important;height:24px!important;min-width:24px;min-height:24px}
   .p2-nav-copy{display:block}.p2-nav-copy strong{font-size:9px}.p2-nav-copy small{display:none}
   .p2-nav-button.active,.p2-nav-button.active .p2-nav-icon{color:#087156}
   .p2-nav-badge{right:14%;top:2px}
@@ -159,4 +166,16 @@ body[data-p2-view="shadow-live"] #view-shadow-live{position:relative}
   .p2-nav-copy strong{font-size:8.5px}
   .p2-drawer-grid{grid-template-columns:1fr 1fr}
   .p2-more-drawer{left:7px;right:7px}
+}
+
+/* Mobile icon hardening — iOS/Safari: fixed geometry, no inherited SVG surprises. */
+@media(max-width:900px){
+  .p2-primary-nav{overflow:visible!important}
+  .p2-nav-button .p2-nav-icon{align-self:center;justify-self:center}
+  .p2-nav-button .p2-nav-icon svg,
+  .p2-drawer-item .p2-mini-icon svg{
+    -webkit-transform:none!important;transform:none!important;
+    -webkit-filter:none!important;filter:none!important
+  }
+  .p2-nav-button[data-p2-route="more"] .p2-nav-icon svg{stroke-width:3.2!important}
 }
