@@ -45,4 +45,15 @@
     renderTactics=function(){const out=base.apply(this,arguments);try{window.renderPremiumCockpit()}catch{}return out};
   }
   document.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{try{window.renderPremiumCockpit()}catch{}},500)});
+
+  function setMobileView(view){
+    const btn=[...document.querySelectorAll('.tab')].find(x=>x.dataset.view===view);
+    if(btn){btn.click();document.getElementById('mobileMoreSheet')?.classList.remove('open')}
+  }
+  document.addEventListener('DOMContentLoaded',()=>{
+    const more=document.getElementById('mobileMoreTrigger'),sheet=document.getElementById('mobileMoreSheet');
+    more?.addEventListener('click',e=>{e.preventDefault();sheet?.classList.toggle('open')});
+    sheet?.querySelectorAll('[data-mobile-view]').forEach(b=>b.addEventListener('click',()=>setMobileView(b.dataset.mobileView)));
+    document.addEventListener('click',e=>{if(sheet?.classList.contains('open')&&!sheet.contains(e.target)&&e.target!==more)sheet.classList.remove('open')});
+  });
 })();
