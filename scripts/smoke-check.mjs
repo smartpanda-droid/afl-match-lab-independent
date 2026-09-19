@@ -63,6 +63,8 @@ check('P2 uses existing switchView',p2.includes("typeof window.switchView==='fun
 check('P2 mobile bottom nav is five columns',p2css.includes('grid-template-columns:repeat(5,1fr)')&&p2css.includes('env(safe-area-inset-bottom)'));
 check('P2 mobile icons use explicit SVG geometry',p2.includes('xmlns="http://www.w3.org/2000/svg"')&&p2.includes('width="24" height="24" viewBox="0 0 24 24"'));
 check('P2 mobile icons are Safari-safe',p2css.includes('vector-effect:non-scaling-stroke')&&p2css.includes('overflow:visible')&&p2css.includes('display:block!important'));
+check('P2 mobile nav overrides premium button background',p2css.includes('#p2PrimaryNav .p2-nav-button')&&p2css.includes('background:transparent!important')&&p2css.includes('background:#e7f5ef!important'));
+check('Index has no literal newline escape text',!html.includes('\\\\n'));
 check('P2 hides legacy nav only after ready',p2css.includes('body.p2-nav-ready .tabs'));
 check('P2 does not mutate production probability',!/(model_probability\\s*=|\\.probability\\s*=|state\\.legs\\s*=|state\\.multis\\s*=)/.test(p2));
 check('P0 completion CSS is linked',html.includes('p0-completion-v65.css'));
@@ -75,5 +77,5 @@ check('P0 review has explicit player and multi KPIs',p0c.includes('Player market
 check('P0 completion does not mutate production probability',!/(model_probability\\s*=|\\.probability\\s*=|state\\.legs\\s*=|state\\.multis\\s*=)/.test(p0c));
 check('P0 completion responsive styles exist',p0ccss.includes('@media(max-width:900px)'));
 const failed=checks.filter(x=>!x.ok);
-console.log(`AFL Match Lab v65.1 smoke check: ${checks.length-failed.length}/${checks.length} passed`);
+console.log(`AFL Match Lab v65.2 smoke check: ${checks.length-failed.length}/${checks.length} passed`);
 for(const c of checks) console.log(`${c.ok?'PASS':'FAIL'}  ${c.name}${c.detail?' — '+c.detail:''}`);
