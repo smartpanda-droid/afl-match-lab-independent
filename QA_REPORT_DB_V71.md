@@ -39,7 +39,7 @@ Production policy was restored from frozen match 9027 metadata:
 | Disposals | 0.00 | 0.00 |
 | Handballs | 0.00 | 0.00 |
 
-Production hash at verification: `dd48e7d8075481f10e665b2b85477657`.
+Production hash after v71 production application: `87d1796c127e478a7e4c207c7bbbfdab`.
 
 A real Global + Market search was rerun after the change. Production hash remained unchanged.
 
@@ -76,3 +76,17 @@ The 2-minute fast finalizer is intentionally retained because the lineup flow is
 ## Governance rule going forward
 
 Retrospective weekly search may create **candidates** only. Promotion to Production must go through the formal Same-Bloodline / frozen-match release process and must not be performed by `weekly_validation_tick()`.
+
+
+## Post-application verification
+
+After applying the committed v71 SQL to Production:
+
+- Production policy hash before weekly skip: `87d1796c127e478a7e4c207c7bbbfdab`
+- Production policy hash after weekly skip: `87d1796c127e478a7e4c207c7bbbfdab`
+- Production unchanged: **true**
+- Weekly result: `skipped_no_new_stats`
+- Pregame fast tick outside match window: `idle`
+- anon/authenticated EXECUTE on Global/Market/Weekly validation functions: **false**
+- anon/authenticated/PUBLIC grants on candidate table: **none**
+- Active schedules: master `*/30`, pregame finalizer `*/2`, release gate `17 */6`, weekly validation Tuesday 00:00 UTC
