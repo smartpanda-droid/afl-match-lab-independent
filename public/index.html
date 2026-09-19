@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="./navigation-p2-v64.css?v=20260920-3" />
   <link rel="stylesheet" href="./p0-completion-v65.css?v=20260920-1" />
   <link rel="stylesheet" href="./ui-qa-v66.css?v=20260920-1" />
+  <link rel="stylesheet" href="./system-multi-v71.css?v=20260920-1" />
 </head>
 <body>
   <div id="parallelTestBanner" class="parallel-test-banner" role="status"><strong>PARALLEL TEST</strong><span>Independent Web · Shadow / validation only · Existing Site remains production reference</span></div>
@@ -125,35 +126,85 @@
     </section>
 
     <section id="view-system-multi" class="view">
-      <section class="system-multi-layout">
-        <aside class="panel system-filter-panel">
-          <div class="eyebrow">FILTER SETTINGS</div><h2>系统推荐筛选</h2>
-          <p class="note system-rule-note">组合结构按博彩公司常见可交易区间筛选：默认 Fair Odds 约 1.20–2.20。Conservative 稳胆约 68–78%，Balanced 约 60–72%，Value 约 52–65%，Aggressive 可下探至约 45–60%；每组最多 1 条比赛市场腿。</p>
-          <div class="system-filter-block">
-            <label><span>策略</span><select id="strategyFilter"><option value="all" selected>全部</option><option value="conservative">保守</option><option value="balanced">平衡</option><option value="aggressive">激进</option></select></label>
-            <label><span>串数</span><select id="legCountFilter"><option value="0" selected>全部 2–5串</option><option value="2">2串1</option><option value="3">3串1</option><option value="4">4串1</option><option value="5">5串1</option></select></label>
-            <label class="check system-rec-check"><input id="recommendedOnly" type="checkbox"/> 只看默认推荐</label>
+      <section class="system-multi-workspace">
+        <header class="panel system-multi-hero">
+          <div class="system-multi-hero-copy">
+            <div class="eyebrow">SMART COMBO ENGINE</div>
+            <h1>System Multi Studio</h1>
+            <p>选择你真正想玩的市场，系统只用这些腿在本地反复组合模拟，再按概率、相关性、结构和赔率区间筛出更合理的 2–5 串组合。</p>
           </div>
-          <div class="system-filter-block"><div class="filter-subhead"><strong>玩法</strong><small>球员 + 比赛市场统一筛选</small></div><div id="systemMarketFilters" class="system-market-filters"></div>
-<div class="system-tradable-legend">
-  <span><b>可交易 Fair Odds</b> 1.20–2.20</span>
-  <span>稳胆 68–78%</span>
-  <span>Balanced 60–72%</span>
-  <span>Value 52–65%</span>
-  <span>Aggressive 45–60%</span>
-</div>
-</div>
-          <div class="system-filter-block">
-            <div class="filter-subhead"><strong>模拟赔率范围</strong><small>Min / Max</small></div>
-            <div id="systemOddsMatrix" class="system-odds-matrix"></div>
+          <div class="system-multi-hero-stats" aria-label="System Multi workflow">
+            <div><span>STEP 1</span><strong>选玩法</strong><small>Markets</small></div>
+            <div><span>STEP 2</span><strong>模拟</strong><small>1k–10k</small></div>
+            <div><span>STEP 3</span><strong>挑组合</strong><small>2–5 Legs</small></div>
           </div>
-          <div class="system-filter-actions"><button id="systemFilterConfirm">确认</button><button id="systemFilterReset" class="ghost">重置</button></div>
-          <p class="note">每次比赛数据重新同步后恢复默认筛选。这里的赔率范围用于筛选模型 Fair Odds，不代表博彩公司实时价格。</p>
-        </aside>
-        <section class="panel system-results-panel">
-          <div class="section-head"><div><div class="eyebrow">SYSTEM MULTI</div><h2>系统推荐组合</h2></div><div id="systemFilterSummary" class="system-filter-summary"></div></div>
-          <div id="multiCards" class="multi-grid"></div>
-        </section>
+        </header>
+
+        <div class="system-multi-layout">
+          <aside id="systemFilterPanel" class="panel system-filter-panel" aria-label="System Multi filters">
+            <div class="system-filter-header">
+              <div>
+                <div class="eyebrow">BUILD THE POOL</div>
+                <h2>组合筛选</h2>
+                <p>先决定允许哪些市场进入模拟池。</p>
+              </div>
+              <button id="systemFilterMobileClose" class="system-filter-mobile-close" type="button" aria-label="关闭筛选">×</button>
+            </div>
+
+            <div class="system-filter-body">
+              <div class="system-quick-controls">
+                <label><span>策略</span><select id="strategyFilter"><option value="all" selected>全部策略</option><option value="conservative">保守</option><option value="balanced">平衡</option><option value="aggressive">激进</option></select></label>
+                <label><span>串数</span><select id="legCountFilter"><option value="0" selected>2–5 串</option><option value="2">2串1</option><option value="3">3串1</option><option value="4">4串1</option><option value="5">5串1</option></select></label>
+                <label><span>模拟</span><select id="systemSimulationRuns"><option value="1000">1,000 次</option><option value="5000" selected>5,000 次</option><option value="10000">10,000 次</option></select></label>
+              </div>
+
+              <div class="system-filter-block system-market-block">
+                <div class="filter-subhead">
+                  <div><strong>选择玩法</strong><small>只勾选你想要的市场</small></div>
+                  <label class="check system-rec-check"><input id="recommendedOnly" type="checkbox"/> <span>只用默认推荐腿</span></label>
+                </div>
+                <div id="systemMarketFilters" class="system-market-filters"></div>
+              </div>
+
+              <div class="system-tradable-legend">
+                <span><b>Fair Odds</b> 1.20–2.20</span>
+                <span>稳胆 68–78%</span>
+                <span>Balanced 60–72%</span>
+                <span>Value 52–65%</span>
+                <span>Aggressive 45–60%</span>
+              </div>
+
+              <details class="system-advanced-filter">
+                <summary><span>高级设置</span><small>自定义每种策略的目标赔率</small></summary>
+                <div class="system-filter-block">
+                  <div class="filter-subhead"><div><strong>目标赔率范围</strong><small>Min / Max · 模型 Fair Odds</small></div></div>
+                  <div id="systemOddsMatrix" class="system-odds-matrix"></div>
+                </div>
+              </details>
+
+              <div class="system-filter-actions">
+                <button id="systemFilterConfirm" type="button">重新模拟</button>
+                <button id="systemFilterReset" type="button" class="ghost">恢复默认</button>
+              </div>
+              <p class="note system-local-note">筛选变化后只使用当前已载入数据在浏览器本地计算，不会因为反复勾选玩法而增加 Supabase 请求。</p>
+            </div>
+          </aside>
+
+          <section class="system-results-panel">
+            <div class="panel system-results-toolbar">
+              <div>
+                <div class="eyebrow">LIVE OUTPUT</div>
+                <h2>推荐组合</h2>
+              </div>
+              <div id="systemFilterSummary" class="system-filter-summary"></div>
+              <button id="systemFilterMobileToggle" class="system-mobile-filter-btn" type="button">
+                <span>筛选 / 模拟</span><b>⚙</b>
+              </button>
+            </div>
+            <div id="multiCards" class="multi-grid"></div>
+          </section>
+        </div>
+        <div id="systemFilterBackdrop" class="system-filter-backdrop"></div>
       </section>
     </section>
 
@@ -267,10 +318,13 @@
       <div class="multi-top"><div><span class="multi-strategy"></span><strong class="multi-title"></strong></div><span class="multi-rec badge"></span></div>
       <div class="multi-legs"></div>
       <div class="multi-metrics"></div>
-      <div class="multi-actions"><button class="send-builder">发送到 Multi Lab</button></div>
-      <div class="value-box"><label><span>博彩公司实际赔率</span><input class="actual-odds" inputmode="decimal" placeholder="例如 2.30"/></label><button class="value-btn">更新 Value 排序</button><div class="value-result"></div><div class="match-meta">输入任意 1 组赔率即可计算 EV；输入 ≥2 组后按 Quality 80% + Value 20% 排名；赔率不保存。</div></div>
+      <div class="multi-actions"><button class="send-builder">加入 Multi Lab</button></div>
+      <details class="multi-value-panel">
+        <summary>输入博彩公司赔率 · 查看 Value</summary>
+        <div class="value-box"><label><span>实际赔率</span><input class="actual-odds" inputmode="decimal" placeholder="例如 2.30"/></label><button class="value-btn">更新 Value</button><div class="value-result"></div><div class="match-meta">输入赔率后计算 EV；输入 ≥2 组时按 Quality 80% + Value 20% 排名。赔率不保存。</div></div>
+      </details>
     </article>
-  </template>
+
 
   <script src="./config.js"></script><script src="./app.js"></script><script src="./premium-ui-v60.js?v=20260919-3"></script><script src="./matchday-p0-v62.js?v=20260920-1"></script><script src="./decision-p1-v63.js?v=20260920-1"></script><script src="./navigation-p2-v64.js?v=20260920-3"></script><script src="./p0-completion-v65.js?v=20260920-1"></script>
 </body>
