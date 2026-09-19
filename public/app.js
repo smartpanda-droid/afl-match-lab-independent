@@ -5,7 +5,7 @@ if(CFG?.PARALLEL_TEST){
 }else{
   const b=document.getElementById('parallelTestBanner'); if(b)b.hidden=true;
 }
-const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, lineupBuilderFloatClosed:false, systemFilterActive:null, view:'match', loadSeq:0, fullLegsMatch:null, topLegs:[], moduleStatus:{}, validationLoaded:false, shadowLoaded:false, multiLabMarketPicker:null, multiLabMarketPickerMatch:null, multiLabMarketLoading:false, multiLabTotalLine:null, multiLabHomeLine:null, multiLabAwayLine:null, multiLabQuoteSeq:0 };
+const state = { matches:[], selected:null, legs:[], multis:[], lineup:[], recent5:new Map(), availability:new Map(), context:null, validation:[], marketPolicy:[], finalAuditSummary:[], finalAudit:[], builder:[], builderEval:null, builderEvalSeq:0, systemMultiOdds:{}, systemMultiRanking:new Map(), systemRankSeq:0, systemSimulationRows:[], systemSimulationMeta:null, systemSimulationBusy:false, systemSimulationTimer:null, multiStability:new Map(), finalLock:null, shadowObs:[], fieldTeamFilter:'all', playerThresholds:{}, playerManualQuotes:new Map(), playerQuoteSeq:new Map(), matchQuote:null, matchQuoteSeq:0, lineupBuilderFloatClosed:false, systemFilterActive:null, view:'match', loadSeq:0, fullLegsMatch:null, topLegs:[], moduleStatus:{}, validationLoaded:false, shadowLoaded:false, multiLabMarketPicker:null, multiLabMarketPickerMatch:null, multiLabMarketLoading:false, multiLabTotalLine:null, multiLabHomeLine:null, multiLabAwayLine:null, multiLabQuoteSeq:0 };
 
 
 // 2026 finals branding + jumper numbers. Numbers verified against AFL official team squad pages.
@@ -199,6 +199,7 @@ async function loadMatches(){
   reconcileMatchPicker();
 }
 function resetSelectedState(){
+  clearTimeout(state.systemSimulationTimer);state.systemSimulationTimer=null;state.systemSimulationRows=[];state.systemSimulationMeta=null;state.systemSimulationBusy=false;
   state.legs=[];state.topLegs=[];state.multis=[];state.lineup=[];state.recent5=new Map();state.availability=new Map();state.context=null;state.multiStability=new Map();state.finalLock=null;state.shadowObs=[];state.matchQuote=null;state.fullLegsMatch=null;state.validationLoaded=false;state.shadowLoaded=false;state.systemFilterActive=null;
 }
 function mergeLegs(rows){
@@ -513,22 +514,22 @@ function systemTradableProbability(p){
 }
 
 function availableSystemMarkets(){const ms=new Set(['match_winner','match_total','match_line']);state.multis.forEach(m=>(m.legs||[]).forEach(l=>{if(!SYSTEM_MULTI_EXCLUDED_MARKETS.has(String(l.market||'').toLowerCase()))ms.add(l.market)}));state.legs.forEach(l=>{if(!SYSTEM_MULTI_EXCLUDED_MARKETS.has(String(l.market||'').toLowerCase()))ms.add(l.market)});return [...ms].sort()}
-function defaultSystemFilterState(){return {strategy:'all',legCount:0,recommendedOnly:false,markets:new Set(availableSystemMarkets()),odds:JSON.parse(JSON.stringify(SYSTEM_ODDS_DEFAULTS))}}
+function defaultSystemFilterState(){return {strategy:'all',legCount:0,recommendedOnly:false,simulationRuns:5000,markets:new Set(availableSystemMarkets()),odds:JSON.parse(JSON.stringify(SYSTEM_ODDS_DEFAULTS))}}
 function renderSystemFilterUI(){
   const f=state.systemFilterActive||defaultSystemFilterState();
-  $('#strategyFilter').value=f.strategy;$('#legCountFilter').value=String(f.legCount);$('#recommendedOnly').checked=!!f.recommendedOnly;
+  $('#strategyFilter').value=f.strategy;$('#legCountFilter').value=String(f.legCount);$('#recommendedOnly').checked=!!f.recommendedOnly;const sim=$('#systemSimulationRuns');if(sim)sim.value=String(f.simulationRuns||5000);
   const markets=availableSystemMarkets();
   $('#systemMarketFilters').innerHTML=markets.map(m=>`<label class="system-market-check"><input type="checkbox" value="${esc(m)}" ${f.markets.has(m)?'checked':''}><span>${esc(marketLabel(m))}</span></label>`).join('');
   $('#systemOddsMatrix').innerHTML=['conservative','balanced','aggressive'].map(st=>`<div class="odds-strategy-group"><div class="odds-strategy-name">${SYSTEM_STRATEGY_LABEL[st]}</div>${[2,3,4,5].map(n=>{const r=f.odds[st][n];return `<div class="odds-range-row"><span>${n}串1</span><input class="system-odds-input" data-strategy="${st}" data-count="${n}" data-side="min" type="number" step="0.1" min="1.01" value="${Number(r[0]).toFixed(2)}"><em>–</em><input class="system-odds-input" data-strategy="${st}" data-count="${n}" data-side="max" type="number" step="0.1" min="1.01" value="${Number(r[1]).toFixed(2)}"></div>`}).join('')}</div>`).join('');
 }
 function readSystemFilters(){
   const base=state.systemFilterActive?{...state.systemFilterActive,markets:new Set(state.systemFilterActive.markets),odds:JSON.parse(JSON.stringify(state.systemFilterActive.odds))}:defaultSystemFilterState();
-  base.strategy=$('#strategyFilter').value;base.legCount=Number($('#legCountFilter').value);base.recommendedOnly=$('#recommendedOnly').checked;
+  base.strategy=$('#strategyFilter').value;base.legCount=Number($('#legCountFilter').value);base.recommendedOnly=$('#recommendedOnly').checked;base.simulationRuns=Math.max(1000,Math.min(10000,Number($('#systemSimulationRuns')?.value||5000)));
   base.markets=new Set($$('#systemMarketFilters input:checked').map(x=>x.value));
   $$('.system-odds-input').forEach(i=>{const st=i.dataset.strategy,n=Number(i.dataset.count),side=i.dataset.side==='min'?0:1;const v=Number(i.value);if(Number.isFinite(v)&&v>1)base.odds[st][n][side]=v});
   return base;
 }
-function resetSystemFilters(render=true){state.systemFilterActive=defaultSystemFilterState();if($('#systemMarketFilters'))renderSystemFilterUI();if(render)renderMultis()}
+function resetSystemFilters(render=true){state.systemFilterActive=defaultSystemFilterState();state.systemSimulationRows=[];state.systemSimulationMeta=null;state.systemSimulationBusy=false;if($('#systemMarketFilters'))renderSystemFilterUI();if(render)runSystemSimulation()}
 function systemLegRole(strategy,leg){const p=Number(leg.probability),[lo,hi]=systemAnchorBand(strategy);return p>=lo&&p<=hi?'稳胆':'Value'}
 function multiStructureStats(m){
   const [lo,hi]=systemAnchorBand(m.strategy);const floor=systemValueFloor(m.strategy,m.leg_count);const legs=(m.legs||[]).filter(l=>!SYSTEM_MULTI_EXCLUDED_MARKETS.has(String(l.market||'').toLowerCase())&&systemTradableProbability(l.probability));
@@ -609,6 +610,103 @@ function systemRepairCandidates(strategy,count,f){
   for(const l of all){const key=String(l.prediction_leg_id||`${l.market}|${l.selection}`);if(seen.has(key))continue;seen.add(key);out.push(l);if(out.length>=40)break}
   return out;
 }
+
+function systemSimulationRunCount(f){return Math.max(1000,Math.min(10000,Number(f?.simulationRuns||5000)))}
+function systemFilterSignature(f){
+  return JSON.stringify({match:state.selected||'',strategy:f.strategy,legCount:Number(f.legCount||0),recommendedOnly:!!f.recommendedOnly,runs:systemSimulationRunCount(f),markets:[...f.markets].sort(),odds:f.odds});
+}
+function systemHash32(text){let h=2166136261>>>0;for(let i=0;i<String(text).length;i++){h^=String(text).charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function systemRng(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function systemCandidateKey(l){return String(l.prediction_leg_id||`${l.player_id||'match'}|${l.market}|${l.threshold}|${l.selection}`)}
+function systemLegCompatible(selected,candidate){
+  const ck=systemCandidateKey(candidate);
+  if(selected.some(x=>systemCandidateKey(x)===ck))return false;
+  if(MATCH_MARKETS.has(candidate.market)&&selected.some(x=>MATCH_MARKETS.has(x.market)))return false;
+  if(candidate.player_id&&selected.some(x=>x.player_id===candidate.player_id&&x.market===candidate.market))return false;
+  return true;
+}
+function systemWeightedPick(pool,rng){
+  if(!pool.length)return null;
+  const weighted=pool.map(x=>{const p=systemCandidateProbability(x),recent=Number(x.recent_hit_rate||0),primary=SYSTEM_PRIMARY_MARKETS.has(x.market)?1:0,base=Number(x.system_candidate_score||0);return {x,w:.05+base*1.55+p*.45+recent*.18+primary*.22}});
+  const total=weighted.reduce((a,b)=>a+b.w,0);let r=rng()*total;
+  for(const item of weighted){r-=item.w;if(r<=0)return item.x}
+  return weighted.at(-1).x;
+}
+function systemDependencyPenalty(legs){
+  let dep=.99;
+  for(let i=0;i<legs.length;i++)for(let j=i+1;j<legs.length;j++){
+    const a=legs[i],b=legs[j];
+    if(a.player_id&&b.player_id&&a.player_id===b.player_id)dep*=.88;
+    else if(a.team_name&&b.team_name&&a.team_name===b.team_name)dep*=.975;
+    if(a.market===b.market)dep*=.988;
+    if(MATCH_MARKETS.has(a.market)||MATCH_MARKETS.has(b.market))dep*=.992;
+  }
+  return Math.max(.72,Math.min(.995,dep));
+}
+function systemSimulatedMulti(strategy,count,range,legs,iteration){
+  const probs=legs.map(systemCandidateProbability);if(probs.some(p=>!(p>0&&p<=1)))return null;
+  const dep=systemDependencyPenalty(legs),naive=probs.reduce((a,b)=>a*b,1),joint=Math.min(Math.min(...probs),Math.max(.0001,naive*dep)),fair=1/joint;
+  const temp={strategy,leg_count:count,legs,combined_probability:joint,fair_odds:fair,correlation_penalty:dep};
+  const st=multiStructureStats(temp),mid=(Number(range[0])+Number(range[1]))/2,span=Math.max(.25,(Number(range[1])-Number(range[0]))/2);
+  const rangeFit=Math.max(0,1-Math.abs(fair-mid)/span);
+  const players=legs.filter(x=>x.player_id).map(x=>x.player_id),uniquePlayers=new Set(players).size,uniqueMarkets=new Set(legs.map(x=>x.market)).size;
+  const diversity=Math.min(1,((uniquePlayers||count)+uniqueMarkets*.45)/(count*1.45));
+  const recent=legs.reduce((a,x)=>a+Number(x.recent_hit_rate||systemCandidateProbability(x)),0)/count;
+  const structureScore=st.valid?1:(st.anchors>=1&&st.values>=1?.72:.24);
+  const score=structureScore*.31+rangeFit*.29+Math.min(1,joint/.35)*.15+diversity*.13+recent*.12;
+  const key=legs.map(systemCandidateKey).sort().join('||');
+  return {multi_id:`sim:${strategy}:${count}:${systemHash32(key).toString(16)}`,base_multi_id:null,strategy,leg_count:count,legs:legs.map(x=>({...x,probability:systemCandidateProbability(x)})),combined_probability:joint,fair_odds:fair,correlation_penalty:dep,recommended:st.valid&&fair>=Number(range[0])&&fair<=Number(range[1]),rank_in_group:1,monte_carlo_search:true,simulation_iteration:iteration,simulation_score:score};
+}
+function systemSimulationPool(strategy,count,f){
+  let pool=systemRepairCandidates(strategy,count,f);
+  if(f.recommendedOnly){
+    const recommendedIds=new Set(state.multis.filter(x=>x.recommended).flatMap(x=>(x.legs||[]).map(systemCandidateKey)));
+    const narrowed=pool.filter(x=>recommendedIds.has(systemCandidateKey(x)));if(narrowed.length>=count)pool=narrowed;
+  }
+  return pool;
+}
+function systemSampleCombo(pool,strategy,count,rng){
+  if(pool.length<count)return null;
+  const [alo,ahi]=systemAnchorBand(strategy),floor=systemValueFloor(strategy,count);
+  const anchors=pool.filter(x=>{const p=systemCandidateProbability(x);return p>=alo&&p<=ahi});
+  const values=pool.filter(x=>{const p=systemCandidateProbability(x);return p<alo&&p>=floor});
+  const selected=[];
+  const takeFrom=list=>{const compatible=list.filter(x=>systemLegCompatible(selected,x));const pick=systemWeightedPick(compatible,rng);if(pick)selected.push(pick);return !!pick};
+  takeFrom(anchors);takeFrom(values);
+  while(selected.length<count){if(!takeFrom(pool))break}
+  return selected.length===count?selected:null;
+}
+function simulateSystemGroup(strategy,count,f,runs){
+  const range=f.odds[strategy][count],sig=systemFilterSignature(f),rng=systemRng(systemHash32(`${sig}|${strategy}|${count}`)),pool=systemSimulationPool(strategy,count,f);
+  if(pool.length<count)return buildBestAvailableMulti(strategy,count,f,range);
+  let best=null,unique=0;const seen=new Set();
+  for(let i=0;i<runs;i++){
+    const legs=systemSampleCombo(pool,strategy,count,rng);if(!legs)continue;
+    const key=legs.map(systemCandidateKey).sort().join('||');if(!seen.has(key)){seen.add(key);unique++}
+    const m=systemSimulatedMulti(strategy,count,range,legs,i+1);if(!m)continue;
+    if(!best||Number(m.simulation_score)>Number(best.simulation_score)||(m.simulation_score===best.simulation_score&&m.combined_probability>best.combined_probability))best=m;
+  }
+  if(!best)return buildBestAvailableMulti(strategy,count,f,range);
+  return {...best,simulation_runs:runs,simulation_unique_combos:unique};
+}
+function runSystemSimulation(){
+  if(!state.selected){state.systemSimulationRows=[];state.systemSimulationMeta=null;state.systemSimulationBusy=false;renderMultis(true);return}
+  const f=state.systemFilterActive||defaultSystemFilterState(),signature=systemFilterSignature(f),runs=systemSimulationRunCount(f),strategies=f.strategy==='all'?['conservative','balanced','aggressive']:[f.strategy],counts=f.legCount===0?[2,3,4,5]:[f.legCount];
+  state.systemSimulationBusy=true;state.systemSimulationRows=[];state.systemSimulationMeta=null;renderMultis(true);
+  clearTimeout(state.systemSimulationTimer);
+  state.systemSimulationTimer=setTimeout(()=>{
+    if(!state.selected||systemFilterSignature(state.systemFilterActive||defaultSystemFilterState())!==signature)return;
+    const rows=[];strategies.forEach(st=>counts.forEach(n=>{const m=simulateSystemGroup(st,n,f,runs);if(m)rows.push(m)}));
+    state.systemSimulationRows=rows;state.systemSimulationMeta={key:signature,runs,groups:rows.length,marketCount:f.markets.size,at:Date.now()};state.systemSimulationBusy=false;renderMultis(true);
+  },16);
+}
+function scheduleSystemSimulation(delay=180){
+  if(!state.systemFilterActive)state.systemFilterActive=defaultSystemFilterState();
+  state.systemFilterActive=readSystemFilters();state.systemSimulationRows=[];state.systemSimulationMeta=null;
+  clearTimeout(state.systemSimulationTimer);renderMultis(true);
+  state.systemSimulationTimer=setTimeout(()=>runSystemSimulation(),delay);
+}
+
 function recalcSyntheticMulti(base,legs,strategy,count,range,reason){
   const probs=legs.map(systemCandidateProbability).filter(p=>p>0&&p<=1);if(probs.length!==count)return null;
   const naive=probs.reduce((a,b)=>a*b,1),dep=Math.min(1,Number(base?.correlation_penalty||.97));
@@ -696,8 +794,9 @@ function renderMultis(force=false){
   state.multisRenderPending=false;
   if(!state.systemFilterActive)state.systemFilterActive=defaultSystemFilterState();
   if($('#systemMarketFilters')&&!$('#systemMarketFilters').children.length)renderSystemFilterUI();
-  const f=state.systemFilterActive;const summary=$('#systemFilterSummary');if(summary){if(f.strategy==='all'&&f.legCount===0)summary.innerHTML=`<span>2–5串1 · 保守 / 平衡 / 激进</span><b>12 组固定推荐</b><small>${f.markets.size} markets</small>`;else if(f.strategy==='all')summary.innerHTML=`<span>${f.legCount}串1 · 全部策略</span><b>3 组</b><small>${f.markets.size} markets</small>`;else if(f.legCount===0)summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · 2–5串1</span><b>4 组</b><small>${f.markets.size} markets</small>`;else{const range=f.odds[f.strategy][f.legCount];summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · ${f.legCount}串1</span><b>Fair ${Number(range[0]).toFixed(2)}–${Number(range[1]).toFixed(2)}</b><small>${f.markets.size} markets</small>`}};
-  let rows=visibleMultiRows();const host=$('#multiCards');host.innerHTML='';
+  const f=state.systemFilterActive;const simKey=systemFilterSignature(f),hasSim=state.systemSimulationMeta?.key===simKey;const summary=$('#systemFilterSummary');if(summary){if(f.strategy==='all'&&f.legCount===0)summary.innerHTML=`<span>2–5串1 · 保守 / 平衡 / 激进</span><b>12 组固定推荐</b><small>${f.markets.size} markets</small>`;else if(f.strategy==='all')summary.innerHTML=`<span>${f.legCount}串1 · 全部策略</span><b>3 组</b><small>${f.markets.size} markets</small>`;else if(f.legCount===0)summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · 2–5串1</span><b>4 组</b><small>${f.markets.size} markets</small>`;else{const range=f.odds[f.strategy][f.legCount];summary.innerHTML=`<span>${SYSTEM_STRATEGY_LABEL[f.strategy]} · ${f.legCount}串1</span><b>Fair ${Number(range[0]).toFixed(2)}–${Number(range[1]).toFixed(2)}</b><small>${f.markets.size} markets</small>`}};
+  if(summary){if(state.systemSimulationBusy)summary.insertAdjacentHTML('beforeend','<small>本地 Monte Carlo 组合搜索中…</small>');else if(hasSim)summary.insertAdjacentHTML('beforeend',`<small>每组 ${Number(state.systemSimulationMeta.runs).toLocaleString()} 次本地模拟 · 不新增数据库请求</small>`)}
+  let rows=hasSim?state.systemSimulationRows:visibleMultiRows();const host=$('#multiCards');host.innerHTML='';
   if(state.finalLock){const lock=document.createElement('div');lock.className='final-lock-banner';lock.innerHTML=`<strong>🔒 T-30 FINAL RECOMMENDATION LOCK</strong><span>${dt(state.finalLock.frozen_at)} · ${state.finalLock.recommendation_count} recommendations · SHA ${esc(String(state.finalLock.snapshot_sha256||'').slice(0,12))}…</span>`;host.appendChild(lock)}
   if(!rows.length){host.innerHTML=state.selected?'<div class="empty system-empty"><strong>当前筛选下没有足够可用腿</strong><span>默认模式固定输出 12 组；只有当前比赛连最基本的可用腿数量都不足时才会缺组。</span></div>':'<div class="empty system-empty"><strong>系统组合等待未来赛事</strong><span>下一场比赛与球员市场确认后，将自动生成保守、平衡与激进组合。</span></div>';return}
   const ranked=rows.filter(m=>state.systemMultiRanking.has(m.multi_id));
@@ -713,6 +812,7 @@ function renderMultis(force=false){
     node.querySelector('.multi-title').textContent=`${m.leg_count}串1 · ${SYSTEM_STRATEGY_LABEL[m.strategy]||m.strategy}`;
     const rb=node.querySelector('.multi-rec');rb.textContent=m.recommended?'RECOMMENDED':'OUT OF BAND';rb.className=`multi-rec badge ${m.recommended?'good':'warn'}`;
     const structure=multiStructureStats(m);const roleBadge=document.createElement('span');roleBadge.className=`badge ${structure.valid?'good':'warn'}`;roleBadge.textContent=`${structure.anchors}稳胆 + ${structure.values} Value`;node.querySelector('.multi-top').appendChild(roleBadge);const mix=multiMarketMixStats(m);const mixBadge=document.createElement('span');mixBadge.className=`badge ${mix.majority?'good':'neutral'}`;mixBadge.textContent=`主流 ${mix.primary}/${m.leg_count}`;node.querySelector('.multi-top').appendChild(mixBadge);
+    if(m.monte_carlo_search){const mc=document.createElement('span');mc.className='badge neutral';mc.textContent=`MC ${Number(m.simulation_runs||0).toLocaleString()}`;mc.title=`${Number(m.simulation_unique_combos||0).toLocaleString()} unique candidate combinations sampled locally`;node.querySelector('.multi-top').appendChild(mc)}
     const st=state.multiStability.get(`${m.strategy}:${m.leg_count}:${m.rank_in_group}`);
     if(st){const sb=document.createElement('span');const reason=String(st.last_reason||'');sb.className=`badge ${reason.includes('replaced')||reason.includes('risk')||reason.includes('improvement')?'warn':'good'}`;sb.textContent=reason.includes('replaced')||reason.includes('risk')||reason.includes('improvement')?'REPLACED':'STABLE';sb.title=`${reason} · kept ${st.kept_count||0} · replaced ${st.replace_count||0}`;node.querySelector('.multi-top').appendChild(sb)}
     node.querySelector('.multi-legs').innerHTML=(m.legs||[]).map(l=>{const role=systemLegRole(m.strategy,l);const mm=MATCH_MARKETS.has(l.market);return `<div class="multi-leg ${mm?'match-market-leg':''}"><span class="multi-leg-main"><span class="market-chip ${mm?'match-market-chip':''}">${esc(marketLabel(l.market))}</span><i class="leg-role ${role==='稳胆'?'anchor':'value'}">${role}</i><span class="multi-leg-selection">${esc(l.selection)}</span></span><strong>${pct(l.probability)}</strong></div>`}).join('');
@@ -1022,14 +1122,22 @@ async function openPlayerOptionModal(playerId){
 
 function fieldAdd(playerId,market='best'){let legs=state.legs.filter(l=>l.player_id===playerId);if(market!=='best')legs=legs.filter(l=>l.market===market);legs.sort((a,b)=>Number(b.model_probability)-Number(a.model_probability));if(legs[0])addLegById(legs[0].prediction_leg_id)}
 
+function setSystemFilterMobile(open){
+  const panel=$('#systemFilterPanel'),backdrop=$('#systemFilterBackdrop');
+  if(!panel)return;
+  panel.classList.toggle('mobile-open',!!open);
+  backdrop?.classList.toggle('show',!!open);
+  document.body.classList.toggle('system-filter-open',!!open);
+}
 function switchView(name){
+  if(name!=='system-multi')setSystemFilterMobile(false);
   $('.match-picker').hidden=false;
   $('.match-picker').style.display='';
   if(name==='reviews')loadReviews();
   state.view=name;$$('.view').forEach(v=>v.classList.remove('active-view'));$(`#view-${name}`)?.classList.add('active-view');$$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name));
   if(name==='players')ensurePlayerMarketData().catch(e=>setModuleStatus('legs','error',e.message));
   if(name==='multi-lab'){renderBuilder();loadMultiLabMatchMarkets().catch(e=>setModuleStatus('multi_lab_markets','error',e.message))}
-  if(name==='system-multi')renderMultis();
+  if(name==='system-multi'){renderMultis();ensureFullLegs().then(()=>{if(state.view!=='system-multi')return;if(!state.systemFilterActive||!state.systemSimulationMeta)state.systemFilterActive=defaultSystemFilterState();renderSystemFilterUI();const key=systemFilterSignature(state.systemFilterActive);if(state.systemSimulationMeta?.key!==key)runSystemSimulation();else renderMultis(true)}).catch(e=>setModuleStatus('legs','error',e.message))}
   if(name==='validation'){if(!state.validationLoaded)loadValidation().then(()=>state.validationLoaded=true).catch(e=>setModuleStatus('validation','error',e.message));else renderValidation()}
   if(name==='shadow-live'){if(!state.shadowLoaded)ensureShadowData();else renderShadowLive()}
 }
@@ -1152,7 +1260,13 @@ initReviewPage();
 $$('.tab').forEach(t=>t.addEventListener('click',()=>switchView(t.dataset.view)));$$('[data-go]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.go)));
 $('#matchSelect').addEventListener('change',e=>{state.selected=e.target.value||null;state.systemMultiOdds={};state.systemMultiRanking=new Map();state.multiLabMarketPicker=null;state.multiLabMarketPickerMatch=null;state.multiLabTotalLine=null;state.multiLabHomeLine=null;state.multiLabAwayLine=null;if(state.selected)loadSelected().catch(showError);else renderMatch()});
 $('#playerSearch').addEventListener('input',renderPlayers);$('#marketFilter').addEventListener('change',renderPlayers);
-$('#systemFilterConfirm').addEventListener('click',()=>{state.systemFilterActive=readSystemFilters();renderMultis()});$('#systemFilterReset').addEventListener('click',()=>resetSystemFilters(true));
+$('#systemFilterConfirm').addEventListener('click',()=>{state.systemFilterActive=readSystemFilters();runSystemSimulation();if(window.matchMedia('(max-width:760px)').matches)setSystemFilterMobile(false)});$('#systemFilterReset').addEventListener('click',()=>resetSystemFilters(true));
+$('#systemFilterMobileToggle')?.addEventListener('click',()=>setSystemFilterMobile(true));
+$('#systemFilterMobileClose')?.addEventListener('click',()=>setSystemFilterMobile(false));
+$('#systemFilterBackdrop')?.addEventListener('click',()=>setSystemFilterMobile(false));
+['strategyFilter','legCountFilter','recommendedOnly','systemSimulationRuns'].forEach(id=>$('#'+id)?.addEventListener('change',()=>scheduleSystemSimulation(120)));
+$('#systemMarketFilters')?.addEventListener('change',()=>scheduleSystemSimulation(120));
+$('#systemOddsMatrix')?.addEventListener('input',()=>scheduleSystemSimulation(320));
 $('#clearBuilder').addEventListener('click',()=>{state.builder=[];saveBuilder()});
 let builderOddsTimer;$('#builderActualOdds').addEventListener('input',()=>{clearTimeout(builderOddsTimer);builderOddsTimer=setTimeout(()=>evaluateBuilder().catch(showError),250)});
 $('#builderValueBtn').addEventListener('click',()=>evaluateBuilder().catch(showError));
