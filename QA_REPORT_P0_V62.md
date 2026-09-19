@@ -1,3 +1,5 @@
+> **Superseded by P0 COMPLETE v65.** The v62 report reflects the first P0 UI pass. Late-change delta detection, source-vs-load freshness, live display-only weather, and explicit Review learning KPIs were completed in `QA_REPORT_P0_COMPLETE_V65.md`.
+
 # AFL Match Lab — P0 v62 QA Report
 
 Date: 2026-09-20  
