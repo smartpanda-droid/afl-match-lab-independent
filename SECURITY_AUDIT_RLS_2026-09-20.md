@@ -1,40 +1,25 @@
 # AFL Match Lab — Database Security Audit
 
 Date: 2026-09-20  
-Status: **AUDIT OPEN — NO PRODUCTION SECURITY DDL APPLIED**
+Status: **PRIMARY HARDENING COMPLETE — PRODUCTION VERIFIED**
 
-## Why this audit exists
+## Executive result
 
-Supabase Advisor previously identified 48 internal tables in `afl` / `afl_source` with RLS disabled. That is a security concern if those schemas or objects are reachable by `anon` / `authenticated` through the Data API.
+The earlier concern about 48 internal tables with RLS disabled was investigated against the live production database.
 
-The correct fix is **not** to blindly enable RLS on all 48 tables. AFL Match Lab has a deliberate separation between:
+Key finding:
 
-- **Internal model/workflow data**: `afl.*`, `afl_source.*`
-- **Browser/API surface**: `public.afl_api_*` and a small set of `public` RPCs
+- `afl` / `afl_source` contain 49 internal relations, 48 with RLS off.
+- `anon` and `authenticated` have **no schema USAGE** on `afl` or `afl_source`.
+- `anon` and `authenticated` have **zero direct SELECT / INSERT / UPDATE / DELETE privileges** on those internal relations.
+- Therefore the 48 RLS-off internal tables are **not directly reachable by browser roles** in the current permission model.
+- The correct architecture is to preserve internal-schema isolation rather than blindly enabling RLS on all 48 tables.
 
-The safer target architecture is to make `afl` and `afl_source` private implementation schemas and explicitly expose only the public API layer.
+## Browser API boundary
 
-## Frontend dependency audit
+The current frontend uses only `public.afl_api_*` read models plus six public RPCs.
 
-Current `public/app.js` accesses these REST resources:
-
-- `public.afl_api_validation_summary`
-- `public.afl_api_module_market_policy`
-- `public.afl_api_final_recommendation_summary`
-- `public.afl_api_final_recommendation_audit`
-- `public.afl_api_matches`
-- `public.afl_api_lineup`
-- `public.afl_api_multis`
-- `public.afl_api_match_context`
-- `public.afl_api_prediction_legs`
-- `public.afl_api_multi_stability`
-- `public.afl_api_final_recommendations`
-- `public.afl_api_player_recent5`
-- `public.afl_api_availability`
-- `public.afl_api_shadow_observations`
-- `public.afl_api_match_reviews`
-
-Current frontend RPCs:
+Approved frontend RPCs:
 
 - `public.afl_match_market_quote`
 - `public.afl_player_market_quote`
@@ -43,126 +28,111 @@ Current frontend RPCs:
 - `public.afl_multi_lab_match_market_quote`
 - `public.afl_multi_lab_evaluate`
 
-No direct `afl.*` or `afl_source.*` browser request was found in the tracked frontend.
+A scan of every JavaScript file under `public/` confirmed that these are the only direct REST RPC calls in the tracked frontend.
 
-## Proposed security model
+## Public read-model audit
 
-### Layer 1 — public API
+All browser-facing `public.afl_api_*` tables are:
 
-Only objects intentionally used by the browser should be reachable by `anon` / `authenticated`.
+- RLS enabled;
+- SELECT-only for `anon` / `authenticated`;
+- protected from INSERT / UPDATE / DELETE by browser roles;
+- backed by explicit read policies.
 
-Required controls:
+The policy model is intentionally public-read because AFL Match Lab currently exposes these read models to the public site.
 
-- RLS enabled for exposed public tables/materialized API tables.
-- Read-only policies where the UI only reads.
-- Explicit `EXECUTE` grants only for the six approved public RPCs.
-- Public RPCs must be reviewed for `SECURITY DEFINER` and internal-schema access.
+## RPC security audit
 
-### Layer 2 — internal AFL model
+All reviewed `public.afl_*` RPCs are `SECURITY INVOKER`, not `SECURITY DEFINER`.
 
-`afl` should contain model state, predictions, calibration, injury/TOG state, workflow events, snapshots and settlements.
+The six approved frontend RPCs reference the public read-model layer and do not require browser access to `afl` / `afl_source`.
 
-Target:
+Production hardening applied:
 
-- no browser role should need direct table access;
-- `anon` / `authenticated` should not have schema usage or object DML unless a proven exception exists;
-- server/cron/database-owner workflows continue to operate internally;
-- service-role access is retained only where an external server process actually requires it.
+- removed implicit `PUBLIC EXECUTE` from all AFL public RPCs;
+- explicitly granted `anon` / `authenticated` execute only on the six approved frontend RPCs;
+- kept non-browser helper RPCs service-role-only;
+- verified the six browser RPCs execute successfully under the `anon` role.
 
-### Layer 3 — source/ingestion
+## Internal public-schema tables
 
-`afl_source` contains request queues, sync jobs and ingestion state.
+The following implementation tables live in `public` but are not part of the browser API:
 
-Target:
+- `public.afl_refresh_lock`
+- `public.afl_system_multi_cache`
+- `public.afl_system_multi_config`
 
-- zero browser access;
-- no `anon` / `authenticated` table privileges;
-- only internal workflow roles / server-side service role where required.
+Hardening applied:
 
-## Why we are not enabling RLS blindly
+- removed all `anon` / `authenticated` table privileges;
+- retained RLS;
+- added explicit deny-client policies as defense in depth.
 
-Blindly enabling RLS can break:
+`afl.review_data_status` also received an explicit deny-client policy.
 
-- scheduled prediction chains;
-- injury/stat ingestion;
-- final T-30 freezing;
-- post-match settlement;
-- cron jobs;
-- RPCs that currently execute as invoker and require internal table privileges.
+## Security Advisor status after hardening
 
-A secure change must preserve the execution identity of every workflow first.
+The earlier `RLS Enabled No Policy` findings are cleared.
 
-## Read-only audit required before hardening
+The remaining Advisor warning is:
 
-Run `database/security_audit_readonly.sql` and verify:
+- `pg_net` extension is installed in the `public` schema.
 
-1. actual Data API exposed schemas;
-2. schema `USAGE` for `anon`, `authenticated`, `service_role`;
-3. table/view GRANT matrix;
-4. RLS + policy matrix;
-5. all `SECURITY DEFINER` functions and their owners;
-6. EXECUTE grants on all RPCs;
-7. definitions of the six frontend RPCs;
-8. default privileges for future objects.
+This is not an AFL application-table exposure issue. It should be handled separately because relocating a Postgres extension can affect existing database/network workflows.
 
-## Candidate hardening sequence
+## Database health incident discovered during audit
 
-Do not combine all changes into one uncontrolled migration.
+During the audit the production database became unhealthy and SQL connections timed out.
 
-### Phase S0 — prove API boundary
+Root performance findings from `pg_stat_statements` included:
 
-- confirm frontend uses public API only;
-- confirm six RPCs do not require direct client grants on internal schemas;
-- identify any server-side code using service role against `afl` / `afl_source`.
+- `afl.late_lineup_delta_tick()`: historical mean about 23.6 s;
+- `afl.plan_workflow()`: historical mean about 25.6 s;
+- `afl.refresh_public_availability()`: historical mean about 18.8 s.
 
-### Phase S1 — close future accidental exposure
+Health hardening was applied separately in `database/database_health_hardening_v67.sql`.
 
-Adopt explicit-grant defaults for newly-created `public` objects. Existing objects remain unchanged until reviewed.
+Verified results:
 
-### Phase S2 — close internal schemas to browser roles
+- player availability full refresh: about 18.8 s historical mean → about **111 ms** measured;
+- idle `afl.event_driven_tick()`: about 3–4 s during the incident → about **254 ms** measured after gating fixes;
+- stale final-prediction workflow events are now marked `skipped / missed_final_window` rather than remaining permanently pending;
+- post-match retries now respect `next_attempt_at`;
+- production project returned to `ACTIVE_HEALTHY`.
 
-Only after S0 verification:
+## Files
 
-- revoke unnecessary schema usage from `anon` / `authenticated`;
-- revoke direct grants on internal tables/sequences/functions;
-- preserve required service/server access.
+- `database/security_audit_readonly.sql`
+- `database/security_hardening_v67.sql`
+- `database/database_health_hardening_v67.sql`
+- `database/simulation_v2_shadow.sql`
 
-### Phase S3 — public API least privilege
+## Remaining work
 
-For each `public.afl_api_*` object:
+1. Keep `afl` / `afl_source` private; do not bulk-enable RLS without a workflow reason.
+2. Review the `pg_net` extension warning separately.
+3. Consider adopting explicit default privileges for future `public` objects so new tables/functions are not automatically exposed.
+4. Continue normal website regression QA after future privilege or API changes.
+5. Keep security Advisor and database performance checks as release gates.
 
-- keep only required SELECT;
-- remove INSERT/UPDATE/DELETE from browser roles unless explicitly needed;
-- ensure RLS policy matches the intended read model.
+## Final security model
 
-For each approved RPC:
+```text
+Browser
+  |
+  +--> public.afl_api_*     SELECT only + RLS
+  |
+  +--> 6 approved public RPCs
+           SECURITY INVOKER
+           explicit EXECUTE grants
+           |
+           +--> public read models
 
-- explicitly grant EXECUTE only to required roles;
-- revoke EXECUTE from `PUBLIC` where not intended;
-- prefer SECURITY INVOKER;
-- if SECURITY DEFINER is genuinely necessary, validate inputs, owner, search_path and accessible operations.
+Internal database workflows / postgres / service role
+  |
+  +--> afl.*
+  +--> afl_source.*
+  +--> service-only public helpers
+```
 
-### Phase S4 — regression QA
-
-Before merging hardening:
-
-- Match list loads;
-- Lineup loads;
-- Player Markets loads;
-- System Multi loads;
-- Multi Lab adds/removes/evaluates legs;
-- Match Market quote works;
-- Validation page works;
-- Review page works;
-- T-30 freeze works;
-- post-match settlement works;
-- injury/stat sync works;
-- cron workflows remain healthy.
-
-## Important Supabase 2026 platform change
-
-Supabase is moving Data API exposure toward explicit Postgres grants rather than automatic public-schema grants. AFL Lab should adopt that model deliberately rather than rely on legacy defaults.
-
-## Current action
-
-No RLS, GRANT, REVOKE or schema exposure setting has been changed in Production by this audit. The next database action should be the read-only audit query, followed by a reviewed least-privilege migration.
+This is the intended least-privilege boundary for AFL Match Lab.
