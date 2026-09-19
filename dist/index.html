@@ -130,6 +130,7 @@
             <label><span>策略</span><select id="strategyFilter"><option value="all" selected>全部</option><option value="conservative">保守</option><option value="balanced">平衡</option><option value="aggressive">激进</option></select></label>
             <label><span>串数</span><select id="legCountFilter"><option value="0" selected>全部 2–5串</option><option value="2">2串1</option><option value="3">3串1</option><option value="4">4串1</option><option value="5">5串1</option></select></label>
             <label class="check system-rec-check"><input id="recommendedOnly" type="checkbox"/> 只看默认推荐</label>
+            <label><span>本地模拟次数</span><select id="systemSimulationRuns"><option value="1000">1,000</option><option value="5000" selected>5,000</option><option value="10000">10,000</option></select></label>
           </div>
           <div class="system-filter-block"><div class="filter-subhead"><strong>玩法</strong><small>球员 + 比赛市场统一筛选</small></div><div id="systemMarketFilters" class="system-market-filters"></div>
 <div class="system-tradable-legend">
@@ -144,8 +145,8 @@
             <div class="filter-subhead"><strong>模拟赔率范围</strong><small>Min / Max</small></div>
             <div id="systemOddsMatrix" class="system-odds-matrix"></div>
           </div>
-          <div class="system-filter-actions"><button id="systemFilterConfirm">确认</button><button id="systemFilterReset" class="ghost">重置</button></div>
-          <p class="note">每次比赛数据重新同步后恢复默认筛选。这里的赔率范围用于筛选模型 Fair Odds，不代表博彩公司实时价格。</p>
+          <div class="system-filter-actions"><button id="systemFilterConfirm">重新模拟</button><button id="systemFilterReset" class="ghost">重置</button></div>
+          <p class="note">玩法、策略、串数或赔率范围一改变，就会用当前已载入的单腿数据在浏览器本地重新模拟；不会因为筛选变化再次请求 Supabase。赔率范围用于筛选模型 Fair Odds，不代表博彩公司实时价格。</p>
         </aside>
         <section class="panel system-results-panel">
           <div class="section-head"><div><div class="eyebrow">SYSTEM MULTI</div><h2>系统推荐组合</h2></div><div id="systemFilterSummary" class="system-filter-summary"></div></div>
