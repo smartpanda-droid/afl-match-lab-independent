@@ -35,13 +35,13 @@
   }
   function moduleState(name){
     const x=state.moduleStatus?.[name];
-    if(!x)return {text:'Waiting',cls:'neutral'};
+    if(!x)return {text:'Waiting',cls:'neutral',at:null};
     const s=typeof x==='string'?x:x.status;
-    if(s==='ok')return {text:'Loaded',cls:'good'};
-    if(s==='cache')return {text:'Cached',cls:'warn'};
-    if(s==='loading')return {text:'Updating',cls:'neutral'};
-    if(s==='error')return {text:'Error',cls:'bad'};
-    return {text:String(s||'Waiting'),cls:'neutral'};
+    if(s==='ok')return {text:'Loaded',cls:'good',at:x.at||null};
+    if(s==='cache')return {text:'Cached',cls:'warn',at:x.at||null};
+    if(s==='loading')return {text:'Updating',cls:'neutral',at:x.at||null};
+    if(s==='error')return {text:'Error',cls:'bad',at:x.at||null};
+    return {text:String(s||'Waiting'),cls:'neutral',at:x.at||null};
   }
 
   function confidenceLevel(ratio){
@@ -70,7 +70,7 @@
     if(rc!=null)add('Role stability',rc>=.72?2:rc>=.48?1:0,2,(rc>=.72?'High':rc>=.48?'Medium':'Low')+' · '+Math.round(rc*100)+'%');
 
     const os=num(leg?.opponent_samples);
-    if(os!=null)add('Opposition evidence',os>=8?1:os>=4?.5:0,1,os>=8?'Good · n='+os:os>=4?'Moderate · n='+os:'Thin · n='+os);
+    if(os!=null)add('Opposition evidence',os>=8?1:os>=4?0.5:0,1,os>=8?'Good · n='+os:os>=4?'Moderate · n='+os:'Thin · n='+os);
 
     const ratio=max?score/max:0;
     return {level:confidenceLevel(ratio),ratio,details,injury};
