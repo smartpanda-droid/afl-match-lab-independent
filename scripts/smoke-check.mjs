@@ -10,6 +10,7 @@ const p2=fs.readFileSync('public/navigation-p2-v64.js','utf8');
 const p2css=fs.readFileSync('public/navigation-p2-v64.css','utf8');
 const p0c=fs.readFileSync('public/p0-completion-v65.js','utf8');
 const p0ccss=fs.readFileSync('public/p0-completion-v65.css','utf8');
+const uiqa=fs.readFileSync('public/ui-qa-v66.css','utf8');
 const checks=[];
 function check(name, ok, detail=''){checks.push({name,ok,detail});if(!ok)process.exitCode=1}
 check('Config has Supabase URL',/SUPABASE_URL:\s*"https:\/\//.test(cfg));
@@ -76,6 +77,16 @@ check('P0 weather is connected but model-safe',p0c.includes('api.open-meteo.com/
 check('P0 review has explicit player and multi KPIs',p0c.includes('Player markets')&&p0c.includes('System multis'));
 check('P0 completion does not mutate production probability',!/(model_probability\\s*=|\\.probability\\s*=|state\\.legs\\s*=|state\\.multis\\s*=)/.test(p0c));
 check('P0 completion responsive styles exist',p0ccss.includes('@media(max-width:900px)'));
+check('v66 all-page UI QA layer is linked',html.includes('ui-qa-v66.css'));
+check('v66 Matchday flow shows all four stages on mobile',uiqa.includes('grid-template-columns:repeat(4,minmax(0,1fr))!important')&&uiqa.includes('.p2-flow-copy small{display:none!important}'));
+check('v66 P2 secondary buttons beat global green rule',uiqa.includes('.p2-multi-mode')&&uiqa.includes('.p2-drawer-item')&&uiqa.includes('.p2-secondary-back'));
+check('v66 Player controls have semantic contrast',uiqa.includes('.threshold-step')&&uiqa.includes('.player-market-row .add-leg'));
+check('v66 Multi Lab cards and remove controls are isolated',uiqa.includes('.match-leg-choice')&&uiqa.includes('.remove-leg'));
+check('v66 Field controls preserve semantic colours',uiqa.includes('.lineup-team-filters button')&&uiqa.includes('.field-player.bench')&&uiqa.includes('.mini-player-dot.team-0'));
+check('v66 Review controls are compact and clear',uiqa.includes('#reviewSelect')&&uiqa.includes('#reviewRefresh'));
+check('v66 Validation tables remain readable on mobile',uiqa.includes('.validation-table th:first-child')&&uiqa.includes('position:sticky')&&uiqa.includes('-webkit-overflow-scrolling:touch'));
+check('v66 Shadow timeline wraps on mobile',uiqa.includes('.shadow-step-head{flex-wrap:wrap!important'));
+check('v66 supporting text gets readable mobile minimum',uiqa.includes('.note{font-size:11px!important}'));
 const failed=checks.filter(x=>!x.ok);
-console.log(`AFL Match Lab v65.2 smoke check: ${checks.length-failed.length}/${checks.length} passed`);
+console.log(`AFL Match Lab v66 smoke check: ${checks.length-failed.length}/${checks.length} passed`);
 for(const c of checks) console.log(`${c.ok?'PASS':'FAIL'}  ${c.name}${c.detail?' — '+c.detail:''}`);
