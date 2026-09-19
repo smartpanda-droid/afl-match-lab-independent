@@ -312,10 +312,10 @@ begin
       'away_cover_probability',round(r.away_cover_p,4),
       'over_probability',round(r.over_p,4),
       'under_probability',round(r.under_p,4),
-      'home_score_p10_p50_p90',jsonb_build_array(round(r.home_p10,1),round(r.home_p50,1),round(r.home_p90,1)),
-      'away_score_p10_p50_p90',jsonb_build_array(round(r.away_p10,1),round(r.away_p50,1),round(r.away_p90,1)),
-      'margin_p10_p50_p90',jsonb_build_array(round(r.margin_p10,1),round(r.margin_p50,1),round(r.margin_p90,1)),
-      'total_p10_p50_p90',jsonb_build_array(round(r.total_p10,1),round(r.total_p50,1),round(r.total_p90,1))
+      'home_score_p10_p50_p90',jsonb_build_array(round(r.home_p10::numeric,1),round(r.home_p50::numeric,1),round(r.home_p90::numeric,1)),
+      'away_score_p10_p50_p90',jsonb_build_array(round(r.away_p10::numeric,1),round(r.away_p50::numeric,1),round(r.away_p90::numeric,1)),
+      'margin_p10_p50_p90',jsonb_build_array(round(r.margin_p10::numeric,1),round(r.margin_p50::numeric,1),round(r.margin_p90::numeric,1)),
+      'total_p10_p50_p90',jsonb_build_array(round(r.total_p10::numeric,1),round(r.total_p50::numeric,1),round(r.total_p90::numeric,1))
     ),
     'availability',jsonb_build_object(
       'home_score_factor',home_factor,
