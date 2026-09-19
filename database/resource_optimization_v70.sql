@@ -1,3 +1,9 @@
+-- SUPERSEDED BY database/weekly_validation_governance_v71.sql
+-- Do not re-apply this schedule block to Production.
+-- The 60m master / 5m pregame finalizer / 12h release-gate experiment reduced
+-- idle DB activity, but it was too coarse for the asynchronous T-60/T-30
+-- token -> roster -> freeze path. Production uses 30m / 2m / 6h.
+--
 -- AFL Match Lab v70 — Minimum Supabase Access Policy
 -- Production-applied 2026-09-20.
 --
