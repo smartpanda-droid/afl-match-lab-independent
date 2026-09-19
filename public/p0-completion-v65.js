@@ -82,7 +82,7 @@
   function weatherCompare(prev,cur){
     if(!prev||!cur)return null;
     const items=[];
-    const diff=(a,b)=>num(b)-num(a);
+    const diff=(a,b)=>{const x=num(a),y=num(b);return x==null||y==null?null:y-x};
     const rain=diff(prev.precipProbability,cur.precipProbability);
     const gust=diff(prev.windGust,cur.windGust);
     const wind=diff(prev.wind,cur.wind);
@@ -154,7 +154,11 @@
       if(state.view==='shadow-live'&&typeof renderShadowLive==='function')renderShadowLive();
       if(!initial&&isNew&&shadowMaterial(latest).length&&typeof loadSelected==='function'){
         await loadSelected();
-        if(state.selected===matchId)setTimeout(captureStableSnapshot,250);
+        if(state.selected===matchId){
+          state.shadowObs=late.shadowRows;
+          if(state.view==='shadow-live'&&typeof renderShadowLive==='function')renderShadowLive();
+          setTimeout(captureStableSnapshot,250);
+        }
       }
     }catch(e){late.shadowError=e?.message||String(e);late.shadowFetchedAt=Date.now()}
     renderCompletion();
