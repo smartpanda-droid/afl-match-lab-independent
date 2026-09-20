@@ -112,3 +112,98 @@ Post-fix screenshot evidence:
 A passing visual QA requires a post-fix browser-rendered screenshot at the same iPhone state. The current chat tooling cannot capture the deployed Cloudflare page directly, and the user has not yet supplied a post-v78.3 screenshot.
 
 Once a refreshed screenshot is supplied, compare it against the same mobile concept and this report can move from `blocked` to `passed` if no actionable P0/P1/P2 differences remain.
+
+
+---
+
+# v78.4 Mobile Consistency Pass
+
+Date: 2026-09-20
+Final result: blocked
+
+## New implementation screenshots reviewed
+
+- Match mobile: `/mnt/data/IMG_2774.png`
+- Player Markets mobile: `/mnt/data/CC7BCA1D-59D4-4F78-81FD-8E37F5709D17.png`
+- System Multi mobile: `/mnt/data/IMG_2776.png`
+- Multi Lab mobile: `/mnt/data/IMG_2777.png`
+- More / Model Lab drawer: `/mnt/data/IMG_2778.png`
+- Source concept: `/mnt/data/afl_match_lab_analytics_showcase.png`
+
+All supplied implementation captures are iPhone Safari at approximately 390 CSS px wide, rendered at @3x density.
+
+## Findings from the new screenshots
+
+### [P1] Legacy Match journey reinserted after v78 sync
+Evidence: the live Match capture still displayed Read Match / Find Edges / System Picks / Build Multi after v78.3.
+Root cause: `navigation-p2-v64.js` reinserted `.p2-decision-flow` in a delayed post-render scaffold after the v78 sync had already run.
+Fix in v78.4:
+- Mobile `ensureFlows()` now removes existing flows and returns before creating any.
+- v78 runtime also observes DOM insertion and hides legacy Match status/decision layers on mobile.
+
+### [P1] System Multi hero had a contrast failure
+Evidence: `IMG_2776.png` showed a large white hero with only pale STEP 1 / STEP 2 / STEP 3 labels visible; V71 child text retained white text while v78 changed the hero surface to white.
+Fix in v78.4:
+- Explicit navy/blue/muted child colours at all sizes.
+- Mobile hero compressed into a compact System Multi header.
+- Long hero paragraph hidden on mobile.
+- Step blocks use blue-soft surfaces with readable navy labels.
+- Mobile filter/simulation primary action changed from legacy green to v78 blue.
+
+### [P1] Multi Lab consumed too much vertical space
+Evidence: `IMG_2777.png` showed one selected leg consuming most of the first screen because Remove became a full-width row, the 4 stats rendered as large 2 × 2 cards, an empty dependency container remained visible, and Value controls were oversized.
+Fix in v78.4:
+- Leg row kept as compact three-column content / odds / remove.
+- Remove restored to a small red-soft action.
+- Four summary metrics become a compact four-column strip.
+- Empty dependency and value result containers collapse.
+- Value input/button reduce to one compact row.
+- Long explanatory note hidden on mobile first pass.
+
+### [P1] More drawer behaved like a full page
+Evidence: `IMG_2778.png` showed the drawer extending under the Safari browser chrome, with an overlong title and verbose system status block. The Multi Lab sticky bar remained visible underneath.
+Fix in v78.4:
+- Converted to a bounded bottom sheet: max 68dvh, rounded surface, grab handle.
+- Title simplified to `More / Model Lab`.
+- Drawer cards reduced to 56px minimum height.
+- Verbose system-health detail hidden on mobile; refresh remains available.
+- Sticky Multi Lab bar hides while the More drawer is open.
+
+### [P2] Bottom navigation still showed legacy green active state
+Evidence: Match / Players / Multi / Lab captures still showed legacy green active icon/label in several routes.
+Fix in v78.4:
+- Stronger v78 selector wins over the old v65 green navigation isolation layer.
+- Active state is blue-soft + v78 blue.
+
+## Fidelity surfaces
+
+### Typography
+v78.4 reduces oversized mobile headings and removes marketing-scale copy from decision routes. System Multi, More, and Multi Lab now use the same compact hierarchy as the Match concept.
+
+### Spacing / layout rhythm
+The new mobile path removes duplicate journey UI, bounds overlays, reduces oversized summary cards, and preserves the bottom navigation as the persistent app anchor.
+
+### Colors / tokens
+Primary interaction is v78 blue. Green is retained for positive/value/state semantics rather than global navigation or primary actions.
+
+### Image / asset quality
+No image asset substitutions were made. Existing logo safe-area rules remain unchanged.
+
+### Copy / content
+More drawer copy is simplified; no model meaning, market data, probability, seal, or settlement text was changed.
+
+## Regression gates
+
+- package version: 0.78.4
+- package.json valid: PASS
+- `showcase-ui-v78.js` syntax: PASS
+- `navigation-p2-v64.js` syntax: PASS
+- `showcase-ui-v78.css` brace structure: PASS
+- showcase CSS cache key: `20260920-5`
+- showcase JS cache key: `20260920-5`
+- navigation JS cache key: `20260920-5`
+- Supabase/model/seal/settlement logic unchanged
+
+## Blocker
+
+Post-v78.4 deployed screenshots are still required at the same iPhone viewport. Until those refreshed captures are available, design QA remains `blocked` rather than claiming a visual pass without evidence.
