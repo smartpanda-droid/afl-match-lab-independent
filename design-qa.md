@@ -241,3 +241,38 @@ Live iPhone screenshots showed that the v78.4 mobile structure was substantially
 
 ## Blocker
 A post-v78.5 iPhone screenshot is still required to confirm that the larger typography remains within the 390px layout without clipping or undesirable wrapping.
+
+
+---
+
+# v78.6 Mobile Harmony Pass
+
+Date: 2026-09-20
+Final result: blocked
+
+## Trigger
+Post-v78.5 iPhone screenshots confirmed readability had improved, but the product still felt visually inconsistent across Match, Players, System Multi and Multi Lab. The largest visual conflicts were the heavy floating Multi Lab bar, an unbalanced Match hero, legacy green evidence blocks, and inconsistent card/CTA treatments.
+
+## Changes
+- Floating Multi Lab changed from a heavy navy secondary-navigation bar into a compact white utility chip with blue CTA.
+- Match hero rebalanced for long team names with a safer three-column grid, smaller logos and tighter status pills.
+- KPI spacing and card rhythm normalised.
+- Player Recent 5 changed from solid green/red blocks to softer semantic evidence cells.
+- Player decision-speed tabs/cards moved to the blue design system.
+- System Multi cards, tags and primary actions normalised to white/navy/blue while preserving semantic green for positive status.
+- Multi Lab and Match Markets card radius, borders, choice buttons, ranges and supporting copy aligned to the same component grammar.
+- More drawer surfaces aligned with the same neutral card system.
+- Bottom navigation spacing and shadow reduced to separate it visually from the floating builder utility.
+
+## Regression gates
+- package version: 0.78.6
+- package.json valid: PASS
+- showcase-ui-v78.js syntax: PASS
+- navigation-p2-v64.js syntax: PASS
+- showcase-ui-v78.css brace structure: PASS
+- showcase CSS cache key: 20260920-7
+- showcase JS cache key: 20260920-7
+- Supabase/model/seal/settlement logic unchanged
+
+## Blocker
+A refreshed iPhone screenshot is still required to verify the new harmony layer against live Safari rendering before marking final visual QA as passed.
