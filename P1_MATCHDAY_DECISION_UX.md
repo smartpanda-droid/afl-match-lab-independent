@@ -1,7 +1,7 @@
 # AFL Match Lab — P1 Matchday Decision UX
 
 Date: 2026-09-20
-Status: **IN PROGRESS**
+Status: **CLOSED**
 Start version: **0.79.0**
 
 ## Goal
@@ -73,7 +73,7 @@ Delivered in v0.79.2:
 - no extra data request
 - no model probability mutation
 
-### P1.4 Multi Lab Decision Summary — NEXT
+### P1.4 Multi Lab Decision Summary — COMPLETE in v0.79.3
 
 Keep the builder focused on:
 - selected legs
@@ -82,6 +82,29 @@ Keep the builder focused on:
 - bookmaker odds
 - EV / value status
 - weakest dependency / risk reason
+
+Delivered in v0.79.3:
+- compact builder Decision Summary
+- selected legs
+- dependency-adjusted Model P
+- Fair Odds
+- Bookmaker Odds
+- EV / Value status
+- Dependency Risk
+- Weakest Leg
+- direct focus actions for odds / dependency details
+- no extra data request
+- no model probability mutation
+
+## P1 closure
+
+P1 is CLOSED at v0.79.3.
+
+Completed:
+- P1.1 Persistent Match Context
+- P1.2 Player Market Decision Hierarchy
+- P1.3 System Multi Compare
+- P1.4 Multi Lab Decision Summary
 
 ## P1.1 implementation safety
 
