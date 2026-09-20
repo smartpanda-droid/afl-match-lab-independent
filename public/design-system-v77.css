@@ -75,6 +75,45 @@
   --ds-control-lg:44px;
 
 
+  /* Compatibility names used by the pre-v77 base stylesheet.
+     Values are resolved here so older layout rules no longer own the theme. */
+  --bg:var(--ds-surface-soft);
+  --card:var(--ds-surface);
+  --panel:var(--ds-surface);
+  --ink:var(--ds-ink-800);
+  --text:var(--ds-ink-800);
+  --muted:var(--ds-muted-600);
+  --line:var(--ds-line);
+  --border:var(--ds-line);
+  --soft:var(--ds-green-050);
+  --accent:var(--ds-green-800);
+  --accent2:var(--ds-green-600);
+  --green:var(--ds-good);
+  --good:var(--ds-good);
+  --warn:var(--ds-warn);
+  --bad:var(--ds-bad);
+  --red:var(--ds-bad);
+  --shadow:var(--ds-shadow-sm);
+  --team-border:var(--ds-line);
+
+  --aml-green:var(--ds-green-800);
+  --aml-green-2:var(--ds-green-700);
+  --aml-green-3:#19a979;
+  --aml-green-soft:var(--ds-green-100);
+  --aml-navy:var(--ds-ink-900);
+  --aml-blue:var(--ds-info);
+  --aml-gold:var(--ds-warn);
+  --aml-gold-soft:var(--ds-warn-soft);
+  --aml-red:var(--ds-bad);
+  --aml-red-soft:var(--ds-bad-soft);
+  --aml-bg:var(--ds-surface-soft);
+  --aml-card:var(--ds-surface);
+  --aml-muted:var(--ds-muted-600);
+  --aml-line:var(--ds-line);
+  --aml-shadow:var(--ds-shadow-sm);
+  --aml-radius:var(--ds-radius-lg);
+
+
 }
 
 /* Canonical primitives */
