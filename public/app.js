@@ -67,7 +67,7 @@ const TEAM_REAL_LOGO = {
   'GWS GIANTS':'https://upload.wikimedia.org/wikipedia/en/0/07/GWS_Giants_logo.svg',
   'Hawthorn':'https://upload.wikimedia.org/wikipedia/en/6/62/Hawthorn-football-club-brand.svg',
   'Melbourne':'https://upload.wikimedia.org/wikipedia/en/4/4e/Melbournefc.svg',
-  'North Melbourne':'https://upload.wikimedia.org/wikipedia/en/7/74/North_Melbourne_logo.png',
+  'North Melbourne':'./assets/logos/north-melbourne.svg',
   'Port Adelaide':'https://upload.wikimedia.org/wikipedia/en/3/36/Port_Adelaide_Football_Club_logo.svg',
   'Richmond':'https://upload.wikimedia.org/wikipedia/en/3/35/Richmond_Tigers_logo.svg',
   'St Kilda':'https://upload.wikimedia.org/wikipedia/en/0/06/St_Kilda_Football_Club_logo_2024.svg',
