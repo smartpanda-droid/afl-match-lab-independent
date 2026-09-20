@@ -29,7 +29,7 @@ Rules:
 - no probability mutation
 - hidden on secondary research routes
 
-### P1.2 Player Market Decision Hierarchy — NEXT
+### P1.2 Player Market Decision Hierarchy — COMPLETE in v0.79.1
 
 Compress each player decision into:
 - market + threshold
@@ -41,7 +41,16 @@ Compress each player decision into:
 
 Secondary model context stays expandable.
 
-### P1.3 System Multi Compare
+Delivered in v0.79.1:
+- per-market Decision Strip
+- Recent 5 hit summary
+- Role / TOG state
+- evidence Confidence using the same loaded-evidence logic as P1 Decision Speed
+- context collapsed by default
+- no extra data request
+- no model probability mutation
+
+### P1.3 System Multi Compare — NEXT
 
 Make Conservative / Balanced / Aggressive structures easier to compare by:
 - combined probability
