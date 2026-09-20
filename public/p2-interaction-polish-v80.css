@@ -1,0 +1,193 @@
+/* P2 — Cross-platform Interaction Polish v80 */
+
+/* Accessibility shell */
+.p2-skip-link{
+  position:fixed;
+  z-index:9999;
+  top:8px;
+  left:8px;
+  transform:translateY(-160%);
+  padding:9px 12px;
+  border-radius:9px;
+  background:#102c4c;
+  color:#fff;
+  font-size:13px;
+  font-weight:900;
+  box-shadow:0 8px 24px rgba(12,34,62,.22);
+  transition:transform .16s ease;
+}
+.p2-skip-link:focus{
+  transform:translateY(0);
+}
+.p2-sr-only{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  padding:0!important;
+  margin:-1px!important;
+  overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;
+  border:0!important;
+}
+body.v78-showcase :is(button,a,input,select,textarea,summary,[tabindex]):focus-visible{
+  outline:3px solid rgba(23,105,255,.34)!important;
+  outline-offset:2px!important;
+}
+
+/* Keyboard hint is discoverable without cluttering touch UI. */
+@media(hover:hover) and (pointer:fine){
+  #p2PrimaryNav .p2-nav-button[data-p2-route="match"]::after{content:"Alt+1"}
+  #p2PrimaryNav .p2-nav-button[data-p2-route="players"]::after{content:"Alt+2"}
+  #p2PrimaryNav .p2-nav-button[data-p2-route="system-multi"]::after{content:"Alt+3"}
+  #p2PrimaryNav .p2-nav-button[data-p2-route="multi-lab"]::after{content:"Alt+4"}
+  #p2PrimaryNav .p2-nav-button::after{
+    position:absolute;
+    right:5px;
+    bottom:4px;
+    color:#a0adbb;
+    font-size:6px;
+    font-weight:800;
+    opacity:0;
+    transition:opacity .14s ease;
+  }
+  #p2PrimaryNav .p2-nav-button:hover::after,
+  #p2PrimaryNav .p2-nav-button:focus-visible::after{opacity:1}
+}
+
+/* P2.1 Tablet dedicated layout */
+@media(min-width:701px) and (max-width:1180px){
+  body.v78-showcase main{
+    max-width:1180px!important;
+    padding-left:16px!important;
+    padding-right:16px!important;
+  }
+
+  /* Touch controls need tablet-sized hit areas without phone density. */
+  body.v78-showcase :is(
+    #p2PrimaryNav .p2-nav-button,
+    #v78MobileMatchTabs button,
+    .p13-leg-tabs button,
+    #view-players .threshold-step,
+    #view-players .add-leg,
+    #view-system-multi .send-builder,
+    #view-multi-lab button
+  ){
+    min-height:44px;
+  }
+
+  /* Match decision layer keeps one-row KPI scan. */
+  body.v78-showcase .v78-kpi-strip{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+  body.v78-showcase #view-match .cockpit-highlight-strip{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    overflow:visible!important;
+  }
+
+  /* Player toolbar stays compact; player cards can go 2-up only on wider tablets. */
+  body.v78-showcase #view-players .player-market-controls{
+    grid-template-columns:minmax(260px,1fr) minmax(180px,.42fr)!important;
+  }
+  body.v78-showcase #view-players .p12-decision-strip{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+
+  /* System Multi compare remains side-by-side on tablet rather than mobile carousel. */
+  body.v78-showcase #p13MultiCompare .p13-compare-grid{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    overflow:visible!important;
+  }
+  body.v78-showcase #p13MultiCompare .p13-compare-card{
+    max-width:none!important;
+    min-width:0!important;
+    flex:auto!important;
+  }
+
+  /* Multi Lab gets a true tablet split. */
+  body.v78-showcase #view-multi-lab .builder-grid{
+    display:grid!important;
+    grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr)!important;
+    gap:10px!important;
+    align-items:start!important;
+  }
+
+  /* Field portrait: same one-team logic as phone, but with a larger readable oval. */
+  body.v78-showcase #matchFieldTeams .overlay-afl-field{
+    width:min(100%,520px)!important;
+    max-width:520px!important;
+    margin-inline:auto!important;
+  }
+  body.v78-showcase #matchFieldTeams .overlay-position-roster.single-team .lineup-player-card{
+    min-height:42px!important;
+  }
+}
+
+@media(min-width:701px) and (max-width:900px){
+  /* Portrait tablet: avoid over-splitting complex player content. */
+  body.v78-showcase #view-multi-lab .builder-grid{
+    grid-template-columns:1fr!important;
+  }
+}
+
+@media(min-width:980px) and (max-width:1180px){
+  body.v78-showcase #playerCards{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+    align-items:start!important;
+  }
+}
+
+/* P2.3 interaction polish */
+body.v78-showcase .view.active-view{
+  animation:p2-view-in .16s ease-out both;
+}
+@keyframes p2-view-in{
+  from{opacity:.72;transform:translateY(4px)}
+  to{opacity:1;transform:translateY(0)}
+}
+body.v78-showcase :is(
+  .panel,
+  .player-card,
+  .multi-card,
+  .p13-compare-card,
+  .p14-builder-decision,
+  .top-leg
+){
+  transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease,background-color .16s ease;
+}
+body.v78-showcase :is(button,a,.match-leg-choice){
+  transition:background-color .14s ease,border-color .14s ease,color .14s ease,transform .14s ease,box-shadow .14s ease;
+}
+@media(hover:hover) and (pointer:fine){
+  body.v78-showcase :is(
+    .player-card,
+    .multi-card,
+    .p13-compare-card,
+    .top-leg
+  ):hover{
+    border-color:#cbd9ea!important;
+    box-shadow:0 8px 22px rgba(18,42,74,.08)!important;
+    transform:translateY(-1px);
+  }
+  body.v78-showcase :is(button,.match-leg-choice):not(:disabled):hover{
+    transform:translateY(-1px);
+  }
+}
+
+/* Respect the operating system. */
+@media(prefers-reduced-motion:reduce){
+  html:focus-within{scroll-behavior:auto!important}
+  body.v78-showcase *,
+  body.v78-showcase *::before,
+  body.v78-showcase *::after{
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.001ms!important;
+    scroll-behavior:auto!important;
+  }
+}
