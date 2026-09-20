@@ -1508,3 +1508,238 @@ body.v78-showcase #matchSummary .team-logo-image{
   body.v78-showcase #view-players .player-market-footer{grid-template-columns:minmax(0,1fr) 96px!important}
   body.v78-showcase #view-players .player-market-footer .add-leg{width:96px!important;min-width:96px!important}
 }
+
+
+/* v78.4 — mobile consistency pass from live iPhone screenshots */
+
+/* System Multi had a white v78 hero with inherited white V71 text. Fix at all sizes. */
+body.v78-showcase #view-system-multi .system-multi-hero{
+  background:radial-gradient(circle at 90% -20%,rgba(23,105,255,.10),transparent 36%),#fff!important;
+  color:var(--v78-navy)!important;
+  border:1px solid #dde5ef!important;
+  box-shadow:var(--v78-shadow-soft)!important;
+}
+body.v78-showcase #view-system-multi .system-multi-hero:after{border-color:rgba(23,105,255,.08)!important}
+body.v78-showcase #view-system-multi .system-multi-hero .eyebrow{color:#8190a3!important}
+body.v78-showcase #view-system-multi .system-multi-hero h1{color:var(--v78-navy)!important}
+body.v78-showcase #view-system-multi .system-multi-hero p{color:#6f8095!important}
+body.v78-showcase #view-system-multi .system-multi-hero-stats>div{
+  border-color:#dfe7f2!important;
+  background:#f7f9fc!important;
+  backdrop-filter:none!important;
+}
+body.v78-showcase #view-system-multi .system-multi-hero-stats span{color:var(--v78-blue)!important}
+body.v78-showcase #view-system-multi .system-multi-hero-stats strong{color:var(--v78-navy)!important}
+body.v78-showcase #view-system-multi .system-multi-hero-stats small{color:#7b8b9e!important}
+body.v78-showcase #view-system-multi .system-mobile-filter-btn,
+body.v78-showcase #view-system-multi #systemFilterConfirm{
+  background:var(--v78-blue)!important;
+  color:#fff!important;
+  box-shadow:none!important;
+}
+body.v78-showcase #view-system-multi .multi-card:before{background:linear-gradient(90deg,var(--v78-blue),#73a6ff)!important}
+body.v78-showcase #view-system-multi .multi-strategy{color:var(--v78-blue)!important}
+body.v78-showcase #view-system-multi .market-chip{background:var(--v78-blue-soft)!important;color:var(--v78-blue)!important}
+body.v78-showcase #view-system-multi .send-builder{background:var(--v78-blue)!important;color:#fff!important}
+
+@media(max-width:900px){
+  /* More / Model Lab is a bottom sheet, not a near-full-screen page. */
+  body.v78-showcase #p2MoreDrawer{
+    left:8px!important;
+    right:8px!important;
+    top:auto!important;
+    bottom:calc(80px + env(safe-area-inset-bottom,0px))!important;
+    width:auto!important;
+    max-height:min(68dvh,610px)!important;
+    padding:8px!important;
+    overflow:auto!important;
+    border:1px solid #dfe6ef!important;
+    border-radius:17px!important;
+    background:rgba(255,255,255,.995)!important;
+    box-shadow:0 18px 54px rgba(11,31,58,.20)!important;
+  }
+  body.v78-showcase #p2MoreDrawer:before{
+    content:"";
+    display:block;
+    width:36px;
+    height:4px;
+    margin:1px auto 7px;
+    border-radius:999px;
+    background:#d8e0ea;
+  }
+  body.v78-showcase.p2-more-open #v78MobileBuilder{display:none!important}
+  body.v78-showcase .p2-drawer-head{padding:3px 4px 8px!important;gap:8px!important}
+  body.v78-showcase .p2-drawer-head h3{margin:0!important;color:var(--v78-navy)!important;font-size:14px!important;line-height:1.2!important}
+  body.v78-showcase .p2-drawer-head p{display:none!important}
+  body.v78-showcase .p2-drawer-close{
+    width:30px!important;height:30px!important;min-width:30px!important;padding:0!important;
+    background:#f2f5f9!important;color:#5c6f86!important
+  }
+  body.v78-showcase .p2-drawer-section{padding:7px 2px 2px!important}
+  body.v78-showcase .p2-drawer-label{margin:0 3px 5px!important;color:#8190a3!important;font-size:7px!important}
+  body.v78-showcase .p2-drawer-grid{grid-template-columns:1fr 1fr!important;gap:6px!important}
+  body.v78-showcase .p2-drawer-grid.single{grid-template-columns:1fr!important}
+  body.v78-showcase .p2-drawer-item{
+    min-height:56px!important;
+    padding:8px!important;
+    grid-template-columns:24px minmax(0,1fr)!important;
+    gap:1px 7px!important;
+    border:1px solid #e1e7ef!important;
+    border-radius:10px!important;
+    background:#f8fafc!important;
+    color:var(--v78-navy)!important;
+  }
+  body.v78-showcase .p2-drawer-item .p2-mini-icon{color:var(--v78-blue)!important}
+  body.v78-showcase .p2-drawer-item .p2-mini-icon svg{width:18px!important;height:18px!important}
+  body.v78-showcase .p2-drawer-item strong{font-size:9px!important}
+  body.v78-showcase .p2-drawer-item small{font-size:6.5px!important;line-height:1.25!important;color:#78899c!important}
+  body.v78-showcase .p2-system-status{padding:8px!important;border-color:#e1e7ef!important;background:#fbfcfe!important}
+  body.v78-showcase .p2-status-line strong{font-size:9px!important}
+  body.v78-showcase #p2SystemDetail{display:none!important}
+  body.v78-showcase #p2SystemRefresh{
+    width:100%!important;min-height:34px!important;margin-top:7px!important;padding:6px 8px!important;
+    border:1px solid #dce5ef!important;background:#fff!important;color:#465b74!important;font-size:8px!important
+  }
+
+  /* Stronger v78 ownership of the bottom nav than the legacy v65 green layer. */
+  body.v78-showcase.p2-nav-ready #p2PrimaryNav .p2-nav-button.active,
+  body.v78-showcase.p2-nav-ready #p2PrimaryNav .p2-nav-button.active:hover,
+  body.v78-showcase.p2-nav-ready #p2PrimaryNav .p2-nav-button.active:focus{
+    background:var(--v78-blue-soft)!important;
+    color:var(--v78-blue)!important;
+  }
+  body.v78-showcase.p2-nav-ready #p2PrimaryNav .p2-nav-button.active .p2-nav-icon,
+  body.v78-showcase.p2-nav-ready #p2PrimaryNav .p2-nav-button.active .p2-nav-copy strong{
+    color:var(--v78-blue)!important;
+  }
+
+  /* Multi Lab: make one selected leg fit as a compact decision card. */
+  body.v78-showcase #view-multi-lab .builder-grid{display:grid!important;grid-template-columns:1fr!important;gap:7px!important}
+  body.v78-showcase #view-multi-lab .builder-grid>.panel{padding:10px!important}
+  body.v78-showcase #view-multi-lab .section-head{margin-bottom:8px!important;align-items:center!important}
+  body.v78-showcase #view-multi-lab .section-head h2{font-size:18px!important}
+  body.v78-showcase #view-multi-lab #clearBuilder{
+    min-height:34px!important;padding:5px 9px!important;border:1px solid #dce5ef!important;
+    background:#fff!important;color:#53677f!important;font-size:9px!important
+  }
+  body.v78-showcase #view-multi-lab #builderLegs{gap:6px!important}
+  body.v78-showcase #view-multi-lab .builder-leg{
+    grid-template-columns:minmax(0,1fr) auto auto!important;
+    gap:6px!important;
+    align-items:center!important;
+    padding:8px 9px!important;
+    border-color:#e0e7ef!important;
+    border-radius:10px!important;
+    background:#fff!important;
+    font-size:9px!important;
+  }
+  body.v78-showcase #view-multi-lab .builder-leg strong{font-size:10px!important;color:var(--v78-navy)!important}
+  body.v78-showcase #view-multi-lab .builder-leg .match-meta{font-size:8px!important;color:#78899c!important}
+  body.v78-showcase #view-multi-lab .remove-leg{
+    width:auto!important;min-width:0!important;min-height:30px!important;height:30px!important;
+    padding:4px 8px!important;border:0!important;border-radius:8px!important;
+    background:var(--v78-bad-soft)!important;color:var(--v78-bad)!important;font-size:8px!important
+  }
+  body.v78-showcase #view-multi-lab #builderSummary{
+    margin-top:7px!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:5px!important;
+  }
+  body.v78-showcase #view-multi-lab #builderSummary .stat{
+    min-height:58px!important;padding:8px 6px!important;border:1px solid #e2e8f0!important;
+    border-radius:10px!important;background:#f8fafc!important
+  }
+  body.v78-showcase #view-multi-lab #builderSummary .stat b{
+    display:block!important;color:var(--v78-navy)!important;font-size:16px!important;line-height:1.1!important
+  }
+  body.v78-showcase #view-multi-lab #builderSummary .stat span{
+    display:block!important;margin-top:5px!important;color:#7a8b9e!important;font-size:7px!important
+  }
+  body.v78-showcase #view-multi-lab #builderDependencyDetails:empty,
+  body.v78-showcase #view-multi-lab #builderValueResult:empty{display:none!important}
+  body.v78-showcase #view-multi-lab #builderDependencyDetails{
+    margin-top:7px!important;padding:8px!important;border-radius:9px!important;font-size:8px!important
+  }
+  body.v78-showcase #view-multi-lab .builder-value{
+    margin-top:8px!important;
+    padding:8px!important;
+    grid-template-columns:minmax(0,1fr) 108px!important;
+    gap:6px!important;
+    border:1px solid #e1e7ef!important;
+    border-radius:10px!important;
+    background:#fbfcfe!important;
+  }
+  body.v78-showcase #view-multi-lab .builder-value label{gap:4px!important;font-size:8px!important}
+  body.v78-showcase #view-multi-lab #builderActualOdds{height:38px!important;padding:6px 8px!important;font-size:11px!important}
+  body.v78-showcase #view-multi-lab #builderValueBtn{
+    width:108px!important;height:38px!important;min-height:38px!important;padding:6px!important;
+    border-radius:9px!important;font-size:9px!important
+  }
+  body.v78-showcase #view-multi-lab .builder-grid>.panel:first-child>.note{display:none!important}
+
+  /* System Multi: turn the old marketing hero into a compact control header. */
+  body.v78-showcase #view-system-multi .system-multi-workspace{gap:7px!important}
+  body.v78-showcase #view-system-multi .system-multi-hero{
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+    padding:10px 11px!important;
+    border-radius:11px!important;
+  }
+  body.v78-showcase #view-system-multi .system-multi-hero:after{display:none!important}
+  body.v78-showcase #view-system-multi .system-multi-hero-copy{min-width:0!important}
+  body.v78-showcase #view-system-multi .system-multi-hero .eyebrow{font-size:6.5px!important}
+  body.v78-showcase #view-system-multi .system-multi-hero h1{
+    margin:1px 0 0!important;font-size:18px!important;line-height:1.1!important
+  }
+  body.v78-showcase #view-system-multi .system-multi-hero p{display:none!important}
+  body.v78-showcase #view-system-multi .system-multi-hero-stats{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important
+  }
+  body.v78-showcase #view-system-multi .system-multi-hero-stats>div{
+    padding:6px 7px!important;border-radius:8px!important
+  }
+  body.v78-showcase #view-system-multi .system-multi-hero-stats span{font-size:6px!important;letter-spacing:.08em!important}
+  body.v78-showcase #view-system-multi .system-multi-hero-stats strong{margin-top:2px!important;font-size:9px!important}
+  body.v78-showcase #view-system-multi .system-multi-hero-stats small{font-size:6px!important}
+  body.v78-showcase #view-system-multi .system-results-toolbar{
+    top:62px!important;
+    z-index:110!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    gap:7px!important;
+    padding:9px 10px!important;
+    border-radius:11px!important;
+    border-color:#dfe6ef!important;
+    box-shadow:0 5px 18px rgba(19,42,72,.065)!important;
+  }
+  body.v78-showcase #view-system-multi .system-results-toolbar h2{font-size:15px!important}
+  body.v78-showcase #view-system-multi .system-mobile-filter-btn{
+    grid-column:2!important;grid-row:1!important;
+    min-height:34px!important;padding:6px 9px!important;border:0!important;border-radius:9px!important;
+    font-size:8px!important
+  }
+  body.v78-showcase #view-system-multi .system-filter-summary{
+    grid-column:1/-1!important;gap:4px!important;font-size:7px!important
+  }
+  body.v78-showcase #view-system-multi .system-filter-summary span,
+  body.v78-showcase #view-system-multi .system-filter-summary b{
+    padding:4px 6px!important;border-radius:7px!important
+  }
+  body.v78-showcase #view-system-multi .system-filter-summary b{background:var(--v78-blue-soft)!important;color:var(--v78-blue)!important}
+  body.v78-showcase #view-system-multi .multi-grid{gap:7px!important}
+  body.v78-showcase #view-system-multi .multi-card{border-radius:12px!important}
+  body.v78-showcase #view-system-multi .multi-top{padding:10px 11px 8px!important}
+  body.v78-showcase #view-system-multi .multi-title{font-size:15px!important}
+  body.v78-showcase #view-system-multi .multi-legs{padding:8px 10px 7px!important;gap:5px!important}
+  body.v78-showcase #view-system-multi .multi-leg{padding:7px 8px!important;border-color:#e6ebf1!important;background:#f8fafc!important}
+  body.v78-showcase #view-system-multi .multi-metrics{padding:0 10px 8px!important}
+  body.v78-showcase #view-system-multi .multi-actions{padding:0 10px 9px!important}
+  body.v78-showcase #view-system-multi .send-builder{min-height:34px!important;padding:6px 8px!important;font-size:8px!important}
+}
+
+@media(max-width:390px){
+  body.v78-showcase #p2MoreDrawer{left:6px!important;right:6px!important;max-height:min(66dvh,570px)!important}
+  body.v78-showcase #view-multi-lab #builderSummary .stat{min-height:54px!important;padding:7px 4px!important}
+  body.v78-showcase #view-multi-lab #builderSummary .stat b{font-size:14px!important}
+  body.v78-showcase #view-multi-lab .builder-value{grid-template-columns:minmax(0,1fr) 96px!important}
+  body.v78-showcase #view-multi-lab #builderValueBtn{width:96px!important}
+}
