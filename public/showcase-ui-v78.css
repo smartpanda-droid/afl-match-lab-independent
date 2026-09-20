@@ -2244,3 +2244,256 @@ body.v78-showcase #view-system-multi .send-builder{background:var(--v78-blue)!im
     right:12px!important;
   }
 }
+
+
+/* v78.7 — Mobile refinement: density, alignment, overlap fixes */
+@media(max-width:430px){
+
+  /* ---------- Top Player Edges: eliminate probability/title overlap ---------- */
+  body.v78-showcase .top-edges-panel .top-leg{
+    display:grid!important;
+    grid-template-columns:78px minmax(0,1fr) 106px!important;
+    grid-template-rows:auto auto auto!important;
+    column-gap:9px!important;
+    row-gap:3px!important;
+    align-items:center!important;
+    min-height:92px!important;
+    padding:11px!important;
+  }
+  body.v78-showcase .top-edges-panel .top-leg .p{
+    grid-column:1!important;
+    grid-row:1/3!important;
+    align-self:center!important;
+    justify-self:start!important;
+    margin:0!important;
+    font-size:20px!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+  }
+  body.v78-showcase .top-edges-panel .top-leg .sel{
+    grid-column:2!important;
+    grid-row:1!important;
+    min-width:0!important;
+    align-self:end!important;
+    font-size:14px!important;
+    line-height:1.18!important;
+    overflow-wrap:anywhere!important;
+  }
+  body.v78-showcase .top-edges-panel .top-leg .meta{
+    grid-column:2!important;
+    grid-row:2!important;
+    min-width:0!important;
+    align-self:start!important;
+    font-size:11px!important;
+    line-height:1.3!important;
+    overflow-wrap:anywhere!important;
+  }
+  body.v78-showcase .top-edges-panel .top-leg .add-leg{
+    grid-column:3!important;
+    grid-row:1/3!important;
+    align-self:center!important;
+    justify-self:stretch!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:40px!important;
+    margin:0!important;
+    padding:7px 6px!important;
+    font-size:11px!important;
+    line-height:1.1!important;
+    text-align:center!important;
+  }
+  body.v78-showcase .top-edges-panel .top-leg .confidence-row,
+  body.v78-showcase .top-edges-panel .top-leg .risk-row{
+    grid-column:1/-1!important;
+    grid-row:3!important;
+    margin-top:5px!important;
+  }
+
+  /* ---------- Player Markets footer: compact context + CTA ---------- */
+  body.v78-showcase #view-players .player-market-footer{
+    grid-template-columns:minmax(0,1fr) 126px!important;
+    gap:8px!important;
+    align-items:center!important;
+    padding:9px 10px!important;
+  }
+  body.v78-showcase #view-players .player-context-details summary{
+    min-height:40px!important;
+    padding:7px 9px!important;
+    font-size:0!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+  }
+  body.v78-showcase #view-players .player-context-details summary::before{
+    content:"上下文";
+    font-size:12px!important;
+    color:#63758b!important;
+    font-weight:850!important;
+  }
+  body.v78-showcase #view-players .player-context-details summary>b{
+    margin-left:auto!important;
+    font-size:11px!important;
+  }
+  body.v78-showcase #view-players .player-context-details summary:after{
+    font-size:15px!important;
+  }
+  body.v78-showcase #view-players .player-market-footer .add-leg{
+    width:126px!important;
+    min-width:126px!important;
+    height:42px!important;
+    padding:6px 8px!important;
+    font-size:12px!important;
+    line-height:1.15!important;
+    white-space:normal!important;
+  }
+
+  /* Recent evidence: slightly less tall, more consistent with card rhythm. */
+  body.v78-showcase #view-players .recent-cell{
+    min-height:44px!important;
+    padding:5px 3px!important;
+  }
+  body.v78-showcase #view-players .recent-cell b{font-size:12px!important}
+  body.v78-showcase #view-players .recent-cell small{
+    font-size:9px!important;
+    line-height:1.05!important;
+  }
+
+  /* ---------- Match Markets: reduce vertical drag ---------- */
+  body.v78-showcase #view-multi-lab .match-leg-box{
+    margin-top:6px!important;
+    padding:10px!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-box-head{
+    margin-bottom:8px!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-box-head h3{
+    font-size:18px!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-choice-grid{
+    gap:7px!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-choice{
+    min-height:68px!important;
+    padding:8px 10px!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-choice .choice-kicker,
+  body.v78-showcase #view-multi-lab .match-leg-choice .choice-market{
+    font-size:11px!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-choice .choice-team,
+  body.v78-showcase #view-multi-lab .match-leg-choice>b{
+    font-size:15px!important;
+    line-height:1.2!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-choice>strong{
+    font-size:16px!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-choice small{
+    margin-top:3px!important;
+    font-size:11px!important;
+    line-height:1.3!important;
+  }
+  body.v78-showcase #view-multi-lab .total-box .model-midline,
+  body.v78-showcase #view-multi-lab .handicap-box .model-midline{
+    font-size:11px!important;
+  }
+  body.v78-showcase #view-multi-lab .market-range{
+    margin:8px 0 3px!important;
+  }
+  body.v78-showcase #view-multi-lab .market-range-labels{
+    margin-bottom:6px!important;
+  }
+
+  /* ---------- System Multi: slightly denser recommendation cards ---------- */
+  body.v78-showcase #view-system-multi .multi-top{
+    padding:9px 10px 7px!important;
+  }
+  body.v78-showcase #view-system-multi .multi-legs{
+    padding:7px 9px!important;
+    gap:5px!important;
+  }
+  body.v78-showcase #view-system-multi .multi-leg{
+    padding:7px 8px!important;
+  }
+  body.v78-showcase #view-system-multi .multi-metrics{
+    padding:0 9px 7px!important;
+  }
+  body.v78-showcase #view-system-multi .p1d-multi-intel{
+    margin-top:7px!important;
+    padding-top:7px!important;
+  }
+  body.v78-showcase #view-system-multi .p1d-intel-cell{
+    padding:8px 9px!important;
+  }
+
+  /* ---------- Floating builder: slimmer, lighter, less content obstruction ---------- */
+  body.v78-showcase.v78-has-builder #v78MobileBuilder{
+    left:18px!important;
+    right:18px!important;
+    bottom:calc(74px + env(safe-area-inset-bottom,0px))!important;
+    min-height:44px!important;
+    height:44px!important;
+    padding:4px 5px 4px 10px!important;
+    border-radius:13px!important;
+    box-shadow:0 8px 20px rgba(18,42,74,.10)!important;
+  }
+  body.v78-showcase #v78MobileBuilder strong{
+    font-size:12px!important;
+  }
+  body.v78-showcase #v78MobileBuilder span{
+    font-size:10px!important;
+  }
+  body.v78-showcase #v78MobileBuilder button{
+    min-height:34px!important;
+    height:34px!important;
+    padding:5px 10px!important;
+    border-radius:9px!important;
+    font-size:12px!important;
+  }
+  body.v78-showcase.v78-has-builder main{
+    padding-bottom:calc(120px + env(safe-area-inset-bottom,0px))!important;
+  }
+
+  /* ---------- Bottom nav: one notch lighter ---------- */
+  body.v78-showcase #p2PrimaryNav{
+    left:14px!important;
+    right:14px!important;
+    height:64px!important;
+    bottom:calc(6px + env(safe-area-inset-bottom,0px))!important;
+    border-radius:16px!important;
+  }
+  body.v78-showcase #p2PrimaryNav .p2-nav-button{
+    min-height:54px!important;
+    height:54px!important;
+  }
+  body.v78-showcase #p2PrimaryNav .p2-nav-icon{
+    width:28px!important;
+    height:28px!important;
+  }
+  body.v78-showcase #p2PrimaryNav .p2-nav-icon svg{
+    width:22px!important;
+    height:22px!important;
+    min-width:22px!important;
+    min-height:22px!important;
+  }
+  body.v78-showcase #p2PrimaryNav .p2-nav-copy strong{
+    font-size:11px!important;
+  }
+}
+
+@media(max-width:390px){
+  body.v78-showcase .top-edges-panel .top-leg{
+    grid-template-columns:72px minmax(0,1fr) 98px!important;
+    column-gap:7px!important;
+  }
+  body.v78-showcase .top-edges-panel .top-leg .p{font-size:19px!important}
+  body.v78-showcase .top-edges-panel .top-leg .sel{font-size:13px!important}
+  body.v78-showcase .top-edges-panel .top-leg .add-leg{font-size:10.5px!important}
+  body.v78-showcase #view-players .player-market-footer{
+    grid-template-columns:minmax(0,1fr) 116px!important;
+  }
+  body.v78-showcase #view-players .player-market-footer .add-leg{
+    width:116px!important;
+    min-width:116px!important;
+    font-size:11px!important;
+  }
+}
