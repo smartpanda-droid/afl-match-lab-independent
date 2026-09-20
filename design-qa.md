@@ -317,3 +317,47 @@ Post-v78.6 iPhone screenshots showed the visual system was substantially more co
 
 ## Blocker
 A refreshed iPhone screenshot is still required to verify that the Top Player Edges overlap is eliminated and that the new compact footer/builder spacing remains comfortable in live Safari.
+
+
+---
+
+# v78.8 Mobile Structural Cleanup
+
+Date: 2026-09-20
+Final result: blocked
+
+## Evidence reviewed
+- Field / Lineup iPhone screenshot: `/mnt/data/IMG_2792.png`
+- Field lower section / legacy builder screenshot: `/mnt/data/IMG_2793.png`
+- Player Markets expanded-context screenshot: `/mnt/data/IMG_2794.png`
+
+## Findings
+1. Mobile Field view attempted to render both teams simultaneously on the oval, causing card overlap and poor scanability.
+2. The Field view still rendered a legacy lineup-specific Multi Lab builder even though the global v78 mobile builder/nav already exists.
+3. Player Markets expanded context remained constrained to the left footer column, leaving a large empty area and a disconnected Add action.
+4. Bottom navigation active state could lag the actual view.
+5. Global floating builder remained visible on secondary research views where it added clutter.
+
+## Fixes
+- Mobile Field defaults to one team at a time; team filter switches between clubs.
+- Mobile hides the All-teams field option to prevent reintroducing the overlap state.
+- Single-team oval geometry and player-card sizing tuned for <=700px.
+- Followers / Interchanges / Emergencies become compact supporting lists below the field.
+- Legacy `.lineup-builder-float` hidden on mobile.
+- Global v78 builder hidden on Field / Tactics / Review / Validation / Shadow views.
+- Expanded Player Market context becomes full-width; context evidence uses a 2-column grid and Add action becomes full-width below it.
+- v78 explicitly synchronises the bottom-nav active state from `state.view`.
+
+## Regression gates
+- package version: 0.78.8
+- package.json valid: PASS
+- app.js syntax: PASS
+- showcase-ui-v78.js syntax: PASS
+- navigation-p2-v64.js syntax: PASS
+- showcase-ui-v78.css brace structure: PASS
+- app.js cache key: 20260920-1
+- showcase CSS/JS cache key: 20260920-9
+- Supabase/model/seal/settlement logic unchanged
+
+## Blocker
+Post-v78.8 iPhone screenshots are required to confirm the single-team field geometry and expanded Player context in live Safari.
