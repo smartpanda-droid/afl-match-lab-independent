@@ -1,4 +1,4 @@
-/* AFL Match Lab P2 v64 — five-entry IA, Multi workspace and mobile bottom navigation */
+/* AFL Match Lab P2 v76 — four-entry matchday IA + More / Model Lab */
 :root{
   --p2-nav-w:218px;
   --p2-green:#075f49;
@@ -129,7 +129,7 @@ body[data-p2-view="shadow-live"] #view-shadow-live{position:relative}
   body.p2-nav-ready .top-actions .mobile-header-menu{display:none!important}
   .p2-primary-nav{
     z-index:165;left:0;right:0;top:auto;bottom:0;width:auto;height:76px;padding:5px 8px max(7px,env(safe-area-inset-bottom));
-    display:grid;grid-template-columns:repeat(5,1fr);gap:1px;overflow:hidden;
+    display:grid;grid-template-columns:repeat(4,1fr);gap:2px;overflow:hidden;
     border:0;border-top:1px solid var(--p2-line);background:rgba(255,255,255,.975);box-shadow:0 -5px 18px rgba(8,34,49,.07);backdrop-filter:blur(17px)
   }
   .p2-nav-button{
@@ -177,8 +177,7 @@ body[data-p2-view="shadow-live"] #view-shadow-live{position:relative}
     -webkit-transform:none!important;transform:none!important;
     -webkit-filter:none!important;filter:none!important
   }
-  .p2-nav-button[data-p2-route="more"] .p2-nav-icon svg{stroke-width:3.2!important}
-}
+  }
 
 /* v65.2 mobile bottom-nav isolation.
    Premium v60 has a global button background !important; P2 must explicitly win. */
@@ -219,4 +218,67 @@ body[data-p2-view="shadow-live"] #view-shadow-live{position:relative}
     outline:2px solid rgba(8,113,86,.22)!important;
     outline-offset:-2px!important;
   }
+}
+
+
+/* P2 Product Simplification v76 */
+.p2-mobile-label{display:none}
+.p2-nav-secondary{margin-top:8px;padding-top:9px;border-top:1px solid #e4ece9}
+.p2-nav-more{
+  width:100%;min-height:52px;padding:8px 10px;display:grid;grid-template-columns:30px minmax(0,1fr);gap:9px;align-items:center;
+  border:1px solid #dfe8e5;border-radius:9px;background:#f7faf9;color:#334f43;text-align:left;cursor:pointer
+}
+.p2-nav-more:hover,.p2-nav-more.active{border-color:#bdd8ce;background:#edf7f3;color:#075f49}
+.p2-nav-more svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.8;stroke-linecap:round;overflow:visible}
+.p2-nav-more span{min-width:0}.p2-nav-more strong{display:block;font-size:9px}.p2-nav-more small{display:block;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#71847b;font-size:7px}
+
+.p2-header-more{
+  display:none;min-height:36px;padding:5px 9px;align-items:center;gap:6px;border:1px solid #dbe6e3;border-radius:9px;
+  background:#fff;color:#355248;box-shadow:none;cursor:pointer
+}
+.p2-header-more.active{border-color:#afd1c4;background:#edf7f3;color:#075f49}
+.p2-header-more-icon{display:grid;place-items:center;width:22px;height:22px}
+.p2-header-more-icon svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.8;stroke-linecap:round;overflow:visible}
+.p2-header-more-copy{display:grid;gap:0;text-align:left}.p2-header-more-copy strong{font-size:8px;line-height:1}.p2-header-more-copy small{margin-top:2px;color:#75867f;font-size:6.5px;line-height:1}
+
+.p2-drawer-grid.single{grid-template-columns:1fr}
+.p2-drawer-grid.single .p2-drawer-item{min-height:58px}
+.p2-secondary-copy{min-width:0;display:grid;gap:2px}
+.p2-secondary-copy>small{color:#84928d;font-size:7px;font-weight:850;letter-spacing:.08em}
+.p2-secondary-actions{display:flex;gap:6px;align-items:center;flex:0 0 auto}
+.p2-secondary-more,.p2-secondary-back{
+  min-height:30px;padding:5px 8px;border:1px solid #dce7e3;border-radius:7px;background:#fff;color:#426256;font-size:8px;font-weight:800;cursor:pointer
+}
+.p2-secondary-more{background:#eef7f3;color:#075f49;border-color:#cfe2da}
+
+body[data-p2-view="reviews"] #view-reviews{position:relative}
+body[data-p2-view="reviews"] .p2-nav-button,
+body[data-p2-view="field"] .p2-nav-button,
+body[data-p2-view="tactics"] .p2-nav-button,
+body[data-p2-view="validation"] .p2-nav-button,
+body[data-p2-view="shadow-live"] .p2-nav-button{box-shadow:none}
+
+@media(max-width:900px){
+  .p2-primary-nav{grid-template-columns:repeat(4,1fr)!important;height:78px}
+  .p2-nav-secondary,.p2-nav-footer{display:none!important}
+  .p2-desktop-label{display:none!important}
+  .p2-mobile-label{display:block!important}
+  .p2-header-more{display:flex!important}
+  .p2-header-more-copy small{display:none}
+  .p2-header-more-copy strong{font-size:8px}
+  .p2-more-drawer{bottom:84px;max-height:calc(100vh - 158px)}
+  .p2-secondary-context{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center}
+  .p2-secondary-context span{max-width:none!important}
+  .p2-secondary-actions{display:grid;grid-template-columns:1fr 1fr}
+}
+@media(max-width:560px){
+  .top-actions{gap:5px!important}
+  .p2-header-more{padding:5px 7px}
+  .p2-header-more-copy{display:none}
+  .p2-header-more-icon{width:24px;height:24px}
+  .p2-drawer-grid{grid-template-columns:1fr 1fr}
+  .p2-drawer-grid.single{grid-template-columns:1fr}
+  .p2-secondary-context{grid-template-columns:1fr;gap:7px}
+  .p2-secondary-actions{width:100%}
+  .p2-secondary-more,.p2-secondary-back{width:100%}
 }
