@@ -1,0 +1,102 @@
+/* v73 — AFL 18-club logo coverage + optical alignment */
+.team-logo-shell{
+  --afl-logo-size:32px;
+  --afl-logo-pad:3px;
+  position:relative!important;
+  display:inline-grid!important;
+  place-items:center!important;
+  width:var(--afl-logo-size)!important;
+  height:var(--afl-logo-size)!important;
+  min-width:var(--afl-logo-size)!important;
+  min-height:var(--afl-logo-size)!important;
+  max-width:var(--afl-logo-size)!important;
+  max-height:var(--afl-logo-size)!important;
+  aspect-ratio:1/1!important;
+  box-sizing:border-box!important;
+  flex:0 0 var(--afl-logo-size)!important;
+  overflow:hidden!important;
+  vertical-align:middle!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  line-height:1!important;
+}
+.team-logo-shell.team-logo-large{--afl-logo-size:76px;--afl-logo-pad:5px}
+.team-logo-shell.team-logo-small{--afl-logo-size:32px;--afl-logo-pad:2px}
+.team-logo-shell.recent-form-logo{--afl-logo-size:34px;--afl-logo-pad:3px}
+.team-logo-shell .team-logo-image{
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  padding:var(--afl-logo-pad)!important;
+  box-sizing:border-box!important;
+  object-fit:contain!important;
+  object-position:50% 50%!important;
+  margin:0!important;
+  transform:none!important;
+  filter:none!important;
+  image-rendering:auto!important;
+  background:transparent!important;
+}
+.team-logo-shell .team-logo-fallback{
+  position:absolute!important;
+  inset:0!important;
+  display:grid!important;
+  place-items:center!important;
+  box-sizing:border-box!important;
+  margin:0!important;
+  padding:0 3px!important;
+  border:1px solid #d8e1dc!important;
+  border-radius:9px!important;
+  background:#f4f7f6!important;
+  color:#173f34!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  letter-spacing:.02em!important;
+  text-align:center!important;
+}
+.team-logo-shell.logo-loaded .team-logo-fallback{display:none!important}
+.match-team-logo{
+  width:84px!important;
+  height:84px!important;
+  margin:4px auto 0!important;
+  display:grid!important;
+  place-items:center!important;
+}
+.match-team{
+  grid-template-rows:auto auto 84px!important;
+  align-items:start!important;
+  justify-items:center!important;
+}
+.lineup-team-legend .legend-logo{
+  width:32px!important;
+  height:32px!important;
+  min-width:32px!important;
+  display:grid!important;
+  place-items:center!important;
+}
+.recent-form-teamname{align-items:center!important}
+.recent-form-teamname>.team-logo-shell{margin:0!important}
+
+@media(max-width:760px){
+  .team-logo-shell.team-logo-large{--afl-logo-size:54px;--afl-logo-pad:4px}
+  .team-logo-shell.team-logo-small{--afl-logo-size:28px;--afl-logo-pad:2px}
+  .team-logo-shell.recent-form-logo{--afl-logo-size:30px;--afl-logo-pad:2px}
+  .match-team-logo{
+    width:60px!important;
+    height:60px!important;
+    margin-top:2px!important;
+  }
+  .match-team{
+    grid-template-rows:auto auto 60px!important;
+  }
+  .lineup-team-legend .legend-logo{
+    width:28px!important;
+    height:28px!important;
+    min-width:28px!important;
+  }
+}
