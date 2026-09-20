@@ -53,25 +53,27 @@ const TEAM_ALIASES = {
   'western bulldogs':'Western Bulldogs','bulldogs':'Western Bulldogs','footscray':'Western Bulldogs'
 };
 
-const TEAM_LOCAL_LOGO = {
-  'Adelaide Crows':'./assets/logos/adelaide-crows.svg',
-  'Brisbane Lions':'./assets/logos/brisbane-lions.svg',
-  'Carlton':'./assets/logos/carlton.svg',
-  'Collingwood':'./assets/logos/collingwood.svg',
-  'Essendon':'./assets/logos/essendon.svg',
-  'Fremantle':'./assets/logos/fremantle.svg',
-  'Geelong Cats':'./assets/logos/geelong-cats.svg',
-  'Gold Coast SUNS':'./assets/logos/gold-coast-suns.svg',
-  'GWS GIANTS':'./assets/logos/gws-giants.svg',
-  'Hawthorn':'./assets/logos/hawthorn.svg',
-  'Melbourne':'./assets/logos/melbourne.svg',
-  'North Melbourne':'./assets/logos/north-melbourne.svg',
-  'Port Adelaide':'./assets/logos/port-adelaide.svg',
-  'Richmond':'./assets/logos/richmond.svg',
-  'St Kilda':'./assets/logos/st-kilda.svg',
-  'Sydney Swans':'./assets/logos/sydney-swans.svg',
-  'West Coast Eagles':'./assets/logos/west-coast-eagles.svg',
-  'Western Bulldogs':'./assets/logos/western-bulldogs.svg'
+// Current club marks. These are standard transparent logo files, not AFL page watermarks.
+// Adelaide, Gold Coast and St Kilda point to the post-2024 rebrand artwork.
+const TEAM_REAL_LOGO = {
+  'Adelaide Crows':'https://upload.wikimedia.org/wikipedia/en/0/07/Adelaide_Crows_Logo_2024.svg',
+  'Brisbane Lions':'https://upload.wikimedia.org/wikipedia/en/c/c7/Brisbane_Lions_logo_2010.svg',
+  'Carlton':'https://upload.wikimedia.org/wikipedia/en/5/58/Carlton_FC_Logo_2020.svg',
+  'Collingwood':'https://upload.wikimedia.org/wikipedia/en/a/a6/Collingwood_Football_Club_Logo_%282017%E2%80%93present%29.svg',
+  'Essendon':'https://upload.wikimedia.org/wikipedia/en/8/8b/Essendon_FC_logo.svg',
+  'Fremantle':'https://upload.wikimedia.org/wikipedia/en/c/ca/Fremantle_FC_logo.svg',
+  'Geelong Cats':'https://upload.wikimedia.org/wikipedia/en/5/5f/Geelong_Cats_logo.svg',
+  'Gold Coast SUNS':'https://upload.wikimedia.org/wikipedia/en/7/73/Gold_Coast_Suns_logo_%28introduced_late_2024%29.svg',
+  'GWS GIANTS':'https://upload.wikimedia.org/wikipedia/en/0/07/GWS_Giants_logo.svg',
+  'Hawthorn':'https://upload.wikimedia.org/wikipedia/en/6/62/Hawthorn-football-club-brand.svg',
+  'Melbourne':'https://upload.wikimedia.org/wikipedia/en/4/4e/Melbournefc.svg',
+  'North Melbourne':'https://upload.wikimedia.org/wikipedia/en/7/74/North_Melbourne_logo.png',
+  'Port Adelaide':'https://upload.wikimedia.org/wikipedia/en/3/36/Port_Adelaide_Football_Club_logo.svg',
+  'Richmond':'https://upload.wikimedia.org/wikipedia/en/3/35/Richmond_Tigers_logo.svg',
+  'St Kilda':'https://upload.wikimedia.org/wikipedia/en/0/06/St_Kilda_Football_Club_logo_2024.svg',
+  'Sydney Swans':'https://upload.wikimedia.org/wikipedia/en/a/af/Sydney_Swans_Logo_2020.svg',
+  'West Coast Eagles':'https://upload.wikimedia.org/wikipedia/en/b/b5/West_Coast_Eagles_logo_2017.svg',
+  'Western Bulldogs':'https://upload.wikimedia.org/wikipedia/en/0/09/Western_Bulldogs_logo.svg'
 };
 
 function canonicalTeamName(name){
@@ -95,36 +97,24 @@ const JUMPER_2026 = {
 function brandFor(name){
   const canonical=canonicalTeamName(name);
   const b=TEAM_BRAND[canonical]||TEAM_BRAND[name];
-  if(!b)return {abbr:teamAbbr(name),logo:'',localLogo:TEAM_LOCAL_LOGO[canonical]||'',canonical,homeBg:'#123',homeFg:'#fff',awayBg:'#fff',awayFg:'#123',border:'#123'};
-  return {...b,canonical,localLogo:TEAM_LOCAL_LOGO[canonical]||''};
+  const realLogo=TEAM_REAL_LOGO[canonical]||'';
+  if(!b)return {abbr:teamAbbr(name),logo:realLogo,canonical,homeBg:'#123',homeFg:'#fff',awayBg:'#fff',awayFg:'#123',border:'#123'};
+  return {...b,canonical,logo:realLogo};
 }
 function teamLogoHtml(name,cls='team-logo'){
   const b=brandFor(name);
-  const src=b.logo||b.localLogo||'';
-  const fallback=b.localLogo||'';
-  return `<span class="team-logo-shell ${cls}" data-team="${esc(b.canonical||name)}"><span class="team-logo-fallback">${esc(b.abbr)}</span>${src?`<img class="team-logo-image" src="${esc(src)}" data-fallback-src="${esc(fallback)}" alt="${esc(b.canonical||name)} team mark" decoding="async">`:''}</span>`;
+  const src=b.logo||'';
+  return `<span class="team-logo-shell ${cls}" data-team="${esc(b.canonical||name)}"><span class="team-logo-fallback">${esc(b.abbr)}</span>${src?`<img class="team-logo-image" src="${esc(src)}" alt="${esc(b.canonical||name)} club logo" decoding="async" referrerpolicy="no-referrer">`:''}</span>`;
 }
 function bindTeamLogoImages(root=document){
   root.querySelectorAll('.team-logo-shell .team-logo-image').forEach(img=>{
     if(img.dataset.logoBound==='1')return;
     img.dataset.logoBound='1';
     const shell=img.closest('.team-logo-shell');
-    const fallback=img.dataset.fallbackSrc||'';
     const ok=()=>{shell?.classList.add('logo-loaded');img.style.display='block'};
-    const bad=()=>{
-      const current=img.getAttribute('src')||'';
-      if(fallback && current!==fallback && img.dataset.fallbackTried!=='1'){
-        img.dataset.fallbackTried='1';
-        shell?.classList.remove('logo-loaded');
-        img.style.display='block';
-        img.setAttribute('src',fallback);
-        return;
-      }
-      shell?.classList.remove('logo-loaded');
-      img.style.display='none';
-    };
-    img.addEventListener('load',ok);
-    img.addEventListener('error',bad);
+    const bad=()=>{shell?.classList.remove('logo-loaded');img.style.display='none'};
+    img.addEventListener('load',ok,{once:true});
+    img.addEventListener('error',bad,{once:true});
     if(img.complete)queueMicrotask(()=>img.naturalWidth?ok():bad());
   });
 }
