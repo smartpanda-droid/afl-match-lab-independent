@@ -243,7 +243,7 @@
     document.body.classList.toggle('v78-has-builder',visible);
     if(!visible){bar.innerHTML='';return}
     var summary=n+' leg'+(n===1?'':'s')+' selected';
-    bar.innerHTML='<div><strong>Multi Lab</strong><span>'+esc(summary)+'</span></div><button type="button">View Multi →</button>';
+    bar.innerHTML='<div><strong>'+esc(summary)+'</strong><span>Multi Lab</span></div><button type="button">View Multi</button>';
     q('button',bar).addEventListener('click',function(){if(typeof window.switchView==='function')window.switchView('multi-lab')});
   }
 
