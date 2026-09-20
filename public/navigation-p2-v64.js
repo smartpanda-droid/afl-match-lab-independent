@@ -77,7 +77,7 @@
   function buildMoreDrawer(){
     let d=$p2('#p2MoreDrawer');if(d)return d;
     d=document.createElement('aside');d.id='p2MoreDrawer';d.className='p2-more-drawer';d.setAttribute('aria-label','More and Model Lab');
-    d.innerHTML='<div class="p2-drawer-head"><div><div class="eyebrow">MORE / MODEL LAB</div><h3>Research, review & model operations</h3><p>These tools stay available without competing with the four matchday actions.</p></div><button type="button" class="p2-drawer-close" aria-label="Close">×</button></div>'+
+    d.innerHTML='<div class="p2-drawer-head"><div><div class="eyebrow">MORE / MODEL LAB</div><h3>More / Model Lab</h3><p>Review, lineup, tactics and model operations.</p></div><button type="button" class="p2-drawer-close" aria-label="Close">×</button></div>'+
       drawerGroups()+
       '<div class="p2-drawer-section"><div class="p2-drawer-label">System status</div><div class="p2-system-status"><div class="p2-status-line"><strong>Data connection</strong><span id="p2SystemPill" class="p2-status-pill">Checking…</span></div><p id="p2SystemDetail">Module health follows the existing site health monitor.</p><button type="button" id="p2SystemRefresh" class="p2-system-refresh">Refresh match data</button></div></div>';
     document.body.appendChild(d);
@@ -140,6 +140,8 @@
     el.querySelectorAll('[data-p2-flow]').forEach(b=>b.addEventListener('click',()=>handlePrimary(b.dataset.p2Flow)));
   }
   function ensureFlows(){
+    const mobile=window.matchMedia&&window.matchMedia('(max-width: 900px)').matches;
+    if(mobile){$p2('.p2-decision-flow').forEach(x=>x.remove());return}
     const band=$p2('#matchdayDecisionBand');if(band)insertFlow('match',band,'afterend');
     const players=$p2('#view-players > .panel');if(players)insertFlow('players',players,'beforebegin');
     const sys=$p2('#view-system-multi > .system-multi-workspace');if(sys)insertFlow('system-multi',sys,'beforebegin');
