@@ -191,3 +191,100 @@ body.v78-showcase :is(button,a,.match-leg-choice){
     scroll-behavior:auto!important;
   }
 }
+
+
+/* v80.1 — Desktop header collision hotfix
+   Root cause: legacy .match-picker select min-width:480px overflowed its compact topbar container. */
+@media(min-width:1280px){
+  body.v78-showcase .topbar{
+    padding-left:20px!important;
+    padding-right:16px!important;
+    gap:10px!important;
+  }
+
+  /* Deterministic zones: brand | primary nav | match selector | utilities. */
+  body.v78-showcase .p2-primary-nav{
+    left:220px!important;
+    right:468px!important;
+    width:auto!important;
+    min-width:0!important;
+    justify-content:center!important;
+    overflow:hidden!important;
+  }
+  body.v78-showcase .p2-nav-button{
+    flex:0 1 auto!important;
+    min-width:0!important;
+    padding-left:11px!important;
+    padding-right:11px!important;
+  }
+  body.v78-showcase .p2-nav-secondary{
+    flex:0 1 auto!important;
+    min-width:0!important;
+  }
+  body.v78-showcase .p2-nav-more{
+    min-width:0!important;
+    padding-left:10px!important;
+    padding-right:10px!important;
+  }
+
+  body.v78-showcase .topbar .match-picker{
+    flex:0 0 244px!important;
+    width:244px!important;
+    min-width:0!important;
+    max-width:244px!important;
+    margin-left:auto!important;
+    padding:0!important;
+    gap:0!important;
+    overflow:hidden!important;
+    border:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+  body.v78-showcase .topbar .match-picker>div{
+    display:none!important;
+  }
+  body.v78-showcase .topbar .match-picker select,
+  body.v78-showcase .topbar #matchSelect{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    height:38px!important;
+    padding:7px 30px 7px 10px!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+
+  body.v78-showcase .top-actions{
+    flex:0 0 auto!important;
+    flex-wrap:nowrap!important;
+    margin-left:0!important;
+    gap:7px!important;
+    white-space:nowrap!important;
+  }
+  body.v78-showcase #healthBadge,
+  body.v78-showcase #refreshBtn,
+  body.v78-showcase #p2HeaderMore{
+    flex:0 0 auto!important;
+  }
+}
+
+/* At narrower desktop widths, keep the two-row chrome; never allow the picker to overflow. */
+@media(min-width:901px) and (max-width:1279px){
+  body.v78-showcase .topbar .match-picker{
+    min-width:0!important;
+    max-width:320px!important;
+    overflow:hidden!important;
+  }
+  body.v78-showcase .topbar .match-picker>div{
+    display:none!important;
+  }
+  body.v78-showcase .topbar .match-picker select,
+  body.v78-showcase .topbar #matchSelect{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    text-overflow:ellipsis!important;
+  }
+}
