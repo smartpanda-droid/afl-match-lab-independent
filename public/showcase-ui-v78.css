@@ -41,8 +41,14 @@ body.v78-showcase .eyebrow{
 body.v78-showcase button:not(.p2-nav-button):not(.p2-nav-more):not(.p2-header-more):not(.p2-drawer-item):not(.p2-drawer-close):not(.market-stepper button):not(.threshold-step){
   border-radius:9px!important;
 }
-body.v78-showcase button:not(.ghost):not(.p2-nav-button):not(.p2-nav-more):not(.p2-header-more):not(.p2-drawer-item):not(.p2-drawer-close):not(.market-stepper button):not(.threshold-step){
+body.v78-showcase .v78-preview-action,
+body.v78-showcase .system-run-simulation,
+body.v78-showcase .player-market-row .add-leg,
+body.v78-showcase .send-builder,
+body.v78-showcase #builderValueBtn,
+body.v78-showcase .value-btn{
   background:var(--v78-blue)!important;
+  color:#fff!important;
 }
 body.v78-showcase button.ghost{
   background:var(--v78-blue-soft)!important;
@@ -1099,4 +1105,170 @@ body.v78-showcase #matchSummary .team-logo-image{
   .v78-kpi .v78-label{font-size:7.5px!important}
   .v78-kpi .v78-sub{display:none!important}
   body.v78-showcase .cockpit-highlight{flex-basis:88%}
+}
+
+
+/* v78.3 — live iPhone Safari hotfix from user-supplied 390px screenshot */
+@media(max-width:900px){
+  /* Remove duplicate journey/status layers. Mobile already has Hero + KPI + bottom nav. */
+  body.v78-showcase #matchdayStatusStrip,
+  body.v78-showcase #matchdayDecisionBand,
+  body.v78-showcase .p2-decision-flow{
+    display:none!important;
+  }
+
+  /* Quick tabs: compact segmented control, never solid blue buttons. */
+  body.v78-showcase #v78MobileMatchTabs{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:3px!important;
+    padding:3px!important;
+    border:1px solid #dfe6ef!important;
+    border-radius:12px!important;
+    background:#fff!important;
+    box-shadow:0 2px 10px rgba(19,42,72,.045)!important;
+  }
+  body.v78-showcase #v78MobileMatchTabs button,
+  body.v78-showcase #v78MobileMatchTabs button:hover,
+  body.v78-showcase #v78MobileMatchTabs button:focus,
+  body.v78-showcase #v78MobileMatchTabs button:active{
+    min-height:38px!important;
+    padding:5px 2px!important;
+    border:0!important;
+    border-radius:8px!important;
+    background:transparent!important;
+    color:#6c7e93!important;
+    box-shadow:none!important;
+    filter:none!important;
+    font-size:9px!important;
+    font-weight:850!important;
+  }
+  body.v78-showcase #v78MobileMatchTabs button.active{
+    background:var(--v78-blue-soft)!important;
+    color:var(--v78-blue)!important;
+  }
+
+  /* Header More: keep the control visible without dominating the header. */
+  body.v78-showcase #p2HeaderMore{
+    width:40px!important;
+    min-width:40px!important;
+    height:40px!important;
+    min-height:40px!important;
+    padding:0!important;
+    display:grid!important;
+    place-items:center!important;
+    border:1px solid #dbe4ef!important;
+    border-radius:11px!important;
+    background:#f7f9fc!important;
+    color:#53677f!important;
+    box-shadow:none!important;
+  }
+  body.v78-showcase #p2HeaderMore .p2-header-more-copy{display:none!important}
+  body.v78-showcase #p2HeaderMore .p2-header-more-icon{width:22px!important;height:22px!important;display:grid!important;place-items:center!important}
+
+  /* Win-probability card: stop long team names colliding/wrapping across the midpoint. */
+  body.v78-showcase .v78-kpi .v78-split>div{
+    min-width:0!important;
+    width:48%!important;
+    display:grid!important;
+    gap:2px!important;
+  }
+  body.v78-showcase .v78-kpi .v78-split>div:last-child{justify-items:end!important;text-align:right!important}
+  body.v78-showcase .v78-kpi .v78-split span{
+    display:block!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    color:#78899f!important;
+    font-size:7.5px!important;
+    line-height:1.15!important;
+  }
+  body.v78-showcase .v78-kpi .v78-split strong{
+    font-size:15px!important;
+    line-height:1.05!important;
+  }
+
+  /* Bottom nav: float above Safari chrome, use one visual language, no legacy green active fill. */
+  body.v78-showcase #p2PrimaryNav{
+    left:8px!important;
+    right:8px!important;
+    bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;
+    width:auto!important;
+    height:64px!important;
+    padding:4px 5px!important;
+    border:1px solid #dfe6ef!important;
+    border-radius:15px!important;
+    background:rgba(255,255,255,.985)!important;
+    box-shadow:0 8px 28px rgba(14,35,62,.14)!important;
+    overflow:visible!important;
+  }
+  body.v78-showcase #p2PrimaryNav .p2-nav-button,
+  body.v78-showcase #p2PrimaryNav .p2-nav-button:hover,
+  body.v78-showcase #p2PrimaryNav .p2-nav-button:focus,
+  body.v78-showcase #p2PrimaryNav .p2-nav-button:active{
+    min-height:54px!important;
+    height:54px!important;
+    padding:3px 1px!important;
+    grid-template-rows:28px 16px!important;
+    border:0!important;
+    border-radius:10px!important;
+    background:transparent!important;
+    color:#62748a!important;
+    box-shadow:none!important;
+  }
+  body.v78-showcase #p2PrimaryNav .p2-nav-button.active{
+    background:var(--v78-blue-soft)!important;
+    color:var(--v78-blue)!important;
+  }
+  body.v78-showcase #p2PrimaryNav .p2-nav-button .p2-nav-icon,
+  body.v78-showcase #p2PrimaryNav .p2-nav-button .p2-nav-copy strong{
+    color:inherit!important;
+  }
+  body.v78-showcase #p2PrimaryNav .p2-nav-icon{width:27px!important;height:27px!important}
+  body.v78-showcase #p2PrimaryNav .p2-nav-icon svg{width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important}
+  body.v78-showcase #p2PrimaryNav .p2-nav-copy strong{font-size:8.5px!important;line-height:1!important}
+  body.v78-showcase #p2PrimaryNav .p2-nav-badge{top:1px!important;right:12%!important}
+
+  /* Dynamic builder clears the floating nav and is smaller than the v78.2 bar. */
+  body.v78-showcase.v78-has-builder #v78MobileBuilder{
+    left:10px!important;
+    right:10px!important;
+    bottom:calc(80px + env(safe-area-inset-bottom,0px))!important;
+    min-height:44px!important;
+    padding:6px 7px 6px 11px!important;
+    border-radius:12px!important;
+  }
+  body.v78-showcase #v78MobileBuilder button{min-height:32px!important;padding:5px 9px!important;font-size:10px!important}
+  body.v78-showcase.v78-has-builder main{
+    padding-bottom:calc(140px + env(safe-area-inset-bottom,0px))!important;
+  }
+  body.v78-showcase:not(.v78-has-builder) main{
+    padding-bottom:calc(86px + env(safe-area-inset-bottom,0px))!important;
+  }
+
+  /* Risk/shape carousel in the screenshot was visually too tall. */
+  body.v78-showcase #view-match .cockpit-highlight-strip{gap:7px!important}
+  body.v78-showcase #view-match .cockpit-highlight{
+    flex-basis:82%!important;
+    min-height:96px!important;
+    padding:9px 11px 10px!important;
+  }
+  body.v78-showcase #view-match .cockpit-highlight::before{
+    height:34px!important;
+    margin:-9px -11px 8px!important;
+  }
+  body.v78-showcase #view-match .cockpit-highlight .kicker{top:8px!important;left:12px!important;font-size:10px!important}
+  body.v78-showcase #view-match .cockpit-highlight .hero-metric{font-size:20px!important;margin-top:0!important}
+  body.v78-showcase #view-match .cockpit-highlight h3{font-size:13px!important}
+  body.v78-showcase #view-match .cockpit-highlight p{font-size:9px!important;line-height:1.35!important}
+}
+
+@media(max-width:390px){
+  body.v78-showcase main{padding-left:6px!important;padding-right:6px!important;gap:7px!important}
+  body.v78-showcase .panel{border-radius:10px!important}
+  body.v78-showcase #matchSummary{min-height:92px!important}
+  body.v78-showcase .v78-kpi{min-height:70px!important;padding:8px!important}
+  body.v78-showcase .v78-kpi .v78-main{font-size:16px!important}
+  body.v78-showcase #view-match .cockpit-highlight{flex-basis:86%!important}
 }
