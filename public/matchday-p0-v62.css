@@ -114,3 +114,83 @@
   .matchday-kpi:nth-child(1),.matchday-kpi:nth-child(2){grid-column:auto}
   .p0-review-flow{grid-template-columns:1fr 1fr}
 }
+
+
+/* P0 Matchday Decision Cockpit v74 */
+.matchday-head-badges{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.matchday-stage-pill{
+  display:inline-flex;align-items:center;min-height:24px;padding:4px 8px;border-radius:999px;
+  background:#eaf0f3;color:#466071;font-size:8px;font-weight:900;letter-spacing:.08em
+}
+.matchday-decision-grid{grid-template-columns:1.35fr 1fr 1fr 1fr 1fr}
+.matchday-kpi.goodish{border-color:#cfe7dd;background:#f6fbf8}
+.matchday-kpi.warnish{border-color:#eddcb5;background:#fffaf0}
+.matchday-cockpit-lower{
+  display:grid;grid-template-columns:minmax(0,2fr) minmax(230px,.78fr);gap:10px;margin-top:10px
+}
+.matchday-edge-scan,.matchday-risk-card{
+  border:1px solid #dce8e5;border-radius:10px;background:rgba(255,255,255,.88);padding:10px
+}
+.matchday-subhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;margin-bottom:8px}
+.matchday-subhead span,.matchday-risk-title span{
+  display:block;color:#788995;font-size:7px;font-weight:900;letter-spacing:.10em
+}
+.matchday-subhead strong{display:block;margin-top:2px;color:#203b4d;font-size:11px}
+.matchday-subhead small{color:#7d8c98;font-size:8px;text-align:right}
+.matchday-edge-quicklist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.matchday-edge-mini{
+  min-width:0;display:grid;grid-template-columns:24px minmax(0,1fr);grid-template-rows:auto auto;gap:3px 7px;
+  align-items:center;padding:8px;border:1px solid #e5eceb;border-radius:9px;background:#fbfdfc
+}
+.matchday-edge-rank{
+  grid-row:1/3;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;
+  background:#e8f5f0;color:#087154;font-size:9px;font-weight:950
+}
+.matchday-edge-copy{min-width:0}
+.matchday-edge-copy>span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#6a7d8b;font-size:7px;font-weight:850;letter-spacing:.03em}
+.matchday-edge-copy>strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;color:#173447;font-size:11px}
+.matchday-edge-copy>small{display:block;margin-top:2px;color:#71828e;font-size:8px;line-height:1.25}
+.matchday-edge-mini>.confidence-pill{grid-column:2;margin-top:2px!important;font-size:7px!important;padding:4px 6px}
+.matchday-edge-empty{padding:12px;border:1px dashed #dbe5e2;border-radius:8px;color:#758793;font-size:9px}
+.matchday-risk-card{position:relative;overflow:hidden}
+.matchday-risk-card::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:#68a88f}
+.matchday-risk-card.medium::before{background:#d29b31}
+.matchday-risk-card.high::before{background:#d94c59}
+.matchday-risk-title{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.matchday-risk-title strong{font-size:10px;color:#087154}
+.matchday-risk-card.medium .matchday-risk-title strong{color:#96670f}
+.matchday-risk-card.high .matchday-risk-title strong{color:#a72f3d}
+.matchday-risk-card p{margin:8px 0 0;color:#334e60;font-size:10px;font-weight:750;line-height:1.35}
+.matchday-risk-card ul{margin:7px 0 0;padding-left:15px;color:#6b7e8c;font-size:8px;line-height:1.45}
+.matchday-confidence-detail{margin-top:8px}
+#view-match .cockpit-highlight-strip{display:none!important}
+
+@media(max-width:1280px) and (min-width:901px){
+  .matchday-decision-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .matchday-cockpit-lower{grid-template-columns:minmax(0,1.7fr) minmax(220px,.8fr)}
+}
+@media(max-width:900px){
+  .matchday-decision-head{align-items:center}
+  .matchday-head-badges{flex:0 0 auto}
+  .matchday-decision-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .matchday-kpi.primary{grid-column:1/-1}
+  .matchday-cockpit-lower{grid-template-columns:1fr}
+  .matchday-edge-quicklist{grid-template-columns:1fr}
+  .matchday-edge-mini{grid-template-columns:28px minmax(0,1fr) auto;grid-template-rows:auto}
+  .matchday-edge-rank{grid-row:auto;width:28px;height:28px}
+  .matchday-edge-mini>.confidence-pill{grid-column:auto;margin-top:0!important}
+  .matchday-subhead{align-items:flex-start}
+}
+@media(max-width:560px){
+  .matchday-decision-band{padding:12px 10px}
+  .matchday-decision-head{display:grid;grid-template-columns:1fr;gap:8px}
+  .matchday-head-badges{justify-content:flex-start}
+  .matchday-decision-grid{grid-template-columns:1fr 1fr}
+  .matchday-kpi{padding:9px}
+  .matchday-kpi.primary{grid-column:1/-1}
+  .matchday-kpi:nth-child(5){grid-column:1/-1}
+  .matchday-subhead{display:grid;gap:2px}
+  .matchday-subhead small{text-align:left}
+  .matchday-edge-mini{grid-template-columns:26px minmax(0,1fr);grid-template-rows:auto auto}
+  .matchday-edge-mini>.confidence-pill{grid-column:2}
+}
