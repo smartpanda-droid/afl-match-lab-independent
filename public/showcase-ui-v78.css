@@ -1743,3 +1743,137 @@ body.v78-showcase #view-system-multi .send-builder{background:var(--v78-blue)!im
   body.v78-showcase #view-multi-lab .builder-value{grid-template-columns:minmax(0,1fr) 96px!important}
   body.v78-showcase #view-multi-lab #builderValueBtn{width:96px!important}
 }
+
+
+/* v78.5 — Mobile Typography Pass from live iPhone QA */
+@media(max-width:430px){
+  body.v78-showcase{font-size:16px!important;line-height:1.45!important}
+
+  /* Safari: form controls at 16px avoid focus zoom and improve legibility. */
+  body.v78-showcase input,
+  body.v78-showcase select,
+  body.v78-showcase textarea{
+    font-size:16px!important;
+  }
+
+  body.v78-showcase .eyebrow{font-size:11px!important;letter-spacing:.08em!important}
+  body.v78-showcase .note,
+  body.v78-showcase .match-meta,
+  body.v78-showcase .badge{font-size:12px!important;line-height:1.35!important}
+
+  /* App chrome */
+  body.v78-showcase .brand h1{font-size:20px!important;line-height:1.1!important}
+  body.v78-showcase #p2HeaderMore{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}
+  body.v78-showcase #p2PrimaryNav .p2-nav-copy strong{font-size:12px!important;line-height:1.05!important}
+  body.v78-showcase #p2PrimaryNav .p2-nav-icon{width:30px!important;height:30px!important}
+  body.v78-showcase #p2PrimaryNav .p2-nav-icon svg{width:24px!important;height:24px!important;min-width:24px!important;min-height:24px!important}
+
+  /* Match */
+  body.v78-showcase #matchSummary .team-name{font-size:18px!important;line-height:1.15!important}
+  body.v78-showcase #matchSummary .match-mid strong{font-size:18px!important;line-height:1.15!important}
+  body.v78-showcase #matchSummary .match-meta{font-size:12px!important}
+  body.v78-showcase .v78-match-status span{font-size:11px!important;padding:4px 7px!important}
+  body.v78-showcase #v78MobileMatchTabs button{font-size:14px!important;min-height:42px!important}
+  body.v78-showcase .v78-kpi .v78-label{font-size:12px!important}
+  body.v78-showcase .v78-kpi .v78-main{font-size:20px!important;line-height:1.1!important}
+  body.v78-showcase .v78-kpi .v78-sub{font-size:12px!important;line-height:1.3!important}
+  body.v78-showcase .v78-kpi .v78-split span{font-size:11px!important}
+  body.v78-showcase .v78-kpi .v78-split strong{font-size:18px!important}
+  body.v78-showcase .v78-ready{font-size:11px!important;padding:4px 7px!important}
+  body.v78-showcase #view-match .cockpit-highlight .kicker{font-size:12px!important}
+  body.v78-showcase #view-match .cockpit-highlight h3{font-size:18px!important;line-height:1.2!important}
+  body.v78-showcase #view-match .cockpit-highlight .hero-metric{font-size:24px!important}
+  body.v78-showcase #view-match .cockpit-highlight p{font-size:13px!important;line-height:1.4!important}
+  body.v78-showcase .top-edges-panel .section-head h2{font-size:20px!important}
+  body.v78-showcase .top-edges-panel .top-leg .sel{font-size:15px!important;line-height:1.25!important}
+  body.v78-showcase .top-edges-panel .top-leg .meta{font-size:12px!important;line-height:1.35!important}
+  body.v78-showcase .top-edges-panel .top-leg .p{font-size:22px!important}
+  body.v78-showcase .top-edges-panel .top-leg .add-leg{font-size:12px!important;min-height:38px!important}
+
+  /* Player Markets */
+  body.v78-showcase #view-players .player-markets-hero h1,
+  body.v78-showcase #view-players .player-market-toolbar-title h2{font-size:20px!important;line-height:1.2!important}
+  body.v78-showcase #view-players .player-market-summary{font-size:11px!important}
+  body.v78-showcase #view-players .player-market-controls label>span{font-size:11px!important}
+  body.v78-showcase #view-players #playerSearch,
+  body.v78-showcase #view-players #marketFilter{height:42px!important;min-height:42px!important;font-size:16px!important}
+  body.v78-showcase #view-players .player-card-name h3{font-size:18px!important;line-height:1.2!important}
+  body.v78-showcase #view-players .player-card-name .match-meta{font-size:12px!important}
+  body.v78-showcase #view-players .player-market-label{font-size:12px!important}
+  body.v78-showcase #view-players .player-market-price .prob{font-size:22px!important}
+  body.v78-showcase #view-players .player-market-price>span{font-size:11px!important}
+  body.v78-showcase #view-players .recent-caption,
+  body.v78-showcase #view-players .recent-caption strong{font-size:11px!important}
+  body.v78-showcase #view-players .recent-cell b{font-size:12px!important}
+  body.v78-showcase #view-players .recent-cell small{font-size:10px!important}
+  body.v78-showcase #view-players .player-context-details summary{font-size:12px!important}
+  body.v78-showcase #view-players .player-market-footer .add-leg{font-size:13px!important;height:42px!important}
+  body.v78-showcase #view-players .player-risk-strip{font-size:11px!important;line-height:1.35!important}
+
+  /* P1 decision-speed scanner on Player Markets */
+  body.v78-showcase #view-players .p1d-scanner-head h2{font-size:19px!important;line-height:1.2!important}
+  body.v78-showcase #view-players .p1d-scanner-head p{font-size:12px!important;line-height:1.35!important}
+  body.v78-showcase #view-players .p1d-scanner-head .badge{font-size:11px!important}
+  body.v78-showcase #view-players .p1d-mode-tabs{gap:6px!important;overflow-x:auto!important;scrollbar-width:none}
+  body.v78-showcase #view-players .p1d-mode-tabs::-webkit-scrollbar{display:none}
+  body.v78-showcase #view-players .p1d-mode-tabs button{min-height:42px!important;padding:7px 12px!important;font-size:13px!important;white-space:nowrap!important}
+  body.v78-showcase #view-players .p1d-rank-card{min-height:92px!important;padding:11px!important}
+  body.v78-showcase #view-players .p1d-rank-card small{font-size:11px!important}
+  body.v78-showcase #view-players .p1d-rank-card strong{font-size:17px!important;line-height:1.2!important}
+  body.v78-showcase #view-players .p1d-rank-card b{font-size:14px!important;line-height:1.3!important}
+  body.v78-showcase #view-players .p1d-rank-card em{font-size:11px!important;line-height:1.35!important}
+  body.v78-showcase #view-players .p1d-rank-tag{font-size:11px!important}
+
+  /* System Multi */
+  body.v78-showcase #view-system-multi .system-multi-hero h1,
+  body.v78-showcase #view-system-multi .system-results-toolbar h2,
+  body.v78-showcase #view-system-multi .system-filter-header h2{font-size:20px!important;line-height:1.2!important}
+  body.v78-showcase #view-system-multi .system-multi-hero-stats span{font-size:10px!important}
+  body.v78-showcase #view-system-multi .system-multi-hero-stats strong{font-size:13px!important}
+  body.v78-showcase #view-system-multi .system-multi-hero-stats small{font-size:10px!important}
+  body.v78-showcase #view-system-multi .system-filter-summary,
+  body.v78-showcase #view-system-multi .system-filter-summary small{font-size:11px!important;line-height:1.35!important}
+  body.v78-showcase #view-system-multi .system-mobile-filter-btn,
+  body.v78-showcase #view-system-multi .system-run-simulation{font-size:14px!important;min-height:42px!important}
+  body.v78-showcase #view-system-multi .multi-strategy{font-size:11px!important}
+  body.v78-showcase #view-system-multi .multi-title{font-size:18px!important;line-height:1.2!important}
+  body.v78-showcase #view-system-multi .multi-leg{font-size:13px!important;line-height:1.35!important}
+  body.v78-showcase #view-system-multi .market-chip,
+  body.v78-showcase #view-system-multi .leg-role{font-size:10px!important}
+  body.v78-showcase #view-system-multi .multi-leg>strong{font-size:13px!important}
+  body.v78-showcase #view-system-multi .metric{font-size:11px!important}
+  body.v78-showcase #view-system-multi .metric b{font-size:16px!important}
+  body.v78-showcase #view-system-multi .send-builder{font-size:13px!important;min-height:42px!important}
+  body.v78-showcase #view-system-multi .p1d-multi-intel{font-size:12px!important;line-height:1.4!important}
+  body.v78-showcase #view-system-multi .p1d-multi-intel strong{font-size:14px!important}
+  body.v78-showcase #view-system-multi .p1d-multi-intel small{font-size:11px!important}
+
+  /* Multi Lab */
+  body.v78-showcase #view-multi-lab .section-head h2{font-size:20px!important}
+  body.v78-showcase #view-multi-lab .builder-leg{font-size:12px!important;line-height:1.35!important}
+  body.v78-showcase #view-multi-lab .builder-leg strong{font-size:14px!important}
+  body.v78-showcase #view-multi-lab .builder-leg .match-meta{font-size:11px!important}
+  body.v78-showcase #view-multi-lab .remove-leg{font-size:12px!important;min-height:34px!important}
+  body.v78-showcase #view-multi-lab #builderSummary .stat b{font-size:18px!important}
+  body.v78-showcase #view-multi-lab #builderSummary .stat span{font-size:11px!important}
+  body.v78-showcase #view-multi-lab #builderDependencyDetails{font-size:12px!important;line-height:1.4!important}
+  body.v78-showcase #view-multi-lab .builder-value label{font-size:12px!important}
+  body.v78-showcase #view-multi-lab #builderActualOdds{height:42px!important;font-size:16px!important}
+  body.v78-showcase #view-multi-lab #builderValueBtn,
+  body.v78-showcase #view-multi-lab #clearBuilder{font-size:13px!important;min-height:42px!important}
+  body.v78-showcase #view-multi-lab .builder-match-markets{font-size:14px!important;line-height:1.4!important}
+
+  /* More */
+  body.v78-showcase #p2MoreDrawer .p2-drawer-head h3{font-size:20px!important}
+  body.v78-showcase #p2MoreDrawer .p2-drawer-label{font-size:11px!important}
+  body.v78-showcase #p2MoreDrawer .p2-drawer-item strong{font-size:14px!important}
+  body.v78-showcase #p2MoreDrawer .p2-drawer-item small{font-size:11px!important;line-height:1.3!important}
+  body.v78-showcase #p2MoreDrawer .p2-status-line strong{font-size:13px!important}
+  body.v78-showcase #p2SystemRefresh{font-size:13px!important;min-height:42px!important}
+
+  /* Floating Multi builder */
+  body.v78-showcase #v78MobileBuilder{min-height:54px!important}
+  body.v78-showcase #v78MobileBuilder strong{font-size:14px!important}
+  body.v78-showcase #v78MobileBuilder span{font-size:12px!important}
+  body.v78-showcase #v78MobileBuilder button{font-size:14px!important;min-height:40px!important;padding:7px 12px!important}
+}
