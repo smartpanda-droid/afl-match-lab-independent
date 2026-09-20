@@ -9,4 +9,4 @@
     "smoke": "node scripts/smoke-check.mjs",
     "verify": "npm run check && npm run smoke && npm run build"
   }
-}\n
+}
