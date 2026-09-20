@@ -203,6 +203,18 @@
     return row;
   }
 
+  function ensureMatchOrder(){
+    var row=q('#v78InsightRow'),prediction=q('#matchPrediction');
+    if(row&&prediction&&row.nextElementSibling!==prediction)row.insertAdjacentElement('afterend',prediction);
+  }
+
+  function syncCompactNavLabels(){
+    var system=q('.p2-nav-button[data-p2-route="system-multi"] .p2-mobile-label');
+    var lab=q('.p2-nav-button[data-p2-route="multi-lab"] .p2-mobile-label');
+    if(system)system.textContent='MULTI';
+    if(lab)lab.textContent='LAB';
+  }
+
   function ensureMobileBuilder(){
     var bar=q('#v78MobileBuilder');
     if(!bar){
@@ -216,11 +228,14 @@
   }
 
   function renderMobileBuilder(){
-    var bar=ensureMobileBuilder(),n=0;
-    try{n=Array.isArray(state.builder)?state.builder.length:0}catch(e){}
-    var summary='Ready to build';
-    if(n>0)summary=n+' leg'+(n===1?'':'s')+' selected';
-    bar.innerHTML='<div><strong>Multi Lab</strong><span>'+esc(summary)+'</span></div><button type="button">'+(n>0?'View Multi':'Build Multi')+' →</button>';
+    var bar=ensureMobileBuilder(),n=0,view='';
+    try{n=Array.isArray(state.builder)?state.builder.length:0;view=state.view||''}catch(e){}
+    var visible=n>0&&view!=='multi-lab';
+    bar.hidden=!visible;
+    document.body.classList.toggle('v78-has-builder',visible);
+    if(!visible){bar.innerHTML='';return}
+    var summary=n+' leg'+(n===1?'':'s')+' selected';
+    bar.innerHTML='<div><strong>Multi Lab</strong><span>'+esc(summary)+'</span></div><button type="button">View Multi →</button>';
     q('button',bar).addEventListener('click',function(){if(typeof window.switchView==='function')window.switchView('multi-lab')});
   }
 
@@ -232,6 +247,8 @@
     renderMultiPreview();
     renderRiskPreview();
     ensureInsightRow();
+    ensureMatchOrder();
+    syncCompactNavLabels();
     renderMobileBuilder();
   }
 
