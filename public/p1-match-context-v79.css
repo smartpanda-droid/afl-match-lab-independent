@@ -1,0 +1,139 @@
+/* P1.1 — Persistent Match Context Bar v79 */
+:root{
+  --p1-context-h:42px;
+  --p1-context-top:68px;
+}
+#p1MatchContext{
+  position:fixed;
+  z-index:158;
+  top:var(--p1-context-top);
+  left:0;
+  right:0;
+  height:var(--p1-context-h);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-bottom:1px solid #dfe6ef;
+  background:rgba(255,255,255,.96);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  box-shadow:0 4px 14px rgba(18,42,74,.045);
+}
+#p1MatchContext[hidden]{display:none!important}
+.p1-context-inner{
+  width:min(100%,1440px);
+  padding:0 20px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:14px;
+}
+.p1-context-match{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.p1-context-teams{
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:#102c4c;
+  font-size:12px;
+  font-weight:900;
+}
+.p1-context-teams .team{
+  max-width:180px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.p1-context-teams .vs{
+  color:#8a99aa;
+  font-size:9px;
+  font-weight:800;
+}
+.p1-context-meta{
+  min-width:0;
+  color:#7a8b9e;
+  font-size:10px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.p1-context-status{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+}
+.p1-context-pill{
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
+  padding:4px 7px;
+  border-radius:999px;
+  background:#f1f4f8;
+  color:#62758a;
+  font-size:9px;
+  font-weight:900;
+}
+.p1-context-pill.good{background:#e9f7f1;color:#0c7c57}
+.p1-context-pill.info{background:#edf4ff;color:#1769ff}
+.p1-context-pill.warn{background:#fff4dd;color:#9a6914}
+.p1-context-countdown{
+  color:#1769ff;
+  font-size:10px;
+  font-weight:950;
+}
+body.p1-context-ready main{
+  padding-top:calc(82px + var(--p1-context-h))!important;
+}
+@media(max-width:1279px) and (min-width:901px){
+  :root{--p1-context-top:122px}
+  body.p1-context-ready main{
+    padding-top:calc(136px + var(--p1-context-h))!important;
+  }
+}
+@media(max-width:900px){
+  :root{
+    --p1-context-top:56px;
+    --p1-context-h:38px;
+  }
+  #p1MatchContext{
+    border-bottom-color:#e5ebf2;
+    box-shadow:0 3px 10px rgba(18,42,74,.04);
+  }
+  .p1-context-inner{
+    padding:0 10px;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:8px;
+  }
+  .p1-context-match{gap:6px}
+  .p1-context-teams{gap:4px;font-size:11px}
+  .p1-context-teams .team{max-width:92px}
+  .p1-context-teams .vs{font-size:8px}
+  .p1-context-meta{display:none}
+  .p1-context-status{gap:4px}
+  .p1-context-pill{
+    min-height:22px;
+    padding:3px 6px;
+    font-size:8px;
+  }
+  .p1-context-countdown{font-size:9px}
+  body.p1-context-ready main{
+    padding-top:calc(63px + var(--p1-context-h))!important;
+  }
+  body.p1-context-ready #view-players .player-market-toolbar,
+  body.p1-context-ready #view-system-multi .system-results-toolbar{
+    top:calc(58px + var(--p1-context-h))!important;
+  }
+}
+@media(max-width:390px){
+  .p1-context-inner{padding:0 8px;gap:5px}
+  .p1-context-teams{font-size:10px}
+  .p1-context-teams .team{max-width:76px}
+  .p1-context-pill{font-size:7.5px;padding:3px 5px}
+  .p1-context-status .p1-model-label{display:none}
+}
