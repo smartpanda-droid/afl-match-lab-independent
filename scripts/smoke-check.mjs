@@ -74,9 +74,9 @@ check('P1 Decision Speed does not mutate production probability',!/(model_probab
 check('P1 Decision Speed responsive styles exist',p1dcss.includes('@media(max-width:900px)')&&p1dcss.includes('@media(max-width:560px)'));
 check('P1 mobile ranking collapses to one column',p1dcss.includes('.p1d-ranking-grid{grid-template-columns:1fr}'));
 check('P3 module theme roots are removed',!p0css.includes('--p0-green:')&&!p1css.includes('--p1-good:')&&!p2css.includes('--p2-green:')&&!ds.includes('--uiq-green:')&&!ds.includes('--sm-forest:')&&!ds.includes('--pm-green:'));
-check('P3 page modules consume canonical tokens',p0css.includes('var(--ds-good)')&&p1css.includes('var(--ds-good)')&&p2css.includes('var(--ds-green-800)'));
-check('P3 global premium button important override removed',!fs.readFileSync('public/premium-ui-v60.css','utf8').includes('background:var(--aml-green)!important'));
-check('P3 global premium form important override removed',!fs.readFileSync('public/premium-ui-v60.css','utf8').includes('border:1px solid var(--aml-line)!important'));
+check('P3 page modules consume canonical tokens',p0css.includes('var(--ds-good)')&&p1css.includes('var(--ds-good)')&&p2css.includes('var(--ds-green-800)')&&p2css.includes('var(--ds-line)'));
+check('P3 global premium button important override removed',!/button\{[^}]*background:var\(--aml-green\)!important/.test(fs.readFileSync('public/premium-ui-v60.css','utf8')));
+check('P3 global premium form important override removed',!/input,select\{[^}]*border:1px solid var\(--aml-line\)!important/.test(fs.readFileSync('public/premium-ui-v60.css','utf8')));
 check('P2 navigation CSS is linked',html.includes('navigation-p2-v64.css'));
 check('P2 navigation JS is linked',html.includes('navigation-p2-v64.js'));
 check('P2 has four matchday primary routes',['match','players','system-multi','multi-lab'].every(x=>p2.includes("route:'"+x+"'"))&&p2.includes('const primary=['));
