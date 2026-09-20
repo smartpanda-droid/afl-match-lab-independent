@@ -50,7 +50,7 @@ Delivered in v0.79.1:
 - no extra data request
 - no model probability mutation
 
-### P1.3 System Multi Compare — NEXT
+### P1.3 System Multi Compare — COMPLETE in v0.79.2
 
 Make Conservative / Balanced / Aggressive structures easier to compare by:
 - combined probability
@@ -60,7 +60,20 @@ Make Conservative / Balanced / Aggressive structures easier to compare by:
 - role / TOG risk
 - market mix
 
-### P1.4 Multi Lab Decision Summary
+Delivered in v0.79.2:
+- same-leg-count strategy compare
+- 2 / 3 / 4 / 5 leg selector
+- Conservative / Balanced / Aggressive side-by-side comparison
+- Combined Probability / Fair Odds
+- Weakest Leg
+- Correlation Risk
+- Role / TOG Risk
+- Market Mix
+- jump-to-detail action
+- no extra data request
+- no model probability mutation
+
+### P1.4 Multi Lab Decision Summary — NEXT
 
 Keep the builder focused on:
 - selected legs
