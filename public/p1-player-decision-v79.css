@@ -1,0 +1,134 @@
+/* P1.2 — Player Market Decision Hierarchy v79.1 */
+#view-players .p12-decision-strip{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:6px;
+  padding:0 10px 10px;
+}
+#view-players .p12-decision-cell{
+  min-width:0;
+  min-height:62px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:2px;
+  padding:8px 9px;
+  border:1px solid #e1e7ef;
+  border-radius:10px;
+  background:#f8fafc;
+}
+#view-players .p12-decision-cell>span{
+  color:#8190a3;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+#view-players .p12-decision-cell>strong{
+  color:#102c4c;
+  font-size:13px;
+  line-height:1.15;
+}
+#view-players .p12-decision-cell>small{
+  color:#78899d;
+  font-size:8px;
+  line-height:1.2;
+}
+#view-players .p12-decision-cell.good{
+  border-color:#d4eee3;
+  background:#eef9f4;
+}
+#view-players .p12-decision-cell.good>strong{color:#0c7c57}
+#view-players .p12-decision-cell.warn{
+  border-color:#f2dfb7;
+  background:#fff8e9;
+}
+#view-players .p12-decision-cell.warn>strong{color:#9a6914}
+#view-players .p12-decision-cell.bad{
+  border-color:#f1d7dc;
+  background:#fff2f4;
+}
+#view-players .p12-decision-cell.bad>strong{color:#b33c49}
+#view-players .p12-decision-cell.confidence.high{
+  border-color:#d4eee3;
+  background:#eef9f4;
+}
+#view-players .p12-decision-cell.confidence.high>strong{color:#0c7c57}
+#view-players .p12-decision-cell.confidence.med{
+  border-color:#f2dfb7;
+  background:#fff8e9;
+}
+#view-players .p12-decision-cell.confidence.med>strong{color:#9a6914}
+#view-players .p12-decision-cell.confidence.low{
+  border-color:#f1d7dc;
+  background:#fff2f4;
+}
+#view-players .p12-decision-cell.confidence.low>strong{color:#b33c49}
+
+/* Clear visual order: decision evidence above secondary context. */
+#view-players .player-context-details summary{
+  color:#6d7f93;
+}
+#view-players .player-context-details summary>span::after{
+  content:" · details";
+  color:#9aa7b5;
+  font-weight:700;
+}
+#view-players .player-market-row[data-p12-confidence="high"]{
+  box-shadow:inset 3px 0 0 #83d3b5;
+}
+#view-players .player-market-row[data-p12-confidence="med"]{
+  box-shadow:inset 3px 0 0 #e7c879;
+}
+#view-players .player-market-row[data-p12-confidence="low"]{
+  box-shadow:inset 3px 0 0 #e7a5ae;
+}
+
+@media(max-width:900px){
+  /* Player identity first, decision evidence second, context last. */
+  #view-players .p1d-player-risk-chips{display:none!important}
+  #view-players .p12-decision-strip{
+    gap:5px;
+    padding:0 8px 8px;
+  }
+  #view-players .p12-decision-cell{
+    min-height:58px;
+    padding:7px;
+    border-radius:9px;
+  }
+  #view-players .p12-decision-cell>span{font-size:8px}
+  #view-players .p12-decision-cell>strong{font-size:12px}
+  #view-players .p12-decision-cell>small{font-size:8px}
+  #view-players .player-context-details summary>span::after{content:""}
+}
+
+@media(max-width:430px){
+  #view-players .p12-decision-strip{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:5px;
+  }
+  #view-players .p12-decision-cell{
+    min-height:60px;
+    padding:7px 6px;
+  }
+  #view-players .p12-decision-cell>span{
+    font-size:9px;
+    letter-spacing:.04em;
+  }
+  #view-players .p12-decision-cell>strong{
+    font-size:13px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  #view-players .p12-decision-cell>small{
+    font-size:10px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  /* Keep Recent 5 visual evidence directly above the summary without duplication in height. */
+  #view-players .recent-block{padding-bottom:6px!important}
+  #view-players .player-market-footer{
+    margin-top:0!important;
+  }
+}
