@@ -1,15 +1,4 @@
-/* AFL Match Lab P2 v76 — four-entry matchday IA + More / Model Lab */
-:root{
-  --p2-nav-w:218px;
-  --p2-green:#075f49;
-  --p2-green-2:#0a7658;
-  --p2-ink:#173247;
-  --p2-muted:#708192;
-  --p2-line:#dce7e5;
-  --p2-bg:#ffffff;
-  --p2-soft:#f3f8f6;
-  --p2-shadow:0 16px 45px rgba(8,34,49,.14);
-}
+/* AFL Match Lab P2 v76 — four-entry matchday IA + More / Model Lab */:root{--p2-nav-w:218px;}
 
 /* Legacy navigation remains in the DOM for app compatibility, but is no longer user-facing. */
 body.p2-nav-ready .tabs,
@@ -20,13 +9,13 @@ body.p2-nav-ready .mobile-header-menu{display:none!important}
 .p2-primary-nav{
   position:fixed;z-index:125;left:0;top:72px;bottom:0;width:var(--p2-nav-w);
   padding:14px 10px 118px;display:flex;flex-direction:column;gap:5px;
-  border-right:1px solid var(--p2-line);background:rgba(255,255,255,.985);
+  border-right:1px solid var(--ds-line);background:rgba(255,255,255,.985);
   overflow-y:auto;overflow-x:hidden
 }
 .p2-nav-button{
   position:relative;width:100%;min-height:61px;padding:9px 10px;display:grid;
   grid-template-columns:34px minmax(0,1fr);align-items:center;gap:9px;
-  border:0;border-radius:9px;background:transparent;color:var(--p2-ink);text-align:left;
+  border:0;border-radius:9px;background:transparent;color:var(--ds-ink-800);text-align:left;
   cursor:pointer
 }
 .p2-nav-button:hover{background:#f1f7f5}
@@ -59,7 +48,7 @@ body.p2-nav-ready .mobile-header-menu{display:none!important}
 .p2-more-drawer{
   position:fixed;z-index:190;left:calc(var(--p2-nav-w) + 10px);top:84px;width:min(370px,calc(100vw - var(--p2-nav-w) - 26px));
   max-height:calc(100vh - 100px);padding:12px;display:none;overflow:auto;
-  border:1px solid var(--p2-line);border-radius:14px;background:rgba(255,255,255,.99);box-shadow:var(--p2-shadow);
+  border:1px solid var(--ds-line);border-radius:14px;background:rgba(255,255,255,.99);box-shadow:var(--ds-shadow-lg);
   backdrop-filter:blur(18px)
 }
 .p2-more-drawer.open{display:block}
@@ -130,7 +119,7 @@ body[data-p2-view="shadow-live"] #view-shadow-live{position:relative}
   .p2-primary-nav{
     z-index:165;left:0;right:0;top:auto;bottom:0;width:auto;height:76px;padding:5px 8px max(7px,env(safe-area-inset-bottom));
     display:grid;grid-template-columns:repeat(4,1fr);gap:2px;overflow:hidden;
-    border:0;border-top:1px solid var(--p2-line);background:rgba(255,255,255,.975);box-shadow:0 -5px 18px rgba(8,34,49,.07);backdrop-filter:blur(17px)
+    border:0;border-top:1px solid var(--ds-line);background:rgba(255,255,255,.975);box-shadow:0 -5px 18px rgba(8,34,49,.07);backdrop-filter:blur(17px)
   }
   .p2-nav-button{
     min-width:0;min-height:59px;padding:4px 1px 5px;display:grid;grid-template-columns:1fr;grid-template-rows:31px 18px;gap:0;
@@ -184,7 +173,7 @@ body[data-p2-view="shadow-live"] #view-shadow-live{position:relative}
 @media(max-width:900px){
   body.p2-nav-ready #p2PrimaryNav{
     background:rgba(255,255,255,.98)!important;
-    border-top:1px solid var(--p2-line)!important;
+    border-top:1px solid var(--ds-line)!important;
   }
   body.p2-nav-ready #p2PrimaryNav .p2-nav-button,
   body.p2-nav-ready #p2PrimaryNav .p2-nav-button:hover,
