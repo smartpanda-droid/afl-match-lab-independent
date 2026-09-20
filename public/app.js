@@ -32,6 +32,59 @@ const TEAM_BRAND = {
   'Western Bulldogs': {abbr:'WB', logo:'https://i.logos-download.com/6732/1503-og-fc551e6c9905562bc89b65e968755e87.png/Western_Bulldogs_Logo_2015-og.png', homeBg:'repeating-linear-gradient(to bottom,#0057b8 0 7px,#fff 7px 11px,#d71920 11px 15px)', homeFg:'#fff', awayBg:'#fff', awayFg:'#0057b8', border:'#0057b8'}
 };
 
+const TEAM_ALIASES = {
+  'adelaide':'Adelaide Crows','adelaide crows':'Adelaide Crows','crows':'Adelaide Crows',
+  'brisbane':'Brisbane Lions','brisbane lions':'Brisbane Lions','lions':'Brisbane Lions',
+  'carlton':'Carlton','carlton blues':'Carlton','blues':'Carlton',
+  'collingwood':'Collingwood','collingwood magpies':'Collingwood','magpies':'Collingwood',
+  'essendon':'Essendon','essendon bombers':'Essendon','bombers':'Essendon',
+  'fremantle':'Fremantle','fremantle dockers':'Fremantle','dockers':'Fremantle',
+  'geelong':'Geelong Cats','geelong cats':'Geelong Cats','cats':'Geelong Cats',
+  'gold coast':'Gold Coast SUNS','gold coast suns':'Gold Coast SUNS','gold coast sun':'Gold Coast SUNS','gc suns':'Gold Coast SUNS','gcfc':'Gold Coast SUNS',
+  'gws':'GWS GIANTS','gws giants':'GWS GIANTS','greater western sydney':'GWS GIANTS','greater western sydney giants':'GWS GIANTS','giants':'GWS GIANTS',
+  'hawthorn':'Hawthorn','hawthorn hawks':'Hawthorn','hawks':'Hawthorn',
+  'melbourne':'Melbourne','melbourne demons':'Melbourne','demons':'Melbourne',
+  'north melbourne':'North Melbourne','north melbourne kangaroos':'North Melbourne','kangaroos':'North Melbourne','north':'North Melbourne',
+  'port adelaide':'Port Adelaide','port adelaide power':'Port Adelaide','power':'Port Adelaide',
+  'richmond':'Richmond','richmond tigers':'Richmond','tigers':'Richmond',
+  'st kilda':'St Kilda','st kilda saints':'St Kilda','saints':'St Kilda','stk':'St Kilda',
+  'sydney':'Sydney Swans','sydney swans':'Sydney Swans','swans':'Sydney Swans',
+  'west coast':'West Coast Eagles','west coast eagles':'West Coast Eagles','eagles':'West Coast Eagles',
+  'western bulldogs':'Western Bulldogs','bulldogs':'Western Bulldogs','footscray':'Western Bulldogs'
+};
+
+const TEAM_LOCAL_LOGO = {
+  'Adelaide Crows':'./assets/logos/adelaide-crows.svg',
+  'Brisbane Lions':'./assets/logos/brisbane-lions.svg',
+  'Carlton':'./assets/logos/carlton.svg',
+  'Collingwood':'./assets/logos/collingwood.svg',
+  'Essendon':'./assets/logos/essendon.svg',
+  'Fremantle':'./assets/logos/fremantle.svg',
+  'Geelong Cats':'./assets/logos/geelong-cats.svg',
+  'Gold Coast SUNS':'./assets/logos/gold-coast-suns.svg',
+  'GWS GIANTS':'./assets/logos/gws-giants.svg',
+  'Hawthorn':'./assets/logos/hawthorn.svg',
+  'Melbourne':'./assets/logos/melbourne.svg',
+  'North Melbourne':'./assets/logos/north-melbourne.svg',
+  'Port Adelaide':'./assets/logos/port-adelaide.svg',
+  'Richmond':'./assets/logos/richmond.svg',
+  'St Kilda':'./assets/logos/st-kilda.svg',
+  'Sydney Swans':'./assets/logos/sydney-swans.svg',
+  'West Coast Eagles':'./assets/logos/west-coast-eagles.svg',
+  'Western Bulldogs':'./assets/logos/western-bulldogs.svg'
+};
+
+function canonicalTeamName(name){
+  const raw=String(name||'').trim();
+  const key=raw.toLowerCase()
+    .replace(/&/g,' and ')
+    .replace(/\bfootball club\b|\bfc\b/g,' ')
+    .replace(/[^a-z0-9]+/g,' ')
+    .trim()
+    .replace(/\s+/g,' ');
+  return TEAM_ALIASES[key] || raw;
+}
+
 const JUMPER_2026 = {
   'Fremantle': {'Sam Sturt':1,"Jaeger O'Meara":2,'Caleb Serong':3,'Sean Darcy':4,'Heath Chapman':5,'Jordan Clark':6,'Andrew Brayshaw':8,'Luke Jackson':9,'Shai Bolton':10,'Tobyn Murray':11,'Hugh Davies':12,'Luke Ryan':13,'Jeremy Sharp':14,'Adam Sweid':15,'Murphy Reid':16,'Judd McVee':17,'Mason Cox':18,'Leon Kickett':19,'Patrick Voss':20,'Oscar McDonald':21,'Charlie Nicholls':22,'Karl Worner':23,'Jye Amiss':24,'Alex Pearce':25,'Hayden Young':26,'Toby Whan':27,'Neil Erasmus':28,'Cooper Simpson':29,"Nathan O'Driscoll":30,'Brandon Walker':31,'Michael Frederick':32,'Ollie Murphy':33,'Corey Wagner':34,'Josh Treacy':35,'Brennan Cox':36,'Joshua Draper':37,'Jaren Carr':38,'Sam Switkowski':39,'Ryda Luke':40,'Luke Ryda':40,'Bailey Banfield':41,'Aiden Riddle':42,'Isaiah Dudley':43,'Matthew Johnson':44,'Christopher Scerri':45},
   'Geelong Cats': {'Rhys Stanley':1,'Jay Polkinghorne':2,'Bailey Smith':3,'Tanner Bruhn':4,'Jeremy Cameron':5,'Toby Conway':6,'Shaun Mannagh':7,'Jake Kolodjashnij':8,'Max Holmes':9,'Mitch Knevitt':10,'Mitchell Edwards':11,'Jack Bowes':12,'Jhye Clark':13,"Connor O'Sullivan":14,'George Stevens':15,'Sam De Koning':16,'Lawson Humphries':17,'Tyson Stengle':18,'Jack Martin':19,'Jacob Molier':20,'Oliver Wiltshire':21,'Hunter Holmes':22,'Lennox Hofmann':23,'Jed Bews':24,'Jesse Mellor':25,'Harley Barker':26,'Nicholas Driscoll':27,'Oliver Dempsey':28,'James Worpel':29,'Tom Atkins':30,'Keighton Matofai-Forbes':31,'Gryan Miers':32,'Shannon Neale':33,'Oisin Mullin':34,'Patrick Dangerfield':35,'Oliver Henry':36,'Joe Pike':37,'Jack Henry':38,'Zach Guthrie':39,"Mark O'Connor":42,'Tom Stewart':44,'Brad Close':45,'Mark Blicavs':46},
@@ -39,10 +92,43 @@ const JUMPER_2026 = {
   'Adelaide Crows': {'Chayce Jones':1,'Ben Keays':2,'Sam Berry':3,'Callum Ah Chee':4,'Sid Draper':5,'Daniel Curtin':6,'Riley Thilthorpe':7,'Josh Rachele':8,'Nick Murray':9,'Luke Pedlar':10,'Charlie Edwards':11,'Jordan Dawson':12,'Taylor Walker':13,'Jake Soligo':14,'Brayden Cook':15,'Max Michalanney':16,'Tyler Welsh':17,'Zac Taylor':19,'Mitchell Hinge':20,'Hugh Bond':21,'Oscar Ryan':22,'Izak Rankine':23,'Josh Worrell':24,'James Peatling':25,'Mitchell Marsh':26,'Luke Nankervis':27,'Alex Neal-Bullen':28,'Rory Laird':29,'Wayne Milera':30,'Billy Dowling':31,'Darcy Fogarty':32,'Indy Cotton':33,'Archie Ludowyke':34,'James Borlase':35,'Finnbar Maley':36,'Lachlan Sholl':38,'Toby Murray':39,'Hugo Hall-Kahan':40,'Jordon Butts':41,'Lachlan McAndrew':42,"Reilly O'Brien":43,'Isaac Cumming':44,'Mark Keane':48}
 };
 
-function brandFor(name){return TEAM_BRAND[name]||{abbr:teamAbbr(name),logo:'',homeBg:'#123',homeFg:'#fff',awayBg:'#fff',awayFg:'#123',border:'#123'}}
-function teamLogoHtml(name,cls='team-logo'){const b=brandFor(name);const src=b.logo||'';return `<span class="team-logo-shell ${cls}"><span class="team-logo-fallback">${esc(b.abbr)}</span>${src?`<img class="team-logo-image" src="${esc(src)}" alt="${esc(name)} official AFL team mark">`:''}</span>`}
-function bindTeamLogoImages(root=document){root.querySelectorAll('.team-logo-shell .team-logo-image').forEach(img=>{const shell=img.closest('.team-logo-shell');const ok=()=>shell?.classList.add('logo-loaded');const bad=()=>{shell?.classList.remove('logo-loaded');img.style.display='none'};if(img.complete){img.naturalWidth?ok():bad()}else{img.addEventListener('load',ok,{once:true});img.addEventListener('error',bad,{once:true})}})}
-function jumperNumber(team,player){return JUMPER_2026[team]?.[player] ?? ''}
+function brandFor(name){
+  const canonical=canonicalTeamName(name);
+  const b=TEAM_BRAND[canonical]||TEAM_BRAND[name];
+  if(!b)return {abbr:teamAbbr(name),logo:'',localLogo:TEAM_LOCAL_LOGO[canonical]||'',canonical,homeBg:'#123',homeFg:'#fff',awayBg:'#fff',awayFg:'#123',border:'#123'};
+  return {...b,canonical,localLogo:TEAM_LOCAL_LOGO[canonical]||''};
+}
+function teamLogoHtml(name,cls='team-logo'){
+  const b=brandFor(name);
+  const src=b.logo||b.localLogo||'';
+  const fallback=b.localLogo||'';
+  return `<span class="team-logo-shell ${cls}" data-team="${esc(b.canonical||name)}"><span class="team-logo-fallback">${esc(b.abbr)}</span>${src?`<img class="team-logo-image" src="${esc(src)}" data-fallback-src="${esc(fallback)}" alt="${esc(b.canonical||name)} team mark" decoding="async">`:''}</span>`;
+}
+function bindTeamLogoImages(root=document){
+  root.querySelectorAll('.team-logo-shell .team-logo-image').forEach(img=>{
+    if(img.dataset.logoBound==='1')return;
+    img.dataset.logoBound='1';
+    const shell=img.closest('.team-logo-shell');
+    const fallback=img.dataset.fallbackSrc||'';
+    const ok=()=>{shell?.classList.add('logo-loaded');img.style.display='block'};
+    const bad=()=>{
+      const current=img.getAttribute('src')||'';
+      if(fallback && current!==fallback && img.dataset.fallbackTried!=='1'){
+        img.dataset.fallbackTried='1';
+        shell?.classList.remove('logo-loaded');
+        img.style.display='block';
+        img.setAttribute('src',fallback);
+        return;
+      }
+      shell?.classList.remove('logo-loaded');
+      img.style.display='none';
+    };
+    img.addEventListener('load',ok);
+    img.addEventListener('error',bad);
+    if(img.complete)queueMicrotask(()=>img.naturalWidth?ok():bad());
+  });
+}
+function jumperNumber(team,player){return JUMPER_2026[canonicalTeamName(team)]?.[player] ?? ''}
 function jumperCss(team,isHome){const b=brandFor(team);return `background:${isHome?b.homeBg:b.awayBg};color:${isHome?b.homeFg:b.awayFg};border-color:${b.border}`}
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -1064,10 +1150,12 @@ function renderBuilder(){
 }
 
 function teamAbbr(name){
-  const n=String(name||'').trim();
-  const known={'Geelong Cats':'GEEL','Fremantle':'FRE','Brisbane Lions':'BL','Adelaide Crows':'ADEL','Carlton':'CARL'};
-  if(known[n])return known[n];
-  const words=n.split(/\s+/).filter(Boolean);return (words.length>1?words.map(x=>x[0]).join(''):n.slice(0,4)).toUpperCase().slice(0,4);
+  const canonical=canonicalTeamName(name);
+  const branded=TEAM_BRAND[canonical]||TEAM_BRAND[name];
+  if(branded?.abbr)return branded.abbr;
+  const n=canonical||String(name||'').trim();
+  const words=n.split(/\s+/).filter(Boolean);
+  return (words.length>1?words.map(x=>x[0]).join(''):n.slice(0,4)).toUpperCase().slice(0,4);
 }
 function positionPlayer(team,pos){return state.lineup.find(x=>x.team_name===team&&!x.bench&&!x.emergency&&x.named_position===pos)}
 function lineupPlayerCard(p,teamIndex){
