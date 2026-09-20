@@ -836,3 +836,111 @@ body.v78-showcase .dependency-box{border-color:#e1e7ef!important}
 @media(hover:none){
   body.v78-showcase button:hover{filter:none!important}
 }
+
+
+/* v78.1 — visual QA calibration: 1440 desktop / iPad / small iPhone */
+body.v78-showcase button:focus-visible,
+body.v78-showcase input:focus-visible,
+body.v78-showcase select:focus-visible,
+body.v78-showcase summary:focus-visible{
+  outline-color:rgba(23,105,255,.38)!important;
+}
+
+/* Match hero status language shared across breakpoints. */
+.v78-match-status{
+  display:flex;justify-content:center;gap:5px;flex-wrap:wrap;margin-top:7px
+}
+.v78-match-status span{
+  display:inline-flex;align-items:center;gap:4px;min-height:20px;padding:3px 6px;border-radius:999px;
+  background:#f0f3f7;color:#66768a;font-size:7.5px;font-weight:900;letter-spacing:.02em
+}
+.v78-match-status span.good{background:var(--v78-good-soft);color:var(--v78-good)}
+.v78-match-status span.info{background:var(--v78-blue-soft);color:var(--v78-blue)}
+.v78-countdown{display:block;margin-top:4px;color:var(--v78-blue);font-size:9px;font-weight:900}
+
+/* Desktop homepage mirrors the reference: full-width decision workspace, no duplicate sticky rail. */
+@media(min-width:901px){
+  body.v78-showcase .match-dashboard-shell{grid-template-columns:minmax(0,1fr)!important}
+  body.v78-showcase .match-dashboard-rail{display:none!important}
+  body.v78-showcase .top-edges-panel .top-leg:nth-child(n+4){display:none!important}
+  .v78-insight-row{
+    display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.95fr) minmax(220px,.72fr);gap:10px;align-items:stretch
+  }
+  .v78-insight-row>section{min-width:0;margin:0!important}
+  .v78-insight-row .recent-form-panel{height:100%}
+  .v78-insight-row .recent-form-grid{grid-template-columns:1fr!important;gap:8px!important}
+  .v78-insight-row .recent-form-team{padding:10px!important}
+  .v78-insight-row .recent-form-list{gap:4px!important;margin-top:8px!important}
+  .v78-insight-row .recent-form-row:nth-child(n+4){display:none!important}
+}
+
+/* At 1440 the selected reference uses one unified header row. */
+@media(min-width:1280px){
+  body.v78-showcase .topbar{padding-right:18px!important}
+  body.v78-showcase .p2-primary-nav{
+    z-index:166!important;left:226px!important;right:auto!important;top:0!important;bottom:auto!important;
+    width:auto!important;height:68px!important;padding:0!important;gap:0!important;
+    border:0!important;background:transparent!important;box-shadow:none!important
+  }
+  body.v78-showcase .p2-nav-button{
+    min-height:68px!important;height:68px!important;padding:0 11px!important
+  }
+  body.v78-showcase .p2-nav-icon{display:none!important}
+  body.v78-showcase .p2-nav-copy strong{font-size:9.5px!important}
+  body.v78-showcase .p2-nav-secondary{height:68px!important;margin-left:0!important}
+  body.v78-showcase .p2-nav-more{min-height:68px!important;height:68px!important;padding:0 10px!important}
+  body.v78-showcase .p2-nav-more>svg{display:none!important}
+  body.v78-showcase .topbar .match-picker{
+    flex:0 1 280px!important;max-width:280px!important;min-width:210px!important;margin-left:auto!important
+  }
+  body.v78-showcase main{padding-top:88px!important}
+  body.v78-showcase .p2-more-drawer{top:76px!important;left:236px!important}
+}
+
+/* Tablet keeps two horizontal chrome rows and allows cards to breathe. */
+@media(max-width:1279px) and (min-width:901px){
+  body.v78-showcase main{padding-top:136px!important}
+  .v78-kpi-strip{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .v78-kpi{min-height:96px;padding:11px 12px}
+  .v78-kpi .v78-main{font-size:22px}
+  .v78-insight-row{grid-template-columns:1fr 1fr}
+  .v78-insight-row .v78-risk-preview{grid-column:1/-1}
+}
+
+/* Match reference shows three top markets in the first decision pass. */
+body.v78-showcase .top-edges-panel .top-leg-grid{align-items:stretch}
+
+@media(max-width:900px){
+  body.v78-showcase .top-actions{gap:4px!important}
+  body.v78-showcase #refreshBtn,
+  body.v78-showcase .p2-header-more{width:40px!important;height:40px!important;min-height:40px!important}
+  .v78-mobile-match-tabs button{min-height:40px!important;font-size:9px!important}
+  .v78-kpi .v78-label{font-size:8.5px}
+  .v78-kpi .v78-sub{font-size:8.5px}
+  .v78-ready{font-size:7.5px;line-height:1.25}
+  body.v78-showcase .p2-nav-copy strong{font-size:9.5px!important}
+  body.v78-showcase .p2-nav-button{touch-action:manipulation}
+  body.v78-showcase .top-edges-panel .top-leg:nth-child(n+4){display:none!important}
+  .v78-insight-row{display:flex;flex-direction:column;gap:7px}
+  .v78-insight-row .v78-multi-preview{order:1}
+  .v78-insight-row .v78-risk-preview{order:2}
+  .v78-insight-row .recent-form-panel{order:3}
+  .v78-match-status{margin-top:5px;gap:3px}
+  .v78-match-status span{min-height:18px;padding:2px 5px;font-size:6.5px}
+  .v78-countdown{font-size:8px}
+}
+
+/* iPhone SE / small-width hardening. */
+@media(max-width:390px){
+  body.v78-showcase .brand-mark{display:none!important}
+  body.v78-showcase .brand h1{font-size:14px!important}
+  body.v78-showcase .top-actions{margin-left:auto!important}
+  body.v78-showcase #matchSummary{gap:3px!important;padding-left:7px!important;padding-right:7px!important}
+  body.v78-showcase #matchSummary .team-name{font-size:12px!important}
+  body.v78-showcase #matchSummary .match-team-logo .team-logo-large{width:44px!important;height:44px!important}
+  .v78-kpi{padding:9px;min-height:80px}
+  .v78-kpi .v78-main{font-size:18px}
+  .v78-kpi .v78-split strong{font-size:14px}
+  .v78-mobile-builder{left:6px;right:6px;padding-left:10px}
+  .v78-mobile-builder strong{font-size:10px}
+}
