@@ -944,3 +944,159 @@ body.v78-showcase .top-edges-panel .top-leg-grid{align-items:stretch}
   .v78-mobile-builder{left:6px;right:6px;padding-left:10px}
   .v78-mobile-builder strong{font-size:10px}
 }
+
+
+/* v78.2 — Final Visual Acceptance hardening
+   Scope: chrome spacing, equal-height cards, logo safe area, mobile fold,
+   sticky builder clearance, and 1440px information density. */
+:root{--v782-bottom-nav:72px;--v782-builder-gap:8px}
+
+/* Logo optical safe area: never crop tall/wide club marks. */
+body.v78-showcase .match-team-logo,
+body.v78-showcase .team-logo-shell{
+  overflow:visible!important;
+  clip-path:none!important;
+  contain:none!important;
+}
+body.v78-showcase #matchSummary .team-logo-shell.team-logo-large{
+  --afl-logo-pad:7px!important;
+}
+body.v78-showcase #matchSummary .team-logo-image{
+  object-fit:contain!important;
+  object-position:50% 50%!important;
+  transform:none!important;
+}
+
+/* Cards in the reference read as one aligned decision row. */
+.v78-insight-row{grid-auto-rows:1fr}
+.v78-insight-row>section{height:100%!important}
+.v78-multi-grid{grid-auto-rows:1fr}
+.v78-multi-card{height:100%;display:flex;flex-direction:column;justify-content:flex-start}
+.v78-multi-card span:last-child{margin-top:auto;padding-top:5px}
+
+@media(min-width:1280px){
+  /* Reserve a deterministic right utility zone so nav never collides with selector/actions. */
+  body.v78-showcase .p2-primary-nav{
+    left:214px!important;
+    right:420px!important;
+    width:auto!important;
+    justify-content:center!important;
+  }
+  body.v78-showcase .p2-nav-button{padding-left:14px!important;padding-right:14px!important}
+  body.v78-showcase .p2-nav-more{padding-left:13px!important;padding-right:13px!important}
+  body.v78-showcase .topbar .match-picker{
+    flex:0 1 248px!important;
+    width:248px!important;
+    max-width:248px!important;
+    min-width:190px!important;
+  }
+
+  /* 1440 × 900 target: decision layer should fit before deep analysis. */
+  body.v78-showcase main{max-width:1440px!important;padding:82px 20px 54px!important;gap:10px!important}
+  body.v78-showcase .match-dashboard-main{gap:10px!important}
+  body.v78-showcase #matchSummary{min-height:104px!important;padding:13px 18px!important}
+  body.v78-showcase #matchSummary .team-name{font-size:20px!important}
+  body.v78-showcase #matchSummary .match-team-logo{width:70px!important;height:70px!important;margin-top:1px!important}
+  body.v78-showcase #matchSummary .team-logo-shell.team-logo-large{--afl-logo-size:66px!important}
+  .v78-kpi-strip{gap:8px!important}
+  .v78-kpi{min-height:90px!important;padding:10px 12px!important}
+  .v78-kpi .v78-main{margin-top:6px!important;font-size:22px!important}
+  .v78-kpi .v78-split{margin-top:6px!important}
+  .v78-prob-bar{margin-top:6px!important}
+  body.v78-showcase #view-match .cockpit-highlight-strip{gap:8px!important}
+  body.v78-showcase .cockpit-highlight{min-height:98px!important;padding:11px 12px!important}
+  body.v78-showcase .cockpit-highlight::before{height:34px!important;margin:-11px -12px 9px!important}
+  body.v78-showcase .cockpit-highlight .kicker{top:8px!important;left:13px!important;font-size:10px!important}
+  body.v78-showcase .cockpit-highlight .hero-metric{font-size:20px!important}
+  body.v78-showcase .cockpit-highlight h3{font-size:13px!important}
+  body.v78-showcase .cockpit-highlight p{font-size:9px!important}
+  body.v78-showcase .top-edges-panel{padding:13px!important}
+  body.v78-showcase .top-edges-panel .section-head{margin-bottom:9px!important}
+  body.v78-showcase .top-edges-panel .top-leg{min-height:78px!important;padding:9px 10px!important}
+  body.v78-showcase .top-edges-panel .top-leg .p{font-size:18px!important}
+  body.v78-showcase .top-edges-panel .top-leg .meta{font-size:8px!important}
+  .v78-insight-row{gap:8px!important;min-height:196px}
+  .v78-insight-row>section{min-height:196px!important;padding:12px!important}
+  .v78-insight-row .v78-preview-head{margin-bottom:7px!important}
+  .v78-insight-row .v78-preview-head h2{font-size:14px!important}
+  .v78-insight-row .recent-form-row{padding:6px 7px!important}
+}
+
+@media(max-width:1279px) and (min-width:901px){
+  /* iPad: keep readable breathing room; equal-height two-column decision row. */
+  .v78-insight-row{align-items:stretch!important}
+  .v78-insight-row>section{min-height:190px!important}
+  body.v78-showcase #matchSummary .team-logo-shell.team-logo-large{--afl-logo-pad:6px!important}
+}
+
+@media(max-width:900px){
+  html,body.v78-showcase{min-height:100%;padding-bottom:env(safe-area-inset-bottom,0px)}
+  body.v78-showcase main{
+    padding-top:67px!important;
+    padding-bottom:calc(var(--v782-bottom-nav) + 22px + env(safe-area-inset-bottom,0px))!important;
+  }
+  body.v78-showcase.v78-has-builder main{
+    padding-bottom:calc(var(--v782-bottom-nav) + 82px + env(safe-area-inset-bottom,0px))!important;
+  }
+  body.v78-showcase .p2-primary-nav{
+    height:var(--v782-bottom-nav)!important;
+    padding-bottom:max(6px,env(safe-area-inset-bottom,0px))!important;
+  }
+  .v78-mobile-builder{
+    bottom:calc(var(--v782-bottom-nav) + var(--v782-builder-gap) + env(safe-area-inset-bottom,0px))!important;
+  }
+  .v78-mobile-builder[hidden]{display:none!important}
+  body.v78-showcase .p2-more-drawer{
+    bottom:calc(var(--v782-bottom-nav) + 8px + env(safe-area-inset-bottom,0px))!important;
+  }
+  body.v78-showcase.v78-has-builder .p2-more-drawer{
+    bottom:calc(var(--v782-bottom-nav) + 68px + env(safe-area-inset-bottom,0px))!important;
+  }
+  body.v78-showcase #matchSummary .team-logo-shell.team-logo-large{--afl-logo-pad:5px!important}
+}
+
+/* Compact mobile fold: Best Read becomes a swipe row instead of three stacked blocks. */
+@media(max-width:600px){
+  body.v78-showcase .topbar{height:56px!important;min-height:56px!important}
+  body.v78-showcase main{padding-top:63px!important}
+  body.v78-showcase #matchSummary{min-height:104px!important;padding-top:9px!important;padding-bottom:9px!important}
+  .v78-mobile-match-tabs{padding:2px!important}
+  .v78-mobile-match-tabs button{min-height:38px!important}
+  .v78-kpi-strip{gap:6px!important}
+  .v78-kpi{min-height:74px!important;padding:8px!important}
+  .v78-kpi .v78-main{margin-top:5px!important;font-size:17px!important}
+  .v78-kpi .v78-split{margin-top:5px!important}
+  .v78-kpi .v78-split strong{font-size:13px!important}
+  .v78-prob-bar{margin-top:5px!important;height:5px!important}
+  .v78-ready{margin-top:5px!important;padding:3px 5px!important}
+  body.v78-showcase #view-match .cockpit-highlight-strip{
+    display:flex!important;
+    overflow-x:auto!important;
+    scroll-snap-type:x mandatory;
+    gap:6px!important;
+    padding-bottom:2px;
+    scrollbar-width:none;
+  }
+  body.v78-showcase #view-match .cockpit-highlight-strip::-webkit-scrollbar{display:none}
+  body.v78-showcase .cockpit-highlight{
+    flex:0 0 82%;
+    min-height:80px!important;
+    scroll-snap-align:start;
+  }
+  body.v78-showcase .cockpit-highlight .mini-meta{display:none!important}
+  body.v78-showcase .top-edges-panel{padding:10px!important}
+  body.v78-showcase .top-edges-panel .top-leg{min-height:64px!important}
+  body.v78-showcase .top-edges-panel .top-leg .add-leg{min-height:36px!important}
+  .v78-insight-row>section{min-height:0!important;height:auto!important}
+}
+
+@media(max-width:390px){
+  /* Small iPhone: preserve team identity and keep the first useful action above the fold. */
+  body.v78-showcase #matchSummary{min-height:96px!important}
+  body.v78-showcase #matchSummary .match-team-logo{height:42px!important}
+  body.v78-showcase #matchSummary .team-logo-shell.team-logo-large{--afl-logo-size:42px!important;--afl-logo-pad:4px!important}
+  .v78-match-status span{font-size:6px!important;padding-left:4px!important;padding-right:4px!important}
+  .v78-kpi .v78-label{font-size:7.5px!important}
+  .v78-kpi .v78-sub{display:none!important}
+  body.v78-showcase .cockpit-highlight{flex-basis:88%}
+}
