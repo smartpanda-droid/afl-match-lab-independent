@@ -22,11 +22,11 @@ button,input,select{min-height:40px}
 button{border-radius:var(--ds-radius-md);background:var(--aml-green);font-weight:750;box-shadow:none}
 button:hover{filter:brightness(1.035)}
 button:focus-visible,input:focus-visible,select:focus-visible{
-  outline:3px solid rgba(20,136,101,.22)!important;outline-offset:2px
+  outline:2px solid rgba(8,113,86,.24);outline-offset:2px
 }
 button.ghost{background:#fff;color:var(--aml-navy);border:1px solid var(--aml-line)}
 input,select{
-  border:1px solid var(--aml-line)!important;border-radius:9px!important;background:#fff!important;color:var(--aml-navy)!important
+  border:1px solid var(--aml-line);border-radius:var(--ds-radius-md);background:#fff;color:var(--aml-navy)
 }
 
 /* Header */
