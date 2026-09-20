@@ -1171,7 +1171,7 @@ function renderMatchFieldBoard(){
   const teams=[m?.home_team_name,m?.away_team_name].filter(Boolean);
   const host=$('#matchFieldTeams');if(!host)return;
   if(teams.length<2||!state.lineup.length){host.innerHTML='<div class="empty">暂无阵容</div>';return}
-  const mobileField=window.matchMedia&&window.matchMedia('(max-width: 700px)').matches;
+  const mobileField=window.matchMedia&&window.matchMedia('(max-width: 900px)').matches;
   if(!['all',...teams].includes(state.fieldTeamFilter))state.fieldTeamFilter='all';
   if(mobileField&&state.fieldTeamFilter==='all')state.fieldTeamFilter=teams[0];
   const visible=i=>state.fieldTeamFilter==='all'||state.fieldTeamFilter===teams[i];
