@@ -87,12 +87,12 @@
   font-size:10px;
   font-weight:950;
 }
-body.p1-context-ready main{
+body.p1-context-visible main{
   padding-top:calc(82px + var(--p1-context-h))!important;
 }
 @media(max-width:1279px) and (min-width:901px){
   :root{--p1-context-top:122px}
-  body.p1-context-ready main{
+  body.p1-context-visible main{
     padding-top:calc(136px + var(--p1-context-h))!important;
   }
 }
@@ -122,11 +122,11 @@ body.p1-context-ready main{
     font-size:8px;
   }
   .p1-context-countdown{font-size:9px}
-  body.p1-context-ready main{
+  body.p1-context-visible main{
     padding-top:calc(63px + var(--p1-context-h))!important;
   }
-  body.p1-context-ready #view-players .player-market-toolbar,
-  body.p1-context-ready #view-system-multi .system-results-toolbar{
+  body.p1-context-visible #view-players .player-market-toolbar,
+  body.p1-context-visible #view-system-multi .system-results-toolbar{
     top:calc(58px + var(--p1-context-h))!important;
   }
 }
