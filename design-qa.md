@@ -207,3 +207,37 @@ More drawer copy is simplified; no model meaning, market data, probability, seal
 ## Blocker
 
 Post-v78.4 deployed screenshots are still required at the same iPhone viewport. Until those refreshed captures are available, design QA remains `blocked` rather than claiming a visual pass without evidence.
+
+
+---
+
+# v78.5 Mobile Typography Pass
+
+Date: 2026-09-20
+Final result: blocked
+
+## Trigger
+Live iPhone screenshots showed that the v78.4 mobile structure was substantially improved, but important labels and supporting evidence remained too small to read comfortably without zooming.
+
+## Changes
+- Mobile form controls forced to 16px at <=430px to prevent iOS Safari focus zoom.
+- Match KPI labels, values, quick tabs, cockpit cards and Top Player Markets increased one typography tier.
+- Player Markets search/filter, player names, market labels, probability, Recent 5 and Add to Multi increased.
+- P1 Decision Speed scanner tabs, ranking cards and metadata increased.
+- System Multi hero steps, result toolbar, combo cards, metrics, explanation blocks and CTA increased.
+- Multi Lab leg rows, summary stats, odds input and Value controls increased.
+- More / Model Lab drawer labels and items increased.
+- Bottom navigation and floating Multi Lab bar increased.
+
+## Regression gates
+- package version: 0.78.5
+- package.json valid: PASS
+- showcase-ui-v78.js syntax: PASS
+- navigation-p2-v64.js syntax: PASS
+- showcase-ui-v78.css brace structure: PASS
+- showcase CSS cache key: 20260920-6
+- showcase JS cache key: 20260920-6
+- iOS form-control 16px guard: PASS
+
+## Blocker
+A post-v78.5 iPhone screenshot is still required to confirm that the larger typography remains within the 390px layout without clipping or undesirable wrapping.
