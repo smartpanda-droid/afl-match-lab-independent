@@ -11,6 +11,8 @@ const p2css=fs.readFileSync('public/navigation-p2-v64.css','utf8');
 const p0c=fs.readFileSync('public/p0-completion-v65.js','utf8');
 const p0ccss=fs.readFileSync('public/p0-completion-v65.css','utf8');
 const uiqa=fs.readFileSync('public/ui-qa-v66.css','utf8');
+const p1d=fs.readFileSync('public/decision-speed-p1-v75.js','utf8');
+const p1dcss=fs.readFileSync('public/decision-speed-p1-v75.css','utf8');
 const checks=[];
 function check(name, ok, detail=''){checks.push({name,ok,detail});if(!ok)process.exitCode=1}
 check('Config has Supabase URL',/SUPABASE_URL:\s*"https:\/\//.test(cfg));
@@ -58,6 +60,18 @@ check('P1 empirical correlation UI exists',p1.includes('pair_details')&&p1.inclu
 check('P1 player WHY/RISK extension exists',p1.includes('ROLE × OPPOSITION / SCENARIO'));
 check('P1 System Multi correlation risk badge exists',p1.includes('CORR RISK '));
 check('P1 responsive styles exist',p1css.includes('@media(max-width:900px)')&&p1css.includes('.p1-scenario-wrap{overflow:auto}'));
+check('P1 Decision Speed CSS is linked',html.includes('decision-speed-p1-v75.css'));
+check('P1 Decision Speed JS is linked last',html.includes('decision-speed-p1-v75.js')&&html.indexOf('p0-completion-v65.js')<html.indexOf('decision-speed-p1-v75.js'));
+check('P1 Player Ranking modes exist',['Best Edges','Confidence','Value Watch','Role Change','Injury / TOG'].every(x=>p1d.includes(x)));
+check('P1 Player scanner reuses loaded state only',p1d.includes('rankedPlayers')&&p1d.includes('state.legs')&&!/\b(fetch|XMLHttpRequest|api)\s*\(/.test(p1d));
+check('P1 Value Watch discloses bookmaker odds requirement',p1d.includes('真正 EV 必须输入博彩公司实际赔率后判断'));
+check('P1 Role TOG risk layer exists',p1d.includes('ROLE / TOG')&&p1d.includes('latest_tog')&&p1d.includes('baseline_tog'));
+check('P1 System Multi why-this-combo exists',p1d.includes('WHY THIS COMBO')&&p1d.includes('whyMulti'));
+check('P1 System Multi weakest-leg exists',p1d.includes('WEAKEST LEG')&&p1d.includes('multiWeakestLeg'));
+check('P1 System Multi correlation risk exists',p1d.includes('CORRELATION RISK')&&p1d.includes('correlationIntel'));
+check('P1 Decision Speed does not mutate production probability',!/(model_probability\s*=|\.probability\s*=|state\.legs\s*=|state\.multis\s*=|state\.matchQuote\s*=)/.test(p1d));
+check('P1 Decision Speed responsive styles exist',p1dcss.includes('@media(max-width:900px)')&&p1dcss.includes('@media(max-width:560px)'));
+check('P1 mobile ranking collapses to one column',p1dcss.includes('.p1d-ranking-grid{grid-template-columns:1fr}'));
 check('P2 navigation CSS is linked',html.includes('navigation-p2-v64.css'));
 check('P2 navigation JS is linked',html.includes('navigation-p2-v64.js'));
 check('P2 has five primary routes',['match','players','multi','reviews','more'].every(x=>p2.includes("route:'"+x+"'")));
@@ -92,5 +106,5 @@ check('v66 Validation tables remain readable on mobile',uiqa.includes('.validati
 check('v66 Shadow timeline wraps on mobile',uiqa.includes('.shadow-step-head{flex-wrap:wrap!important'));
 check('v66 supporting text gets readable mobile minimum',uiqa.includes('.note{font-size:11px!important}'));
 const failed=checks.filter(x=>!x.ok);
-console.log(`AFL Match Lab v66 smoke check: ${checks.length-failed.length}/${checks.length} passed`);
+console.log(`AFL Match Lab v75 smoke check: ${checks.length-failed.length}/${checks.length} passed`);
 for(const c of checks) console.log(`${c.ok?'PASS':'FAIL'}  ${c.name}${c.detail?' — '+c.detail:''}`);
