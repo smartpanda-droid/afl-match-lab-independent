@@ -276,3 +276,44 @@ Post-v78.5 iPhone screenshots confirmed readability had improved, but the produc
 
 ## Blocker
 A refreshed iPhone screenshot is still required to verify the new harmony layer against live Safari rendering before marking final visual QA as passed.
+
+
+---
+
+# v78.7 Mobile Refinement
+
+Date: 2026-09-20
+Final result: blocked
+
+## Trigger
+Post-v78.6 iPhone screenshots showed the visual system was substantially more consistent, but a few density/alignment defects remained:
+- Top Player Edges probability overlapped long player-market titles.
+- Player Markets context + Add to Multi footer still felt crowded.
+- Match Markets cards remained slightly too tall.
+- The floating Multi Lab utility still occupied more space than necessary.
+- Bottom navigation could be lighter.
+
+## Changes
+- Top Player Edges moved to a deterministic 78px / fluid / 106px three-column mobile grid.
+- Probability, title/meta and Add action now have independent columns, preventing overlap.
+- Mobile Top Player Edge CTA shortened to `+ Multi`.
+- Player Markets context label shortened visually to `上下文`; Add action shortened to `加入 Multi`.
+- Player Markets footer uses a fixed compact CTA column and keeps context on one line.
+- Recent 5 evidence cells reduced slightly in height.
+- Match Markets choice cards reduced from 82px to 68px minimum height and tightened internally.
+- System Multi card spacing tightened without changing data hierarchy.
+- Floating Multi Lab utility reduced to 44px height with lighter shadow.
+- Bottom navigation reduced to 64px and slightly smaller icons/labels.
+
+## Regression gates
+- package version: 0.78.7
+- package.json valid: PASS
+- showcase-ui-v78.js syntax: PASS
+- navigation-p2-v64.js syntax: PASS
+- showcase-ui-v78.css brace structure: PASS
+- showcase CSS cache key: 20260920-8
+- showcase JS cache key: 20260920-8
+- Supabase/model/seal/settlement logic unchanged
+
+## Blocker
+A refreshed iPhone screenshot is still required to verify that the Top Player Edges overlap is eliminated and that the new compact footer/builder spacing remains comfortable in live Safari.
