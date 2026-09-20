@@ -1,22 +1,9 @@
 /* AFL Match Lab v66 — all-page UI clarity / mobile QA layer.
    Loaded last to neutralise legacy global button !important rules without changing app logic. */
-:root{
-  --uiq-ink:#173247;
-  --uiq-muted:#5f7482;
-  --uiq-green:#087156;
-  --uiq-green-soft:#e7f5ef;
-  --uiq-soft:#f3f8f6;
-  --uiq-line:#d9e5e3;
-  --uiq-red:#a83a48;
-  --uiq-red-soft:#fff0f2;
-  --uiq-amber:#8c641d;
-  --uiq-amber-soft:#fff5de;
-}
-
 /* ---------- P2 navigation / decision controls ---------- */
 .p2-flow-step{
   background:transparent!important;
-  color:var(--uiq-ink)!important;
+  color:var(--ds-ink-800)!important;
   border:1px solid transparent!important;
   box-shadow:none!important;
   filter:none!important;
@@ -25,12 +12,12 @@
 .p2-flow-step.active{
   background:#fff!important;
   border-color:#c8ded6!important;
-  color:var(--uiq-green)!important;
+  color:var(--ds-good)!important;
   box-shadow:0 2px 7px rgba(8,34,49,.05)!important;
 }
 .p2-flow-step .p2-flow-copy strong{color:inherit!important}
 .p2-flow-step .p2-flow-copy small{color:#6c7f8b!important}
-.p2-flow-step.active .p2-flow-index{background:var(--uiq-green)!important;color:#fff!important}
+.p2-flow-step.active .p2-flow-index{background:var(--ds-good)!important;color:#fff!important}
 
 .p2-multi-mode{
   background:transparent!important;
@@ -41,7 +28,7 @@
 }
 .p2-multi-mode.active{
   background:#fff!important;
-  color:var(--uiq-green)!important;
+  color:var(--ds-good)!important;
   box-shadow:0 2px 8px rgba(8,34,49,.08)!important;
 }
 
@@ -66,24 +53,24 @@
   background:#fff!important;color:#385566!important;border:1px solid #dce6e4!important;box-shadow:none!important
 }
 .p2-secondary-back{
-  background:transparent!important;color:var(--uiq-green)!important;border:0!important;box-shadow:none!important;padding:6px 4px!important
+  background:transparent!important;color:var(--ds-good)!important;border:0!important;box-shadow:none!important;padding:6px 4px!important
 }
 
 /* ---------- Match + Player Markets ---------- */
 .threshold-step,
 .market-stepper button{
   background:#edf5f2!important;
-  color:var(--uiq-green)!important;
+  color:var(--ds-good)!important;
   border:1px solid #d8e6e1!important;
   box-shadow:none!important;
   filter:none!important;
 }
 .threshold-step:hover,
 .market-stepper button:hover{background:#e3f1ec!important}
-.threshold-input,.market-stepper input{color:var(--uiq-ink)!important;background:#fff!important}
+.threshold-input,.market-stepper input{color:var(--ds-ink-800)!important;background:#fff!important}
 
 .player-market-row .add-leg{
-  background:var(--uiq-green)!important;
+  background:var(--ds-good)!important;
   color:#fff!important;
 }
 .player-market-row .add-leg:disabled{background:#d8e1df!important;color:#71818a!important}
@@ -93,8 +80,8 @@
 
 /* ---------- System Multi + Multi Lab ---------- */
 .remove-leg{
-  background:var(--uiq-red-soft)!important;
-  color:var(--uiq-red)!important;
+  background:var(--ds-bad-soft)!important;
+  color:var(--ds-bad)!important;
   border:1px solid #f0d5d9!important;
   box-shadow:none!important;
 }
@@ -102,7 +89,7 @@
 
 .match-leg-choice{
   background:#fff!important;
-  color:var(--uiq-ink)!important;
+  color:var(--ds-ink-800)!important;
   border:1px solid #dce6e3!important;
   box-shadow:none!important;
   filter:none!important;
@@ -112,13 +99,13 @@
   border-color:#bfd9cf!important;
   box-shadow:0 5px 14px rgba(20,55,40,.06)!important;
 }
-.match-leg-choice span,.match-leg-choice b,.match-leg-choice strong{color:var(--uiq-ink)!important}
+.match-leg-choice span,.match-leg-choice b,.match-leg-choice strong{color:var(--ds-ink-800)!important}
 .match-leg-choice small,.choice-kicker,.choice-market{color:#667a87!important}
 
 .value-box button.value-btn,#builderValueBtn{
-  background:var(--uiq-green)!important;color:#fff!important
+  background:var(--ds-good)!important;color:#fff!important
 }
-.send-builder{background:var(--uiq-green)!important;color:#fff!important}
+.send-builder{background:var(--ds-good)!important;color:#fff!important}
 
 /* ---------- Field / lineup / player modal ---------- */
 .lineup-team-filters button{
@@ -129,7 +116,7 @@
   filter:none!important;
 }
 .lineup-team-filters button.active{
-  background:var(--uiq-green)!important;
+  background:var(--ds-good)!important;
   color:#fff!important;
 }
 
@@ -144,12 +131,12 @@
 
 .field-player{
   background:#fff!important;
-  color:var(--uiq-ink)!important;
+  color:var(--ds-ink-800)!important;
   border-color:#dce5e4!important;
   box-shadow:none!important;
 }
-.field-player.bench{background:var(--uiq-amber-soft)!important;color:#6c511f!important}
-.field-player.emergency{background:var(--uiq-red-soft)!important;color:#8f3943!important}
+.field-player.bench{background:var(--ds-warn-soft)!important;color:#6c511f!important}
+.field-player.emergency{background:var(--ds-bad-soft)!important;color:#8f3943!important}
 
 .mini-player-dot.team-0{background:#32145f!important;color:#fff!important}
 .mini-player-dot.team-1{background:#0d4f86!important;color:#fff!important}
@@ -163,30 +150,30 @@
 }
 .prob-band{
   background:#eef7f3!important;
-  color:var(--uiq-green)!important;
+  color:var(--ds-good)!important;
   border:1px solid #d7e9e1!important;
   box-shadow:none!important;
 }
-.prob-band strong{color:var(--uiq-green)!important}
+.prob-band strong{color:var(--ds-good)!important}
 .prob-band small{color:#687d89!important}
 .threshold-choice{
   background:#f5f8f7!important;
-  color:var(--uiq-ink)!important;
+  color:var(--ds-ink-800)!important;
   border:1px solid #dce5e4!important;
   box-shadow:none!important;
 }
-.threshold-choice strong{color:var(--uiq-ink)!important}
-.threshold-choice small{color:var(--uiq-green)!important}
-.lineup-float-open{background:var(--uiq-green)!important;color:#fff!important}
+.threshold-choice strong{color:var(--ds-ink-800)!important}
+.threshold-choice small{color:var(--ds-good)!important}
+.lineup-float-open{background:var(--ds-good)!important;color:#fff!important}
 
 /* ---------- Review ---------- */
 #reviewRefresh,#reviewPrev,#reviewNext,#clearBuilder,#systemFilterReset{
   background:#fff!important;
-  color:var(--uiq-ink)!important;
-  border:1px solid var(--uiq-line)!important;
+  color:var(--ds-ink-800)!important;
+  border:1px solid var(--ds-line)!important;
   box-shadow:none!important;
 }
-#reviewSelect{color:var(--uiq-ink)!important}
+#reviewSelect{color:var(--ds-ink-800)!important}
 
 /* ---------- Validation / Shadow ---------- */
 .validation-table-wrap{
