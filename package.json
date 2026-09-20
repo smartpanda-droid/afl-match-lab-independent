@@ -1,10 +1,10 @@
 {
   "name": "afl-match-lab-independent-web",
   "private": true,
-  "version": "0.79.3",
+  "version": "0.80.0",
   "type": "module",
   "scripts": {
-    "check": "node --check public/app.js && node --check public/premium-ui-v60.js && node --check public/matchday-p0-v62.js && node --check public/decision-p1-v63.js && node --check public/navigation-p2-v64.js && node --check public/p0-completion-v65.js && node --check public/decision-speed-p1-v75.js && node --check public/resource-optimization-v70.js && node --check public/config.js && node --check public/showcase-ui-v78.js && node --check public/p1-match-context-v79.js && node --check public/p1-player-decision-v79.js && node --check public/p1-multi-compare-v79.js && node --check public/p1-builder-summary-v79.js",
+    "check": "node --check public/app.js && node --check public/premium-ui-v60.js && node --check public/matchday-p0-v62.js && node --check public/decision-p1-v63.js && node --check public/navigation-p2-v64.js && node --check public/p0-completion-v65.js && node --check public/decision-speed-p1-v75.js && node --check public/resource-optimization-v70.js && node --check public/config.js && node --check public/showcase-ui-v78.js && node --check public/p1-match-context-v79.js && node --check public/p1-player-decision-v79.js && node --check public/p1-multi-compare-v79.js && node --check public/p1-builder-summary-v79.js && node --check public/p2-interaction-polish-v80.js",
     "build": "npm run check && node scripts/build.mjs",
     "smoke": "node scripts/smoke-check.mjs",
     "verify": "npm run check && npm run smoke && npm run build"
