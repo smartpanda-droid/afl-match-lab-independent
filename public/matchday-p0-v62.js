@@ -1,7 +1,7 @@
 /* AFL Match Lab P0 v62 — decision layer only. Does not change model probabilities. */
 (function(){
   'use strict';
-  const P0='P0 v62';
+  const P0='P0 COCKPIT v74';
   const $p=s=>document.querySelector(s);
   const $$p=s=>[...document.querySelectorAll(s)];
   const num=v=>{const n=Number(v);return Number.isFinite(n)?n:null};
@@ -78,23 +78,23 @@
 
   function matchConfidence(){
     const m=matchNow(),q=quoteNow();let score=0,max=8;const details=[];
-    if(m?.lineup_confirmed){score+=2;details.push(['Lineup','High · latest team'])}
-    else if(m?.used_fallback_lineup){score+=1;details.push(['Lineup','Medium · fallback'])}
-    else details.push(['Lineup','Low · pending']);
+    const add=(label,text,pts=0)=>{details.push({label,text});score+=pts};
+    if(m?.lineup_confirmed)add('Lineup','High · latest team',2);
+    else if(m?.used_fallback_lineup)add('Lineup','Medium · fallback',1);
+    else add('Lineup','Low · pending',0);
 
-    if(state.finalLock||m?.final_recommendation_locked||m?.prediction_is_final){score+=2;details.push(['Model stage','Final / locked'])}
-    else {score+=1;details.push(['Model stage','Pregame preview'])}
+    if(state.finalLock||m?.final_recommendation_locked||m?.prediction_is_final)add('Model stage','Final / locked',2);
+    else add('Model stage','Pregame preview',1);
 
     const samples=[num(q?.sample_home),num(q?.sample_away)].filter(v=>v!=null);
     const s=samples.length?Math.min(...samples):null;
-    if(s!=null&&s>=10){score+=2;details.push(['Match sample','Good · '+s+'+'])}
-    else if(s!=null&&s>=5){score+=1;details.push(['Match sample','Moderate · '+s+'+'])}
-    else details.push(['Match sample',s==null?'Unknown':'Thin · '+s]);
+    if(s!=null&&s>=10)add('Match sample','Good · '+s+'+',2);
+    else if(s!=null&&s>=5)add('Match sample','Moderate · '+s+'+',1);
+    else add('Match sample',s==null?'Unknown':'Thin · '+s,0);
 
     const names=['lineup','quote','context','top'],mods=names.map(moduleState);
     const good=mods.filter(x=>x.cls==='good').length,errors=mods.filter(x=>x.cls==='bad').length;
-    if(errors===0&&good>=3)score+=2;else if(errors===0&&good>=1)score+=1;
-    details.push(['Data modules',errors?errors+' error(s)':good+'/'+names.length+' loaded']);
+    add('Data modules',errors?errors+' error(s)':good+'/'+names.length+' loaded',errors===0&&good>=3?2:errors===0&&good>=1?1:0);
 
     const ratio=score/max;
     return {level:confidenceLevel(ratio),ratio,details};
@@ -121,8 +121,9 @@
   }
 
   function confidenceHtml(c,compact=false){
-    const details=c.details.map(x=>'<div><span>'+escp(x.label)+'</span><b>'+escp(x.text)+'</b></div>').join('');
-    return '<span class="confidence-pill '+confidenceClass(c.level)+'">'+c.level+' CONFIDENCE</span>'+
+    const rows=(c?.details||[]).map(x=>Array.isArray(x)?{label:x[0],text:x[1]}:x);
+    const details=rows.map(x=>'<div><span>'+escp(x?.label||'Evidence')+'</span><b>'+escp(x?.text||'—')+'</b></div>').join('');
+    return '<span class="confidence-pill '+confidenceClass(c?.level||'LOW')+'">'+escp(c?.level||'LOW')+' CONFIDENCE</span>'+
       (compact?'':'<details class="confidence-explainer"><summary>Why this confidence?</summary><div class="confidence-grid">'+details+'</div></details>');
   }
 
@@ -133,6 +134,63 @@
     let band=$p('#matchdayDecisionBand');
     if(!band){band=document.createElement('section');band.id='matchdayDecisionBand';band.className='matchday-decision-band';status.insertAdjacentElement('afterend',band)}
     return {status,band};
+  }
+
+  function cockpitTopEdges(limit=3){
+    const pool=(state.topLegs?.length?state.topLegs:state.legs)||[];
+    let ranked;
+    try{ranked=typeof balancedTopLegs==='function'?balancedTopLegs(pool,Math.max(12,limit*4)):[...pool]}catch{ranked=[...pool]}
+    ranked=[...ranked].map(l=>{
+      const p=num(l.model_probability??l.probability)??0,recent=num(l.recent_hit_rate)??p,n=Math.min(1,(num(l.sample_size)??0)/18);
+      const lc=legConfidence(l),injury=lc.injury?1:0;
+      return {...l,_cockpitScore:.50*p+.20*recent+.15*n+.15*(lc.ratio||0)-.20*injury,_cockpitConfidence:lc};
+    }).sort((a,b)=>b._cockpitScore-a._cockpitScore);
+    const out=[],players=new Set(),markets=new Set();
+    for(const l of ranked){
+      const p=num(l.model_probability??l.probability);if(!(p>0))continue;
+      const player=String(l.player_id||l.player_name||'').trim(),market=String(l.market||'').trim();
+      if(player&&players.has(player))continue;
+      const marketKey=player+'|'+market;if(markets.has(marketKey))continue;
+      if(player)players.add(player);markets.add(marketKey);out.push(l);if(out.length>=limit)break;
+    }
+    if(out.length<limit){
+      for(const l of ranked){if(out.includes(l))continue;out.push(l);if(out.length>=limit)break}
+    }
+    return out;
+  }
+
+  function compactMarketLabel(market){
+    const m=String(market||'').toLowerCase();
+    return ({disposals:'DISP',kicks:'KICKS',handballs:'HB',marks:'MARKS',tackles:'TACKLES',goals:'GOALS',fantasy_points:'FANTASY',clearances:'CLR',hitouts:'HITOUTS'})[m]||String(market||'MARKET').replaceAll('_',' ').toUpperCase();
+  }
+
+  function matchRiskSummary(confidence,edges){
+    const m=matchNow(),reasons=[];let severity=0;
+    if(!m?.lineup_confirmed){severity+=m?.used_fallback_lineup?1:2;reasons.push(m?.used_fallback_lineup?'Previous-match lineup fallback is active':'Final lineup is not confirmed')}
+    const injured=(edges||[]).filter(x=>x.active_injury).map(x=>x.player_name).filter(Boolean);
+    if(injured.length){severity+=2;reasons.push('Top edge injury flag: '+injured.slice(0,2).join(', '))}
+    const errors=['lineup','quote','context','top'].map(moduleState).filter(x=>x.cls==='bad').length;
+    if(errors){severity+=2;reasons.push(errors+' core data module'+(errors>1?'s':'')+' in error state')}
+    const ts=firstTimestamp(state.finalLock)||firstTimestamp(state.matchQuote)||firstTimestamp(m);
+    if(ts){
+      const mins=Math.max(0,(Date.now()-Date.parse(ts))/60000);
+      if(mins>90){severity+=2;reasons.push('Decision data is more than 90 minutes old')}
+      else if(mins>45){severity+=1;reasons.push('Decision data is more than 45 minutes old')}
+    }
+    if(confidence?.level==='LOW'){severity+=2;reasons.push('Overall model confidence is LOW')}
+    else if(confidence?.level==='MEDIUM'){severity+=1;reasons.push('Overall model confidence is MEDIUM')}
+    if(!reasons.length)reasons.push('No elevated structural risk in currently loaded inputs');
+    const level=severity>=4?'HIGH':severity>=2?'MEDIUM':'LOW';
+    return {level,reasons:reasons.slice(0,3)};
+  }
+
+  function cockpitEdgeHtml(l,index){
+    const p=num(l.model_probability??l.probability),recent=num(l.recent_hit_rate),sample=num(l.sample_size),c=l._cockpitConfidence||legConfidence(l);
+    const name=l.player_name||l.team_name||'Player';
+    const selection=l.selection||((l.threshold!=null?String(l.threshold)+'+ ':'')+compactMarketLabel(l.market));
+    return '<article class="matchday-edge-mini">'+
+      '<div class="matchday-edge-rank">'+index+'</div><div class="matchday-edge-copy"><span>'+escp(name)+' · '+escp(compactMarketLabel(l.market))+'</span><strong>'+escp(selection)+'</strong><small>'+pctp(p)+' probability · '+(recent!=null?'Recent '+pctp(recent)+' · ':'')+'n='+(sample??'—')+'</small></div>'+
+      confidenceHtml(c,true)+'</article>';
   }
 
   function renderDecisionBand(){
@@ -146,23 +204,30 @@
     const homeLeads=hp!=null&&ap!=null?hp>=ap:null;
     const winner=homeLeads===null?'Waiting':(homeLeads?m.home_team_name:m.away_team_name);
     const winp=homeLeads===null?null:(homeLeads?hp:ap);
-    const score=q?Math.round(Number(q.predicted_home_score||0))+'–'+Math.round(Number(q.predicted_away_score||0)):'—';
+    const score=q&&Number.isFinite(Number(q.predicted_home_score))&&Number.isFinite(Number(q.predicted_away_score))?Math.round(Number(q.predicted_home_score))+'–'+Math.round(Number(q.predicted_away_score)):'—';
     const line=num(q?.fair_home_line);
-    const lineText=line==null?'—':m.home_team_name+' '+(line>=0?'+':'')+(Math.round(line*2)/2).toFixed(1);
+    const margin=line==null?'—':(line===0?'Even':(line<0?m.home_team_name:m.away_team_name)+' by ~'+Math.abs(Math.round(line*2)/2).toFixed(1));
     const qt=num(q?.quoted_total),ft=num(q?.fair_total),op=num(q?.over_probability),up=num(q?.under_probability);
     let totalText=ft==null?'—':'Fair '+(Math.round(ft*2)/2).toFixed(1),totalSub='Model fair total';
     if(qt!=null&&op!=null&&up!=null){const over=op>=up;totalText=(over?'Over ':'Under ')+(Math.round(qt*2)/2).toFixed(1);totalSub=pctp(over?op:up)+' at current line'}
-    const lineup=m.lineup_confirmed?'FINAL / LATEST':m.used_fallback_lineup?'FALLBACK':'PENDING';
+    const lineup=m.lineup_confirmed?'CONFIRMED':m.used_fallback_lineup?'FALLBACK':'PENDING';
     const ts=firstTimestamp(state.finalLock)||firstTimestamp(q)||firstTimestamp(m);
-    band.innerHTML='<div class="matchday-decision-head"><div><div class="eyebrow">MATCHDAY COCKPIT · DECISION LAYER</div><h2>'+escp(m.home_team_name)+' vs '+escp(m.away_team_name)+'</h2><p>Probability answers “how likely”; Confidence answers “how much evidence supports that estimate”.</p></div>'+confidenceHtml(c,true)+'</div>'+
+    const stage=state.finalLock?'FINAL LOCK':m.prediction_is_final?'T-30 SEALED':'PREGAME';
+    const edges=cockpitTopEdges(3),risk=matchRiskSummary(c,edges);
+    const edgeHtml=edges.length?edges.map((x,i)=>cockpitEdgeHtml(x,i+1)).join(''):'<div class="matchday-edge-empty">Player edges are still loading.</div>';
+    const riskClass=risk.level==='HIGH'?'high':risk.level==='MEDIUM'?'medium':'low';
+
+    band.innerHTML='<div class="matchday-decision-head"><div><div class="eyebrow">MATCHDAY COCKPIT · 10-SECOND VIEW</div><h2>'+escp(m.home_team_name)+' vs '+escp(m.away_team_name)+'</h2><p>Probability = estimated outcome chance. Confidence = strength of the evidence supporting that estimate.</p></div><div class="matchday-head-badges">'+confidenceHtml(c,true)+'<span class="matchday-stage-pill">'+escp(stage)+'</span></div></div>'+
       '<div class="matchday-decision-grid">'+
-      '<div class="matchday-kpi primary"><span>Model lean</span><strong>'+escp(winner)+'</strong><small>'+pctp(winp)+' win probability</small></div>'+
-      '<div class="matchday-kpi"><span>Projected</span><strong>'+escp(score)+'</strong><small>'+escp(m.home_team_name)+' – '+escp(m.away_team_name)+'</small></div>'+
-      '<div class="matchday-kpi"><span>Fair line</span><strong>'+escp(lineText)+'</strong><small>Model fair handicap</small></div>'+
-      '<div class="matchday-kpi"><span>Total lean</span><strong>'+escp(totalText)+'</strong><small>'+escp(totalSub)+'</small></div>'+
-      '<div class="matchday-kpi"><span>Lineup</span><strong>'+escp(lineup)+'</strong><small>'+escp(m.lineup_confirmed?'Current team loaded':m.used_fallback_lineup?'Awaiting latest team':'Not confirmed')+'</small></div>'+
-      '<div class="matchday-kpi"><span>Data</span><strong>'+escp(ts?ageText(ts):'Loaded')+'</strong><small>'+escp(state.finalLock?'Final lock '+ageText(state.finalLock.frozen_at):'Pregame model')+'</small></div>'+
-      '</div><details class="confidence-explainer"><summary>Confidence evidence</summary><div class="confidence-grid">'+c.details.map(x=>'<div><span>'+escp(x[0])+'</span><b>'+escp(x[1])+'</b></div>').join('')+'</div></details>';
+      '<div class="matchday-kpi primary"><span>Match call</span><strong>'+escp(winner)+'</strong><small>'+pctp(winp)+' win probability · '+escp(margin)+'</small></div>'+
+      '<div class="matchday-kpi"><span>Projected score</span><strong>'+escp(score)+'</strong><small>'+escp(m.home_team_name)+' – '+escp(m.away_team_name)+'</small></div>'+
+      '<div class="matchday-kpi"><span>Total</span><strong>'+escp(totalText)+'</strong><small>'+escp(totalSub)+'</small></div>'+
+      '<div class="matchday-kpi '+(m.lineup_confirmed?'goodish':m.used_fallback_lineup?'warnish':'warnish')+'"><span>Lineup</span><strong>'+escp(lineup)+'</strong><small>'+escp(m.lineup_confirmed?'Current team loaded':m.used_fallback_lineup?'Using previous-match fallback':'Awaiting final team')+'</small></div>'+
+      '<div class="matchday-kpi"><span>Data</span><strong>'+escp(ts?ageText(ts):'TIME N/A')+'</strong><small>'+escp(stage)+' · '+escp(state.finalLock?'sealed recommendation':'live pregame layer')+'</small></div>'+
+      '</div>'+
+      '<div class="matchday-cockpit-lower"><section class="matchday-edge-scan"><div class="matchday-subhead"><div><span>TOP 3 EDGES</span><strong>Fast player scan</strong></div><small>Diversified by player · quality weighted</small></div><div class="matchday-edge-quicklist">'+edgeHtml+'</div></section>'+
+      '<aside class="matchday-risk-card '+riskClass+'"><div class="matchday-risk-title"><span>KEY RISK</span><strong>'+escp(risk.level)+'</strong></div><p>'+escp(risk.reasons[0])+'</p>'+(risk.reasons.length>1?'<ul>'+risk.reasons.slice(1).map(x=>'<li>'+escp(x)+'</li>').join('')+'</ul>':'')+'</aside></div>'+
+      '<details class="confidence-explainer matchday-confidence-detail"><summary>Confidence evidence</summary><div class="confidence-grid">'+(c.details||[]).map(x=>'<div><span>'+escp(x.label||x[0]||'Evidence')+'</span><b>'+escp(x.text||x[1]||'—')+'</b></div>').join('')+'</div></details>';
   }
 
   function renderStatusStrip(){
