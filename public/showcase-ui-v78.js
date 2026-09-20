@@ -230,6 +230,15 @@
     });
   }
 
+  function syncPrimaryNavStateV78(){
+    var view='';
+    try{view=state.view||''}catch(e){}
+    var route=({match:'match',players:'players','system-multi':'system-multi','multi-lab':'multi-lab'})[view]||'';
+    qa('#p2PrimaryNav .p2-nav-button[data-p2-route]').forEach(function(b){
+      b.classList.toggle('active',!!route&&b.getAttribute('data-p2-route')===route);
+    });
+  }
+
   function syncCompactNavLabels(){
     var system=q('.p2-nav-button[data-p2-route="system-multi"] .p2-mobile-label');
     var lab=q('.p2-nav-button[data-p2-route="multi-lab"] .p2-mobile-label');
@@ -252,7 +261,7 @@
   function renderMobileBuilder(){
     var bar=ensureMobileBuilder(),n=0,view='';
     try{n=Array.isArray(state.builder)?state.builder.length:0;view=state.view||''}catch(e){}
-    var visible=n>0&&view!=='multi-lab';
+    var visible=n>0&&view!=='multi-lab'&&!['field','tactics','reviews','validation','shadow-live'].includes(view);
     bar.hidden=!visible;
     document.body.classList.toggle('v78-has-builder',visible);
     if(!visible){bar.innerHTML='';return}
@@ -273,6 +282,7 @@
     syncMobileLegacyLayers();
     syncMobileActionCopy();
     syncCompactNavLabels();
+    syncPrimaryNavStateV78();
     renderMobileBuilder();
   }
 
