@@ -1,0 +1,233 @@
+/* AFL Match Lab v78 — responsive showcase UI enhancements.
+   Reads existing in-memory state only. No fetch, Supabase write, model mutation or probability override. */
+(function(){
+  'use strict';
+
+  function q(s,r){return (r||document).querySelector(s)}
+  function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function num(v){var n=Number(v);return Number.isFinite(n)?n:null}
+  function pct(v){var n=num(v);return n==null?'—':Math.round(n*100)+'%'}
+  function one(v){var n=num(v);return n==null?'—':n.toFixed(1)}
+  function odds(v){var n=num(v);return n&&n>0?n.toFixed(2):'—'}
+
+  function currentMatch(){
+    try{return (state.matches||[]).find(function(x){return x.match_id===state.selected})||null}catch(e){return null}
+  }
+
+  function ensureMobileTabs(){
+    var summary=q('#matchSummary'); if(!summary)return null;
+    var tabs=q('#v78MobileMatchTabs');
+    if(!tabs){
+      tabs=document.createElement('nav');
+      tabs.id='v78MobileMatchTabs';
+      tabs.className='v78-mobile-match-tabs';
+      tabs.setAttribute('aria-label','Match quick navigation');
+      tabs.innerHTML=
+        '<button type="button" class="active" data-v78-tab="summary">Summary</button>'+
+        '<button type="button" data-v78-tab="markets">Markets</button>'+
+        '<button type="button" data-v78-tab="multi">Multi</button>'+
+        '<button type="button" data-v78-tab="insights">Insights</button>';
+      summary.insertAdjacentElement('afterend',tabs);
+      tabs.addEventListener('click',function(e){
+        var b=e.target.closest('[data-v78-tab]'); if(!b)return;
+        var target=b.getAttribute('data-v78-tab');
+        if(target==='markets'&&typeof window.switchView==='function'){window.switchView('players');return}
+        if(target==='multi'&&typeof window.switchView==='function'){window.switchView('system-multi');return}
+        if(target==='insights'){
+          var risk=q('#v78RiskPreview')||q('#matchAlerts');
+          if(risk)risk.scrollIntoView({behavior:'smooth',block:'start'});
+          return;
+        }
+        summary.scrollIntoView({behavior:'smooth',block:'start'});
+      });
+    }
+    return tabs;
+  }
+
+  function confidenceInfo(){
+    var m=currentMatch();
+    var finalLock=false;
+    try{finalLock=!!state.finalLock||!!(m&&m.prediction_is_final)||!!(m&&m.final_recommendation_locked)}catch(e){}
+    var lineup=!!(m&&m.lineup_confirmed);
+    if(finalLock&&lineup)return {label:'HIGH',klass:'',detail:'Lineup confirmed · model sealed'};
+    if(finalLock||lineup)return {label:'MEDIUM',klass:'medium',detail:finalLock?'Model sealed · lineup pending':'Lineup confirmed · preview model'};
+    return {label:'PREVIEW',klass:'low',detail:'Waiting for final pre-match evidence'};
+  }
+
+  function ensureKpis(){
+    var summary=q('#matchSummary'); if(!summary)return null;
+    var strip=q('#v78KpiStrip');
+    if(!strip){
+      strip=document.createElement('section');
+      strip.id='v78KpiStrip';
+      strip.className='v78-kpi-strip';
+      strip.setAttribute('aria-label','Match decision summary');
+      var tabs=q('#v78MobileMatchTabs');
+      (tabs||summary).insertAdjacentElement('afterend',strip);
+    }
+    return strip;
+  }
+
+  function renderKpis(){
+    var strip=ensureKpis(); if(!strip)return;
+    var m=currentMatch();
+    var qte=null;
+    try{qte=state.matchQuote||null}catch(e){}
+    if(!m){
+      strip.innerHTML=
+        '<article class="v78-kpi"><div class="v78-label">Win Probability</div><div class="v78-main">—</div><div class="v78-sub">Waiting for next confirmed match</div></article>'+
+        '<article class="v78-kpi"><div class="v78-label">Projected Margin</div><div class="v78-main">—</div><div class="v78-sub">Model standby</div></article>'+
+        '<article class="v78-kpi"><div class="v78-label">Total Points</div><div class="v78-main">—</div><div class="v78-sub">Model standby</div></article>'+
+        '<article class="v78-kpi"><div class="v78-label">Model Confidence</div><div class="v78-main">PREVIEW</div><div class="v78-sub">Waiting for fixture evidence</div></article>';
+      return;
+    }
+    var hp=qte?num(qte.home_win_probability):null;
+    var ap=qte?num(qte.away_win_probability):null;
+    var hs=qte?num(qte.predicted_home_score):null;
+    var as=qte?num(qte.predicted_away_score):null;
+    var margin=hs!=null&&as!=null?hs-as:null;
+    var marginTeam=margin==null?'—':(margin>=0?m.home_team_name:m.away_team_name);
+    var total=qte?num(qte.fair_total):null;
+    var c=confidenceInfo();
+    var left=hp==null?50:Math.max(0,Math.min(100,Math.round(hp*100)));
+    var right=ap==null?100-left:Math.max(0,Math.min(100,Math.round(ap*100)));
+    strip.innerHTML=
+      '<article class="v78-kpi"><div class="v78-label"><span>Win Probability</span><span>MODEL</span></div>'+
+        '<div class="v78-split"><div><span>'+esc(m.home_team_name)+'</span><strong>'+pct(hp)+'</strong></div><div style="text-align:right"><span>'+esc(m.away_team_name)+'</span><strong>'+pct(ap)+'</strong></div></div>'+
+        '<div class="v78-prob-bar"><i style="width:'+left+'%"></i><b style="width:'+right+'%"></b></div></article>'+
+      '<article class="v78-kpi"><div class="v78-label"><span>Projected Margin</span><span>FAIR</span></div>'+
+        '<div class="v78-main">'+(margin==null?'—':esc(marginTeam)+' '+Math.abs(margin).toFixed(1))+'</div>'+
+        '<div class="v78-sub">Predicted score differential</div></article>'+
+      '<article class="v78-kpi"><div class="v78-label"><span>Total Points</span><span>FAIR</span></div>'+
+        '<div class="v78-main">'+one(total)+'</div>'+
+        '<div class="v78-sub">'+(qte&&qte.quoted_total!=null?'Quoted '+one(qte.quoted_total):'Model fair total')+'</div></article>'+
+      '<article class="v78-kpi" title="Readiness signal from lineup and model-seal state; it is not a betting probability."><div class="v78-label"><span>Model Confidence</span><span>STATUS</span></div>'+
+        '<div class="v78-main">'+esc(c.label)+'</div><div class="v78-ready '+esc(c.klass)+'">'+esc(c.detail)+'</div></article>';
+  }
+
+  function strategyLabel(v){
+    v=String(v||'').toLowerCase();
+    if(v.indexOf('conserv')>=0)return 'Conservative';
+    if(v.indexOf('aggress')>=0)return 'Aggressive';
+    return 'Balanced';
+  }
+
+  function pickMultis(){
+    var rows=[];
+    try{rows=(state.multis||[]).filter(function(x){return x.recommended!==false})}catch(e){}
+    var buckets={};
+    rows.forEach(function(x){
+      var k=strategyLabel(x.strategy);
+      if(!buckets[k]||Number(x.combined_probability||0)>Number(buckets[k].combined_probability||0))buckets[k]=x;
+    });
+    return ['Conservative','Balanced','Aggressive'].map(function(k){return buckets[k]}).filter(Boolean);
+  }
+
+  function ensureMultiPreview(){
+    var top=q('.top-edges-panel'); if(!top)return null;
+    var host=q('#v78MultiPreview');
+    if(!host){
+      host=document.createElement('section');
+      host.id='v78MultiPreview';
+      host.className='panel v78-multi-preview';
+      top.insertAdjacentElement('afterend',host);
+    }
+    return host;
+  }
+
+  function renderMultiPreview(){
+    var host=ensureMultiPreview(); if(!host)return;
+    var rows=pickMultis();
+    host.innerHTML=
+      '<div class="v78-preview-head"><div><div class="eyebrow">SYSTEM MULTI</div><h2>Model-built combinations</h2><p>Fast comparison before opening the full simulation workspace.</p></div><button type="button" class="v78-preview-action">View all</button></div>'+
+      (rows.length?'<div class="v78-multi-grid">'+rows.map(function(m){
+        var label=strategyLabel(m.strategy);
+        return '<article class="v78-multi-card '+(label==='Balanced'?'featured':'')+'"><small>'+esc(label)+'</small><strong>'+esc(String(m.leg_count||((m.legs||[]).length)||'—'))+' legs · '+pct(m.combined_probability)+'</strong><span>Fair '+odds(m.fair_odds||m.combined_fair_odds)+' · '+(m.recommended===false?'Watch':'Recommended')+'</span></article>';
+      }).join('')+'</div>':'<div class="empty">System Multi will appear here when recommended combinations are loaded.</div>');
+    q('.v78-preview-action',host).addEventListener('click',function(){if(typeof window.switchView==='function')window.switchView('system-multi')});
+  }
+
+  function ensureRiskPreview(){
+    var multi=q('#v78MultiPreview'); if(!multi)return null;
+    var host=q('#v78RiskPreview');
+    if(!host){
+      host=document.createElement('section');
+      host.id='v78RiskPreview';
+      host.className='panel v78-risk-preview';
+      multi.insertAdjacentElement('afterend',host);
+    }
+    return host;
+  }
+
+  function renderRiskPreview(){
+    var host=ensureRiskPreview(); if(!host)return;
+    var alerts=qa('#matchAlerts .match-alert').slice(0,3);
+    var rows=alerts.map(function(a){
+      var strong=q('strong',a),span=q('span',a);
+      return '<div class="v78-risk-row"><i class="v78-risk-dot"></i><div><strong>'+esc(strong?strong.textContent:'Match context')+'</strong><span>'+esc(span?span.textContent:'')+'</span></div></div>';
+    }).join('');
+    host.innerHTML='<div class="v78-preview-head"><div><div class="eyebrow">KEY RISKS</div><h2>What can change the read?</h2></div><button type="button" class="v78-preview-action">Insights</button></div><div class="v78-risk-preview-list">'+(rows||'<div class="empty">Risk context is loading.</div>')+'</div>';
+    q('.v78-preview-action',host).addEventListener('click',function(){
+      var rail=q('.match-dashboard-rail'); if(rail)rail.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+  }
+
+  function ensureMobileBuilder(){
+    var bar=q('#v78MobileBuilder');
+    if(!bar){
+      bar=document.createElement('aside');
+      bar.id='v78MobileBuilder';
+      bar.className='v78-mobile-builder';
+      bar.setAttribute('aria-label','Current Multi Lab build');
+      document.body.appendChild(bar);
+    }
+    return bar;
+  }
+
+  function renderMobileBuilder(){
+    var bar=ensureMobileBuilder(),n=0;
+    try{n=Array.isArray(state.builder)?state.builder.length:0}catch(e){}
+    var summary='Ready to build';
+    if(n>0)summary=n+' leg'+(n===1?'':'s')+' selected';
+    bar.innerHTML='<div><strong>Multi Lab</strong><span>'+esc(summary)+'</span></div><button type="button">'+(n>0?'View Multi':'Build Multi')+' →</button>';
+    q('button',bar).addEventListener('click',function(){if(typeof window.switchView==='function')window.switchView('multi-lab')});
+  }
+
+  function syncAll(){
+    document.body.classList.add('v78-showcase');
+    ensureMobileTabs();
+    renderKpis();
+    renderMultiPreview();
+    renderRiskPreview();
+    renderMobileBuilder();
+  }
+
+  function wrap(name){
+    var fn=window[name];
+    if(typeof fn!=='function'||fn.__v78wrapped)return;
+    function wrapped(){
+      var out=fn.apply(this,arguments);
+      Promise.resolve().then(syncAll);
+      return out;
+    }
+    wrapped.__v78wrapped=true;
+    window[name]=wrapped;
+  }
+
+  function init(){
+    document.body.classList.add('v78-showcase');
+    ['renderMatch','renderMatchPrediction','renderMatchRail','renderMultis','renderBuilder','switchView'].forEach(wrap);
+    syncAll();
+    window.setTimeout(syncAll,0);
+    window.setTimeout(syncAll,350);
+    var select=q('#matchSelect');
+    if(select)select.addEventListener('change',function(){window.setTimeout(syncAll,0)});
+    document.addEventListener('click',function(e){
+      if(e.target.closest('.add-leg,.send-builder,[data-p2-route],[data-p2-view]'))window.setTimeout(syncAll,0);
+    });
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+})();
