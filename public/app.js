@@ -1171,7 +1171,9 @@ function renderMatchFieldBoard(){
   const teams=[m?.home_team_name,m?.away_team_name].filter(Boolean);
   const host=$('#matchFieldTeams');if(!host)return;
   if(teams.length<2||!state.lineup.length){host.innerHTML='<div class="empty">暂无阵容</div>';return}
+  const mobileField=window.matchMedia&&window.matchMedia('(max-width: 700px)').matches;
   if(!['all',...teams].includes(state.fieldTeamFilter))state.fieldTeamFilter='all';
+  if(mobileField&&state.fieldTeamFilter==='all')state.fieldTeamFilter=teams[0];
   const visible=i=>state.fieldTeamFilter==='all'||state.fieldTeamFilter===teams[i];
   const filters=`<div class="lineup-team-filters"><button data-team="all" class="${state.fieldTeamFilter==='all'?'active':''}">All</button>${teams.map((t,i)=>`<button data-team="${esc(t)}" class="${state.fieldTeamFilter===t?'active':''}">${teamAbbr(t)}</button>`).join('<span class="filter-divider"></span>')}</div>`;
   const legend=`<div class="lineup-team-legend">${teams.map((t,i)=>`<span class="legend-team team-${i} ${visible(i)?'':'dim'}"><span class="legend-logo">${teamLogoHtml(t,'team-logo-small')}</span>${esc(t)} <small>${i===0?'HOME':'AWAY'}</small></span>`).join('')}</div>`;
