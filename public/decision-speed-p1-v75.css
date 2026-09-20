@@ -1,0 +1,61 @@
+/* AFL Match Lab P1 Decision Speed v75 */
+.p1d-player-scanner{display:grid;gap:12px;border:1px solid rgba(18,61,46,.12);background:linear-gradient(180deg,#fff,#f8fbf9)}
+.p1d-scanner-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+.p1d-scanner-head h2{margin:2px 0 3px;font-size:20px}
+.p1d-scanner-head p{margin:0;color:var(--muted);font-size:10px}
+.p1d-mode-tabs{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.p1d-mode-tabs::-webkit-scrollbar{display:none}
+.p1d-mode-tabs button{flex:0 0 auto;border:1px solid rgba(18,61,46,.12);background:#f5f9f7;color:#4b655a;border-radius:999px;padding:7px 11px;font-size:9px;font-weight:850}
+.p1d-mode-tabs button.active{background:#123d2e;color:#fff;border-color:#123d2e}
+.p1d-ranking-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.p1d-rank-card{position:relative;min-width:0;display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;text-align:left;padding:10px;border:1px solid #e0e9e6;border-radius:11px;background:#fff;color:inherit}
+.p1d-rank-card:hover{border-color:#a9cdbc;box-shadow:0 5px 16px rgba(18,61,46,.08)}
+.p1d-rank-no{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:#eaf5ef;color:#123d2e;font-size:9px;font-weight:950}
+.p1d-rank-card div{min-width:0}
+.p1d-rank-card small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#7a8b84;font-size:7px;font-weight:800}
+.p1d-rank-card strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;color:#183b2e;font-size:11px}
+.p1d-rank-card b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:4px;color:#2b4c40;font-size:9px}
+.p1d-rank-card em{display:block;margin-top:3px;color:#71817b;font-size:7px;font-style:normal;line-height:1.35}
+.p1d-rank-tag{grid-column:2;justify-self:start;margin-top:2px;padding:4px 6px;border-radius:999px;background:#eef5f1;color:#32604d;font-size:7px;font-weight:900}
+.p1d-scanner-empty,.p1d-value-note{padding:10px 12px;border-radius:9px;background:#f5f8f7;color:#687c74;font-size:9px;line-height:1.45}
+.p1d-value-note{background:#fff8e9;color:#80611f}
+.player-card.p1d-top-player{position:relative}
+.player-card.p1d-top-player::before{content:"# " attr(data-p1d-rank);position:absolute;right:10px;top:-7px;z-index:3;padding:3px 6px;border-radius:999px;background:#123d2e;color:#fff;font-size:7px;font-weight:900}
+.p1d-player-risk-chips{display:flex;gap:5px;flex-wrap:wrap;margin:-2px 0 9px}
+.p1d-player-risk-chips span{padding:4px 7px;border-radius:999px;background:#eef3f1;color:#557068;font-size:7px;font-weight:850}
+.p1d-player-risk-chips span.up,.p1d-player-risk-chips span.neutral{background:#eaf5ef;color:#087154}
+.p1d-player-risk-chips span.down,.p1d-player-risk-chips span.warn{background:#fff4dc;color:#8e6419}
+.p1d-player-risk-chips span.bad{background:#ffedf0;color:#9c2d3b}
+
+.p1d-multi-intel{margin-top:10px;border-top:1px solid rgba(18,61,46,.10);padding-top:10px}
+.p1d-intel-grid{display:grid;grid-template-columns:1.25fr 1fr .9fr;gap:7px}
+.p1d-intel-cell{min-width:0;padding:9px 10px;border:1px solid #e2ebe8;border-radius:9px;background:#fbfdfc}
+.p1d-intel-cell>span{display:block;color:#819089;font-size:7px;font-weight:900;letter-spacing:.08em}
+.p1d-intel-cell>strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:4px;color:#24483a;font-size:10px}
+.p1d-intel-cell>small{display:block;margin-top:3px;color:#6f8079;font-size:8px;line-height:1.35}
+.p1d-intel-cell.corr.low{background:#f3faf6}.p1d-intel-cell.corr.low strong{color:#087154}
+.p1d-intel-cell.corr.medium{background:#fff9ec}.p1d-intel-cell.corr.medium strong{color:#936719}
+.p1d-intel-cell.corr.high{background:#fff1f3}.p1d-intel-cell.corr.high strong{color:#a12e3c}
+.p1d-role-tog{display:flex;gap:9px;align-items:flex-start;margin-top:7px;padding:7px 9px;border-radius:8px;background:#f3faf6;color:#537267;font-size:8px;line-height:1.4}
+.p1d-role-tog b{flex:0 0 auto;color:#087154;font-size:7px;letter-spacing:.07em}
+.p1d-role-tog.warn{background:#fff8e8;color:#806321}.p1d-role-tog.warn b{color:#9a6a13}
+
+@media(max-width:1180px){
+  .p1d-ranking-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:900px){
+  .p1d-ranking-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .p1d-intel-grid{grid-template-columns:1fr 1fr}
+  .p1d-intel-cell.why{grid-column:1/-1}
+}
+@media(max-width:560px){
+  .p1d-player-scanner{padding:12px!important}
+  .p1d-scanner-head{display:grid;gap:6px}
+  .p1d-scanner-head .badge{justify-self:start}
+  .p1d-ranking-grid{grid-template-columns:1fr}
+  .p1d-rank-card{grid-template-columns:28px minmax(0,1fr) auto;align-items:center}
+  .p1d-rank-tag{grid-column:3;grid-row:1}
+  .p1d-intel-grid{grid-template-columns:1fr}
+  .p1d-intel-cell.why{grid-column:auto}
+  .p1d-role-tog{display:grid;gap:3px}
+}
