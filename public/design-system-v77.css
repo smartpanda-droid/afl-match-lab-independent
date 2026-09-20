@@ -1,0 +1,195 @@
+/* AFL Match Lab Design System v77
+   Canonical visual tokens + shared primitives.
+   Page CSS owns layout; this file owns visual language. */
+:root{
+  color-scheme:light;
+
+  /* Brand / semantic colour */
+  --ds-green-900:#064b3a;
+  --ds-green-800:#075f49;
+  --ds-green-700:#087156;
+  --ds-green-600:#0a7658;
+  --ds-green-100:#e7f5ef;
+  --ds-green-050:#f3f8f6;
+
+  --ds-ink-900:#142f43;
+  --ds-ink-800:#173247;
+  --ds-ink-700:#294759;
+  --ds-ink-600:#405a6b;
+  --ds-muted-700:#5f7482;
+  --ds-muted-600:#708192;
+  --ds-muted-500:#82909d;
+
+  --ds-line-strong:#cfe0db;
+  --ds-line:#dce7e5;
+  --ds-line-soft:#e7eeec;
+  --ds-surface:#ffffff;
+  --ds-surface-soft:#f8fbfa;
+  --ds-surface-muted:#f3f7f6;
+
+  --ds-good:#087154;
+  --ds-good-soft:#e8f5f0;
+  --ds-warn:#936719;
+  --ds-warn-soft:#fff4dc;
+  --ds-bad:#a83a48;
+  --ds-bad-soft:#ffedf0;
+  --ds-info:#315f93;
+  --ds-info-soft:#edf4fc;
+  --ds-purple:#6b4ea1;
+  --ds-purple-soft:#f2eefb;
+
+  /* Type */
+  --ds-font-sans:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --ds-font-serif:Georgia,"Times New Roman",serif;
+  --ds-text-xs:8px;
+  --ds-text-sm:9px;
+  --ds-text-md:10px;
+  --ds-text-body:12px;
+  --ds-text-title:16px;
+  --ds-text-display:20px;
+
+  /* Spacing */
+  --ds-space-1:4px;
+  --ds-space-2:6px;
+  --ds-space-3:8px;
+  --ds-space-4:10px;
+  --ds-space-5:12px;
+  --ds-space-6:14px;
+  --ds-space-7:16px;
+  --ds-space-8:20px;
+  --ds-space-9:24px;
+
+  /* Shape / elevation */
+  --ds-radius-sm:7px;
+  --ds-radius-md:9px;
+  --ds-radius-lg:12px;
+  --ds-radius-xl:15px;
+  --ds-radius-pill:999px;
+  --ds-shadow-sm:0 2px 8px rgba(8,34,49,.06);
+  --ds-shadow-md:0 8px 24px rgba(8,34,49,.08);
+  --ds-shadow-lg:0 16px 45px rgba(8,34,49,.14);
+
+  /* Controls */
+  --ds-control-sm:30px;
+  --ds-control-md:36px;
+  --ds-control-lg:44px;
+
+  /* Shared legacy aliases: transitional only; new CSS should use --ds-* directly. */
+  --p0-green:var(--ds-good);
+  --p0-green-soft:var(--ds-good-soft);
+  --p0-amber:var(--ds-warn);
+  --p0-amber-soft:var(--ds-warn-soft);
+  --p0-red:var(--ds-bad);
+  --p0-red-soft:var(--ds-bad-soft);
+  --p0-ink:var(--ds-ink-900);
+  --p0-muted:var(--ds-muted-700);
+  --p0-line:var(--ds-line);
+
+  --p1-blue:var(--ds-info);
+  --p1-blue-soft:var(--ds-info-soft);
+  --p1-purple:var(--ds-purple);
+  --p1-purple-soft:var(--ds-purple-soft);
+  --p1-good:var(--ds-good);
+  --p1-good-soft:var(--ds-good-soft);
+  --p1-warn:var(--ds-warn);
+  --p1-warn-soft:var(--ds-warn-soft);
+  --p1-bad:var(--ds-bad);
+  --p1-bad-soft:var(--ds-bad-soft);
+
+  --p2-green:var(--ds-green-800);
+  --p2-green-2:var(--ds-green-600);
+  --p2-ink:var(--ds-ink-800);
+  --p2-muted:var(--ds-muted-600);
+  --p2-line:var(--ds-line);
+  --p2-bg:var(--ds-surface);
+  --p2-soft:var(--ds-green-050);
+  --p2-shadow:var(--ds-shadow-lg);
+
+  --uiq-ink:var(--ds-ink-800);
+  --uiq-muted:var(--ds-muted-700);
+  --uiq-green:var(--ds-good);
+  --uiq-green-soft:var(--ds-green-100);
+  --uiq-soft:var(--ds-green-050);
+  --uiq-line:var(--ds-line);
+  --uiq-red:var(--ds-bad);
+  --uiq-red-soft:var(--ds-bad-soft);
+  --uiq-amber:var(--ds-warn);
+  --uiq-amber-soft:var(--ds-warn-soft);
+
+  --sm-forest:var(--ds-green-800);
+  --sm-forest-2:var(--ds-green-600);
+  --sm-mint:var(--ds-green-100);
+  --sm-mint-2:var(--ds-green-050);
+  --sm-line:var(--ds-line);
+  --sm-shadow:var(--ds-shadow-md);
+
+  --pm-green:var(--ds-green-800);
+  --pm-green-2:var(--ds-green-600);
+  --pm-deep:var(--ds-green-900);
+  --pm-soft:var(--ds-green-100);
+  --pm-soft-2:var(--ds-green-050);
+  --pm-line:var(--ds-line);
+  --pm-shadow:var(--ds-shadow-md);
+}
+
+/* Canonical primitives */
+html,body{font-family:var(--ds-font-sans)}
+.panel{
+  border-color:var(--ds-line);
+  border-radius:var(--ds-radius-lg);
+}
+.eyebrow{
+  color:var(--ds-muted-600);
+  font-size:var(--ds-text-xs);
+  font-weight:850;
+  letter-spacing:.1em;
+}
+.badge{
+  min-height:22px;
+  padding:4px 7px;
+  display:inline-flex;
+  align-items:center;
+  border-radius:var(--ds-radius-pill);
+  font-size:var(--ds-text-xs);
+  font-weight:850;
+  line-height:1;
+}
+.badge.good{background:var(--ds-good-soft);color:var(--ds-good)}
+.badge.warn{background:var(--ds-warn-soft);color:var(--ds-warn)}
+.badge.bad{background:var(--ds-bad-soft);color:var(--ds-bad)}
+.badge.neutral{background:#eef3f2;color:var(--ds-muted-700)}
+
+button,input,select{font:inherit}
+button{border-radius:var(--ds-radius-md)}
+input,select{
+  border-color:var(--ds-line);
+  border-radius:var(--ds-radius-md);
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible{
+  outline:2px solid rgba(8,113,86,.24);
+  outline-offset:2px;
+}
+
+/* Semantic utility classes used by current modules. */
+.ds-good{color:var(--ds-good)!important}
+.ds-warn{color:var(--ds-warn)!important}
+.ds-bad{color:var(--ds-bad)!important}
+.ds-muted{color:var(--ds-muted-700)!important}
+.ds-surface{background:var(--ds-surface)!important}
+.ds-soft{background:var(--ds-surface-soft)!important}
+
+/* Global mobile readability contract. */
+@media(max-width:900px){
+  :root{
+    --ds-text-body:12px;
+    --ds-text-title:16px;
+  }
+  button{min-height:32px}
+  input,select{min-height:34px}
+}
+@media(max-width:560px){
+  .panel{border-radius:var(--ds-radius-md)}
+}
