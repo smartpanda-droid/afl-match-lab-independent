@@ -357,3 +357,44 @@ button:disabled{filter:none!important}
   .p1-role-metrics{grid-template-columns:1fr 1fr!important}
   .p1-corr-hero{grid-template-columns:1fr 1fr!important}
 }
+
+
+/* P2 v76 control isolation */
+.p2-nav-more,
+.p2-header-more,
+.p2-secondary-more,
+.p2-secondary-back{
+  box-shadow:none!important;
+  filter:none!important;
+  -webkit-filter:none!important;
+}
+.p2-nav-more{
+  background:#f7faf9!important;
+  color:#334f43!important;
+  border:1px solid #dfe8e5!important;
+}
+.p2-nav-more:hover,.p2-nav-more.active{
+  background:#edf7f3!important;
+  color:#075f49!important;
+  border-color:#bdd8ce!important;
+}
+.p2-header-more{
+  background:#fff!important;
+  color:#355248!important;
+  border:1px solid #dbe6e3!important;
+}
+.p2-header-more.active{
+  background:#edf7f3!important;
+  color:#075f49!important;
+  border-color:#afd1c4!important;
+}
+.p2-secondary-more{
+  background:#eef7f3!important;
+  color:#075f49!important;
+  border:1px solid #cfe2da!important;
+}
+.p2-secondary-back{
+  background:#fff!important;
+  color:#426256!important;
+  border:1px solid #dce7e3!important;
+}
