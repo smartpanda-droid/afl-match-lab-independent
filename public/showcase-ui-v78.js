@@ -45,6 +45,25 @@
     return tabs;
   }
 
+  function renderMatchStatus(){
+    var m=currentMatch(),mid=q('#matchSummary .match-mid'); if(!mid||!m)return;
+    q('.v78-match-status',mid)?.remove();
+    q('.v78-countdown',mid)?.remove();
+    var countdown='';
+    var start=Date.parse(m.start_time||'');
+    if(Number.isFinite(start)){
+      var mins=Math.round((start-Date.now())/60000);
+      if(mins>0&&mins<=480)countdown='T-'+mins+'m';
+      else if(mins>480&&mins<2880)countdown='T-'+Math.ceil(mins/60)+'h';
+    }
+    if(countdown){var c=document.createElement('span');c.className='v78-countdown';c.textContent=countdown;mid.appendChild(c)}
+    var status=document.createElement('div');status.className='v78-match-status';
+    var lineup=m.lineup_confirmed?'<span class="good">✓ LINEUP CONFIRMED</span>':m.used_fallback_lineup?'<span>LINEUP FALLBACK</span>':'<span>LINEUP PENDING</span>';
+    var sealed=(state&&state.finalLock)||m.prediction_is_final||m.final_recommendation_locked;
+    var model=sealed?'<span class="info">▣ MODEL SEALED</span>':'<span>MODEL PREVIEW</span>';
+    status.innerHTML=lineup+model;mid.appendChild(status);
+  }
+
   function confidenceInfo(){
     var m=currentMatch();
     var finalLock=false;
@@ -173,6 +192,17 @@
     });
   }
 
+  function ensureInsightRow(){
+    var top=q('.top-edges-panel'),multi=q('#v78MultiPreview'),recent=q('.recent-form-panel'),risk=q('#v78RiskPreview');
+    if(!top||!multi||!recent||!risk)return null;
+    var row=q('#v78InsightRow');
+    if(!row){row=document.createElement('section');row.id='v78InsightRow';row.className='v78-insight-row';top.insertAdjacentElement('afterend',row)}
+    if(multi.parentElement!==row)row.appendChild(multi);
+    if(recent.parentElement!==row)row.appendChild(recent);
+    if(risk.parentElement!==row)row.appendChild(risk);
+    return row;
+  }
+
   function ensureMobileBuilder(){
     var bar=q('#v78MobileBuilder');
     if(!bar){
@@ -197,9 +227,11 @@
   function syncAll(){
     document.body.classList.add('v78-showcase');
     ensureMobileTabs();
+    renderMatchStatus();
     renderKpis();
     renderMultiPreview();
     renderRiskPreview();
+    ensureInsightRow();
     renderMobileBuilder();
   }
 
