@@ -1877,3 +1877,370 @@ body.v78-showcase #view-system-multi .send-builder{background:var(--v78-blue)!im
   body.v78-showcase #v78MobileBuilder span{font-size:12px!important}
   body.v78-showcase #v78MobileBuilder button{font-size:14px!important;min-height:40px!important;padding:7px 12px!important}
 }
+
+
+/* v78.6 — Mobile Harmony Pass
+   Consolidates mobile components into one white/navy/blue product language. */
+@media(max-width:430px){
+  /* ----- Shared mobile component grammar ----- */
+  body.v78-showcase .panel,
+  body.v78-showcase .player-card,
+  body.v78-showcase .multi-card,
+  body.v78-showcase .match-leg-box,
+  body.v78-showcase .player-market-row{
+    border-color:#dfe6ef!important;
+    border-radius:14px!important;
+    background:#fff!important;
+    box-shadow:0 3px 12px rgba(20,42,70,.045)!important;
+  }
+  body.v78-showcase .badge,
+  body.v78-showcase .market-chip,
+  body.v78-showcase .leg-role{
+    border-radius:999px!important;
+  }
+  body.v78-showcase button{
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  /* ----- Match Hero: calmer hierarchy and safer long-team-name layout ----- */
+  body.v78-showcase #matchSummary{
+    grid-template-columns:minmax(0,.9fr) minmax(138px,1.2fr) minmax(0,.9fr)!important;
+    gap:5px!important;
+    padding:12px 9px!important;
+    min-height:142px!important;
+    align-items:center!important;
+  }
+  body.v78-showcase #matchSummary .team-name{
+    max-width:100%!important;
+    margin-inline:auto!important;
+    font-size:16px!important;
+    line-height:1.08!important;
+    letter-spacing:-.015em!important;
+    text-align:center!important;
+    overflow-wrap:normal!important;
+    word-break:normal!important;
+  }
+  body.v78-showcase #matchSummary .match-mid{
+    min-width:0!important;
+    padding:0 2px!important;
+  }
+  body.v78-showcase #matchSummary .match-mid strong{
+    font-size:17px!important;
+    line-height:1.15!important;
+    white-space:normal!important;
+  }
+  body.v78-showcase #matchSummary .match-meta{font-size:11px!important}
+  body.v78-showcase #matchSummary .match-team-logo{height:46px!important;margin-top:5px!important}
+  body.v78-showcase #matchSummary .team-logo-shell.team-logo-large{
+    --afl-logo-size:44px!important;
+    --afl-logo-pad:4px!important;
+  }
+  body.v78-showcase .v78-match-status{gap:4px!important;margin-top:6px!important}
+  body.v78-showcase .v78-match-status span{
+    min-height:23px!important;
+    padding:3px 6px!important;
+    font-size:9px!important;
+    letter-spacing:0!important;
+  }
+
+  /* Late-change monitor should support the hero, not compete with it. */
+  body.v78-showcase #matchdayLateChangeMonitor,
+  body.v78-showcase .late-change-monitor{
+    border-radius:13px!important;
+  }
+
+  /* ----- KPI / primary decision cards ----- */
+  body.v78-showcase .v78-kpi{
+    min-height:96px!important;
+    padding:11px!important;
+    border-radius:13px!important;
+  }
+  body.v78-showcase .v78-kpi .v78-label{font-size:11px!important}
+  body.v78-showcase .v78-kpi .v78-main{font-size:19px!important}
+  body.v78-showcase .v78-kpi .v78-split strong{font-size:17px!important}
+  body.v78-showcase .v78-kpi .v78-split span{font-size:10px!important}
+  body.v78-showcase .v78-ready{font-size:10px!important}
+
+  /* ----- Floating Multi Lab: utility chip, not a second navigation bar ----- */
+  body.v78-showcase.v78-has-builder #v78MobileBuilder{
+    left:14px!important;
+    right:14px!important;
+    bottom:calc(78px + env(safe-area-inset-bottom,0px))!important;
+    min-height:50px!important;
+    height:50px!important;
+    padding:5px 6px 5px 12px!important;
+    border:1px solid #cfddf2!important;
+    border-radius:15px!important;
+    background:rgba(255,255,255,.97)!important;
+    color:var(--v78-navy)!important;
+    box-shadow:0 10px 24px rgba(18,42,74,.13)!important;
+    backdrop-filter:blur(16px)!important;
+    -webkit-backdrop-filter:blur(16px)!important;
+  }
+  body.v78-showcase #v78MobileBuilder>div{
+    display:flex!important;
+    align-items:baseline!important;
+    min-width:0!important;
+    gap:6px!important;
+  }
+  body.v78-showcase #v78MobileBuilder strong{
+    color:var(--v78-navy)!important;
+    font-size:13px!important;
+    white-space:nowrap!important;
+  }
+  body.v78-showcase #v78MobileBuilder span{
+    margin:0!important;
+    color:#7a8b9e!important;
+    font-size:11px!important;
+    white-space:nowrap!important;
+  }
+  body.v78-showcase #v78MobileBuilder button{
+    flex:0 0 auto!important;
+    min-height:38px!important;
+    height:38px!important;
+    padding:6px 11px!important;
+    border-radius:11px!important;
+    font-size:13px!important;
+    box-shadow:none!important;
+  }
+  body.v78-showcase.v78-has-builder main{
+    padding-bottom:calc(132px + env(safe-area-inset-bottom,0px))!important;
+  }
+
+  /* ----- Bottom nav: lighter and visually separate from builder ----- */
+  body.v78-showcase #p2PrimaryNav{
+    left:12px!important;
+    right:12px!important;
+    height:68px!important;
+    border-radius:17px!important;
+    border-color:#dce5ef!important;
+    box-shadow:0 8px 24px rgba(18,42,74,.11)!important;
+  }
+  body.v78-showcase #p2PrimaryNav .p2-nav-button{
+    min-height:58px!important;
+    height:58px!important;
+    border-radius:12px!important;
+  }
+  body.v78-showcase #p2PrimaryNav .p2-nav-button.active{
+    background:#edf4ff!important;
+    color:var(--v78-blue)!important;
+  }
+
+  /* ----- Players: evidence should be readable but not all-green ----- */
+  body.v78-showcase #view-players .player-card{
+    overflow:hidden!important;
+  }
+  body.v78-showcase #view-players .player-card-head{
+    background:#fbfcfe!important;
+    padding:11px 12px!important;
+  }
+  body.v78-showcase #view-players .player-jersey{
+    background:linear-gradient(145deg,#165bce,#2879ff)!important;
+  }
+  body.v78-showcase #view-players .player-risk-strip{
+    background:#f7fafc!important;
+    color:#667a91!important;
+    border-color:#e8edf3!important;
+  }
+  body.v78-showcase #view-players .recent-cell{
+    min-height:48px!important;
+    border:1px solid transparent!important;
+    border-radius:10px!important;
+  }
+  body.v78-showcase #view-players .recent-cell.hit{
+    background:#e9f7f1!important;
+    border-color:#d4eee3!important;
+    color:#0c7c57!important;
+  }
+  body.v78-showcase #view-players .recent-cell.miss{
+    background:#fff0f2!important;
+    border-color:#f6d8dc!important;
+    color:#b33c49!important;
+  }
+  body.v78-showcase #view-players .recent-cell b,
+  body.v78-showcase #view-players .recent-cell small{color:inherit!important}
+  body.v78-showcase #view-players .player-context-details{
+    background:#f8fafc!important;
+  }
+  body.v78-showcase #view-players .player-market-footer .add-leg{
+    background:var(--v78-blue)!important;
+    color:#fff!important;
+    border-radius:11px!important;
+    box-shadow:none!important;
+  }
+
+  /* Decision-speed scanner belongs to the same blue system. */
+  body.v78-showcase #view-players .p1d-mode-tabs button{
+    border:1px solid #dfe6ef!important;
+    background:#fff!important;
+    color:#566b83!important;
+    border-radius:11px!important;
+  }
+  body.v78-showcase #view-players .p1d-mode-tabs button.active{
+    border-color:#bdd3ff!important;
+    background:#edf4ff!important;
+    color:var(--v78-blue)!important;
+  }
+  body.v78-showcase #view-players .p1d-rank-card{
+    border:1px solid #dfe6ef!important;
+    border-radius:13px!important;
+    background:#fff!important;
+    color:var(--v78-navy)!important;
+    box-shadow:none!important;
+  }
+  body.v78-showcase #view-players .p1d-rank-card[data-p1d-rank="1"]{
+    border-color:#b9d1ff!important;
+    box-shadow:inset 3px 0 0 var(--v78-blue)!important;
+  }
+  body.v78-showcase #view-players .p1d-rank-tag{
+    background:#edf4ff!important;
+    color:var(--v78-blue)!important;
+  }
+
+  /* ----- System Multi: neutral evidence + semantic accents ----- */
+  body.v78-showcase #view-system-multi .system-results-toolbar{
+    background:rgba(255,255,255,.985)!important;
+  }
+  body.v78-showcase #view-system-multi .multi-card{
+    background:#fff!important;
+    border-color:#dfe6ef!important;
+  }
+  body.v78-showcase #view-system-multi .multi-card:before{
+    height:3px!important;
+    background:linear-gradient(90deg,#1769ff,#78aaff)!important;
+  }
+  body.v78-showcase #view-system-multi .multi-leg{
+    background:#f8fafc!important;
+    border:1px solid #e4eaf1!important;
+    border-radius:11px!important;
+  }
+  body.v78-showcase #view-system-multi .market-chip{
+    background:#edf4ff!important;
+    color:#1769ff!important;
+  }
+  body.v78-showcase #view-system-multi .leg-role{
+    background:#eef7f3!important;
+    color:#147553!important;
+  }
+  body.v78-showcase #view-system-multi .p1d-multi-intel{
+    display:grid!important;
+    gap:6px!important;
+  }
+  body.v78-showcase #view-system-multi .p1d-multi-intel>div,
+  body.v78-showcase #view-system-multi .p1d-multi-intel>section{
+    border-color:#e1e7ef!important;
+    background:#fbfcfe!important;
+    border-radius:11px!important;
+  }
+  body.v78-showcase #view-system-multi .send-builder{
+    background:var(--v78-blue)!important;
+    color:#fff!important;
+    border-radius:11px!important;
+  }
+
+  /* ----- Multi Lab + Match Markets: less oversized, same card rhythm ----- */
+  body.v78-showcase #view-multi-lab .builder-grid>.panel{
+    border-radius:14px!important;
+  }
+  body.v78-showcase #view-multi-lab .builder-leg{
+    background:#fff!important;
+    border-color:#dfe6ef!important;
+    border-radius:11px!important;
+  }
+  body.v78-showcase #view-multi-lab #builderSummary .stat{
+    background:#f8fafc!important;
+    border-color:#e1e7ef!important;
+    border-radius:11px!important;
+  }
+  body.v78-showcase #view-multi-lab .builder-value{
+    background:#fbfcfe!important;
+    border-color:#dfe6ef!important;
+    border-radius:12px!important;
+  }
+
+  body.v78-showcase #view-multi-lab .match-leg-box{
+    margin-top:8px!important;
+    padding:12px!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-box-head{
+    margin-bottom:10px!important;
+    gap:8px!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-box-head h3{
+    margin:2px 0 0!important;
+    font-size:20px!important;
+    line-height:1.15!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-box-head small{
+    font-size:11px!important;
+    color:#7a8b9e!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-choice-grid{
+    gap:8px!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-choice{
+    min-height:82px!important;
+    padding:10px 11px!important;
+    border:1px solid #dfe6ef!important;
+    border-radius:12px!important;
+    background:#fff!important;
+    color:var(--v78-navy)!important;
+    box-shadow:none!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-choice:hover,
+  body.v78-showcase #view-multi-lab .match-leg-choice:focus{
+    border-color:#bad1ff!important;
+    background:#f7faff!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-choice strong,
+  body.v78-showcase #view-multi-lab .match-leg-choice b{
+    color:var(--v78-navy)!important;
+  }
+  body.v78-showcase #view-multi-lab .match-leg-choice small{
+    color:#7a8b9e!important;
+  }
+  body.v78-showcase #view-multi-lab .total-box .model-midline,
+  body.v78-showcase #view-multi-lab .handicap-box .model-midline{
+    font-size:12px!important;
+    line-height:1.35!important;
+    color:#718399!important;
+  }
+  body.v78-showcase #view-multi-lab .market-range{
+    margin:10px 0 4px!important;
+  }
+  body.v78-showcase #view-multi-lab .market-range-labels{
+    margin-bottom:8px!important;
+    font-size:11px!important;
+  }
+  body.v78-showcase #view-multi-lab .independent-handicap-grid{
+    gap:8px!important;
+  }
+  body.v78-showcase #view-multi-lab .handicap-team-card{
+    padding:10px!important;
+    border:1px solid #dfe6ef!important;
+    border-radius:12px!important;
+    background:#fbfcfe!important;
+  }
+
+  /* ----- More drawer: same card surfaces, semantic green only for system health ----- */
+  body.v78-showcase #p2MoreDrawer .p2-drawer-item{
+    background:#f8fafc!important;
+    border-color:#e1e7ef!important;
+  }
+  body.v78-showcase #p2MoreDrawer .p2-drawer-item .p2-mini-icon{
+    color:var(--v78-blue)!important;
+  }
+}
+
+/* Slightly narrower iPhone tuning. */
+@media(max-width:390px){
+  body.v78-showcase #matchSummary{
+    grid-template-columns:minmax(0,.88fr) minmax(132px,1.24fr) minmax(0,.88fr)!important;
+  }
+  body.v78-showcase #matchSummary .team-name{font-size:15px!important}
+  body.v78-showcase #matchSummary .match-mid strong{font-size:16px!important}
+  body.v78-showcase.v78-has-builder #v78MobileBuilder{
+    left:12px!important;
+    right:12px!important;
+  }
+}
