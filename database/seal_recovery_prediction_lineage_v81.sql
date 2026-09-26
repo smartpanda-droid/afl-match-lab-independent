@@ -1,0 +1,46 @@
+-- AFL Match Lab — P0 Seal Recovery + P1 Prediction Lineage
+-- Production migration applied 2026-09-27.
+--
+-- Root cause fixed:
+--   afl_source.ingest_lineup_payload used local variable "confirmed" and unqualified
+--   match_players.confirmed, causing "column reference confirmed is ambiguous".
+--   All 2026-09-26 T-240/T-120/T-60/T-30 lineup syncs failed, so no final run
+--   existed for the T-60 freeze and final_prediction was correctly marked skipped.
+--
+-- Production objects introduced by migration p0_seal_recovery_p1_prediction_lineage:
+--   afl.seal_registry
+--   afl.seal_integrity(uuid)
+--   afl.refresh_seal_registry(uuid)
+--   afl.sync_seal_registry_after_snapshot()
+--   afl.seal_health_tick()
+--   public.afl_api_seal_health
+--   afl.publish_seal_health()
+--   cron job: afl-seal-health (every 5 minutes)
+--
+-- Seal contract:
+--   * Real pre-start immutable snapshots => SEALED/PARTIAL.
+--   * No pre-start snapshot after match start => MISSED.
+--   * Never manufacture a historical T-60 snapshot.
+--   * RECOVERED is reserved for recovery from provable pre-start evidence.
+--   * Canonical System Multi completeness = rank-1 group for every
+--     conservative/balanced/aggressive x 2/3/4/5-leg bucket = 12 groups.
+--   * Prediction run source_snapshot_at must not exceed the sealed data cutoff.
+--   * Snapshot SHA-256 + model version + prediction run + cutoff are lineage evidence.
+--
+-- IMPORTANT:
+-- The executable migration is recorded in Supabase migration history under
+-- p0_seal_recovery_p1_prediction_lineage. This repository file documents the
+-- production contract and regression root cause; future schema evolution must
+-- preserve these invariants and must not turn MISSED into SEALED retroactively.
+--
+-- Verification on deployment:
+--   2026-09-19 Hawthorn v Brisbane        SEALED  integrity=100 canonical=12
+--   2026-09-18 Sydney v Fremantle         SEALED  integrity=100 canonical=12
+--   2026-09-12 Brisbane v Adelaide        SEALED  integrity=100 canonical=12
+--   2026-09-11 Fremantle v Geelong        SEALED  integrity=100 canonical=12
+--   2026-09-26 Fremantle v Brisbane       MISSED  reason=missed_final_window
+--
+-- Security:
+--   afl.seal_registry is private/RLS enabled with no anon/authenticated grants.
+--   public.afl_api_seal_health is RLS enabled and read-only to anon/authenticated.
+--   No public write RPC was introduced; the browser cannot forge a seal.
